@@ -291,6 +291,8 @@ def unknown_sources(items: list[dict]) -> list[dict]:
             "count": len(hits),
             "latest": max(h["published"] for h in hits),
             "searches": sorted({h["search"] for h in hits if h.get("search")}),
+            "articles": [{"title": h["title"], "link": h["link"], "published": h["published"]}
+                         for h in sorted(hits, key=lambda h: h["published"], reverse=True)[:5]],
         })
     rows.sort(key=lambda r: (-r["count"], r["domain"]))
     return rows
@@ -447,7 +449,6 @@ def main() -> int:
     args = parser.parse_args()
 
     config = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
-    categories = config.get("kategorien", [])
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
     searches = config.get("suchen") or {}
     feeds = sources + search_sources(searches)
@@ -488,11 +489,9 @@ def main() -> int:
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
 
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape())
+    shown = [i for i in items if i["category"] != DISCOVER]  # Entdecken erscheint nur als Vorschlagsliste
     page = env.get_template("index.html.j2").render(
-        items=items,
-        categories=categories,
-        sources=sorted({i["source"] for i in items if i["category"] != DISCOVER}),
-        searches=sorted({f["suche"] for f in feeds if f.get("suche")}),
+        items=shown,
         unknown=unknown_sources(items),
         topics=[t["name"] for t in topics],
         weights=weights,
@@ -501,7 +500,7 @@ def main() -> int:
         rising=rising_topics(items, weights),
         community=community_topics(items),
         stats=source_stats(sources, items),
-        topic_counts=Counter(t for i in items for t in i["topics"]),
+        topic_counts=Counter(t for i in shown for t in i["topics"]),
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,

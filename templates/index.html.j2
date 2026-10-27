@@ -10,7 +10,7 @@
 :root {
   --bg: #f3f2ef; --card: #ffffff; --text: #191919; --muted: #666a73;
   --line: #e0dfdc; --accent: #0a66c2; --accent-soft: #e8f1fb; --new: #e8590c;
-  --up: #057642; --down: #b24020; --fav: #c37d16; --blog: #7c3aed; --trend: #b4232f;
+  --up: #057642; --down: #b24020; --fav: #c37d16; --blog: #7c3aed;
   --shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
   color-scheme: light dark;
 }
@@ -18,13 +18,13 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
     --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
-    --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --trend: #ff7a85; --shadow: none;
+    --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
   --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
-  --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --trend: #ff7a85; --shadow: none;
+  --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --shadow: none;
   color-scheme: dark;
 }
 :root[data-theme="light"] { color-scheme: light; }
@@ -34,73 +34,65 @@ body { margin: 0; background: var(--bg); color: var(--text);
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
 button, input, select { font: inherit; color: inherit; }
 a { color: var(--accent); }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; }
 
+/* Kopf */
 .topbar { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); }
-.topbar .in { max-width: 1080px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 10px; align-items: center; }
+.bar { display: flex; gap: 10px; align-items: center; padding: 8px 0; }
 .logo { font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-.logo span:last-child { color: var(--accent); }
-.topbar input { flex: 1; min-width: 0; color: var(--text); background: var(--bg);
-  border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; }
-.topbar input:focus { outline: none; border-color: var(--accent); }
-.pill { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: .85rem; white-space: nowrap; }
-.tabs { max-width: 1080px; margin: 0 auto; padding: 0 16px; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
-.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 12px; cursor: pointer;
+.logo span { color: var(--accent); }
+.bar input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; }
+.bar input:focus { outline: none; border-color: var(--accent); }
+.icon { background: none; border: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  cursor: pointer; color: var(--muted); flex: none; }
+.icon:hover, .icon[aria-pressed="true"] { background: var(--bg); color: var(--text); }
+.icon svg { width: 20px; height: 20px; }
+.tabs { display: flex; }
+.tabs button { flex: 1; background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 4px; cursor: pointer;
   color: var(--muted); font-weight: 600; font-size: .9rem; white-space: nowrap; }
 .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
-.tabs .n { font-weight: 400; font-size: .8em; margin-left: 3px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 12px;
+  cursor: pointer; font-size: .85rem; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--card); }
+.chip .n { opacity: .6; font-size: .85em; margin-left: 2px; }
 
-.layout { max-width: 1080px; margin: 0 auto; padding: 18px 16px 40px; display: grid;
-  grid-template-columns: 240px minmax(0, 600px); gap: 24px; justify-content: center; }
-.layout.wide { grid-template-columns: minmax(0, 860px); }
-.layout.wide aside { display: none; }
-aside { position: sticky; top: 104px; align-self: start; max-height: calc(100vh - 120px); overflow: auto; }
-.panel { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
-.panel h3, .box h3 { font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
-.nav button { display: flex; width: 100%; justify-content: space-between; background: none; border: 0;
-  padding: 6px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
-.nav button:hover { background: var(--bg); }
-.nav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.nav button:disabled { opacity: .4; cursor: default; }
-.n { color: var(--muted); font-size: .85em; }
-.w { color: var(--fav); font-size: .75em; letter-spacing: -1px; }
-.panel select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; margin-bottom: 8px; }
-.toggle { display: flex; gap: 8px; align-items: center; font-size: .9rem; cursor: pointer; margin-top: 4px; }
-.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: .85rem; }
-.hint { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
-.muted { color: var(--muted); }
+main { padding: 4px 0 40px; }
+.card { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.active-filter { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; font-size: .88rem; color: var(--muted); }
+.active-filter button { background: var(--accent-soft); color: var(--accent); border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-weight: 600; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: inherit; }
+.muted, .n { color: var(--muted); }
 
-/* Überblick */
-.box { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 14px; }
-.box h2 { font-size: 1rem; margin: 0 0 2px; }
-.box .lead { color: var(--muted); font-size: .82rem; margin: 0 0 10px; }
-.topic-row { padding: 8px 0; border-top: 1px solid var(--line); }
-.topic-row:first-of-type { border-top: 0; }
-.topic-row .head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.topic-row .head button { font-weight: 700; }
-.topic-row ul { margin: 4px 0 0; padding-left: 18px; font-size: .9rem; }
-.topic-row li { margin: 2px 0; }
-.topic-row li a { color: var(--text); text-decoration: none; }
-.topic-row li a:hover { color: var(--accent); text-decoration: underline; }
-.trend-tag { color: var(--trend); font-weight: 700; font-size: .78rem; }
-.rising { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.rising button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: .82rem; }
+/* Briefing */
+.briefing { padding: 14px 16px; }
+.briefing-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.briefing h2 { font-size: 1rem; margin: 0; }
+.briefing .date { color: var(--muted); font-size: .82rem; }
+.brief-topic { margin-top: 12px; }
+.brief-topic > button { font-weight: 700; font-size: .92rem; }
+.brief-topic ul { margin: 3px 0 0; padding-left: 18px; font-size: .9rem; }
+.brief-topic li { margin: 2px 0; }
+.brief-topic li a { color: var(--text); text-decoration: none; }
+.brief-topic li a:hover { color: var(--accent); text-decoration: underline; }
+.brief-line { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: .88rem; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.brief-line .chip { font-size: .8rem; padding: 2px 10px; }
+.multi { margin-top: 8px; font-size: .88rem; }
+.multi a { color: var(--text); }
 
 /* Beiträge */
-.status { color: var(--muted); font-size: .85rem; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-.post { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
-.post.dim { opacity: .55; }
-.post.is-new { box-shadow: 0 0 0 2px var(--new); }
+.post { overflow: hidden; }
 .post-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px 8px; }
 .avatar { position: relative; width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
   font-weight: 700; font-size: .85rem; color: #fff; background: hsl(var(--h, 210) 55% 45%); overflow: hidden; }
 .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 7px; background: #fff; object-fit: contain; }
 .who { min-width: 0; flex: 1; }
-.who strong { display: block; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .src { display: block; background: none; border: 0; padding: 0; font-weight: 700; font-size: .95rem; cursor: pointer;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.who .src:hover { color: var(--accent); }
 .who .sub { color: var(--muted); font-size: .78rem; }
-.badge { border-radius: 4px; padding: 1px 7px; font-size: .72rem; font-weight: 700; }
-.badge-new { background: var(--new); color: #fff; display: none; }
-.post.is-new .badge-new { display: inline-block; }
-.badge-study { background: var(--accent-soft); color: var(--accent); }
+.badge { border-radius: 4px; padding: 1px 7px; font-size: .72rem; font-weight: 700; background: var(--accent-soft); color: var(--accent); }
 .post-body { padding: 0 14px 10px; }
 .post-body h2 { font-size: 1.05rem; line-height: 1.35; margin: 0 0 6px; }
 .post-body h2 a { color: inherit; text-decoration: none; }
@@ -110,178 +102,166 @@ aside { position: sticky; top: 104px; align-self: start; max-height: calc(100vh 
 .tag { background: none; border: 0; padding: 0; color: var(--accent); font-size: .85rem; font-weight: 600; cursor: pointer; }
 .post-img { display: block; background: var(--bg); }
 .post-img img { width: 100%; max-height: 380px; object-fit: cover; display: block; }
-.actions { display: flex; border-top: 1px solid var(--line); margin: 0 6px; }
-.actions button, .actions a { flex: 1; display: flex; gap: 5px; justify-content: center; align-items: center;
-  background: none; border: 0; padding: 10px 2px; color: var(--muted); font-size: .82rem; font-weight: 600;
-  cursor: pointer; text-decoration: none; border-radius: 6px; white-space: nowrap; }
-.actions button:hover, .actions a:hover { background: var(--bg); }
+.actions { position: relative; display: flex; border-top: 1px solid var(--line); margin: 0 6px; }
+.actions > button { flex: 1; display: flex; gap: 6px; justify-content: center; align-items: center;
+  background: none; border: 0; padding: 10px 4px; color: var(--muted); font-size: .85rem; font-weight: 600; cursor: pointer; border-radius: 6px; }
+.actions > button.more { flex: 0 0 52px; }
+.actions > button:hover { background: var(--bg); }
 .actions svg { width: 18px; height: 18px; flex: none; }
-.post[data-vote="1"] .act-up { color: var(--up); }
-.post[data-vote="-1"] .act-down { color: var(--down); }
-.post.is-fav .act-fav { color: var(--fav); }
-.post.is-fav .act-fav svg path { fill: currentColor; }
+.post.is-fav .act-favs { color: var(--fav); }
+.post.is-fav .act-favs svg path, .post.is-blog .act-blog svg path { fill: currentColor; }
 .post.is-blog .act-blog { color: var(--blog); }
-.post.is-blog .act-blog svg path { fill: currentColor; }
+.menu { position: absolute; right: 4px; bottom: 44px; z-index: 5; background: var(--card); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 0 0 1px var(--line); padding: 4px; min-width: 230px; }
+.menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 9px 12px; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+.menu button:hover { background: var(--bg); }
+.seen-line { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .8rem; margin: 6px 0 20px; }
+.seen-line::before, .seen-line::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 
-/* Formular und Tabellen */
-.add-form { display: grid; gap: 8px; }
+/* Gemerkt */
+.seg { display: inline-flex; background: var(--card); border-radius: 999px; box-shadow: var(--shadow); padding: 3px; }
+.seg button { background: none; border: 0; border-radius: 999px; padding: 5px 14px; cursor: pointer; font-weight: 600; font-size: .88rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.list-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.add-form { padding: 14px; display: grid; gap: 8px; }
 .add-form input, .add-form select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
-.add-form .row { display: flex; gap: 8px; flex-wrap: wrap; }
-.add-form .row > * { flex: 1 1 160px; }
-.btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
-.btn.ghost { background: none; color: var(--accent); border: 1px solid var(--accent); }
-.table { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: .86rem; }
-th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted); font-weight: 600; font-size: .76rem; white-space: nowrap; }
-td.num, th.num { text-align: right; }
-.vote-up { color: var(--up); font-weight: 700; } .vote-down { color: var(--down); font-weight: 700; }
-footer { color: var(--muted); font-size: .8rem; padding: 16px 0; }
-footer summary { cursor: pointer; }
+.btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 7px 16px; font-weight: 600; cursor: pointer; }
+.btn.ghost { background: var(--card); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
-.filters-toggle { display: none; }
-@media (max-width: 860px) {
-  .layout, .layout.wide { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
-  aside { position: static; max-height: none; display: none; }
-  aside.open { display: block; }
-  .filters-toggle { display: inline-block; }
-}
+/* Pflege (Zahnrad) */
+.admin { padding: 14px 16px; }
+.admin h2 { font-size: 1rem; margin: 0 0 4px; }
+.admin .lead { color: var(--muted); font-size: .82rem; margin: 0 0 10px; }
+.table { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .75rem; white-space: nowrap; }
+.num { text-align: right; }
+.vote-up { color: var(--up); font-weight: 700; } .vote-down { color: var(--down); font-weight: 700; }
+.hits { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
+.admin ul.plain { list-style: none; padding: 0; margin: 0; font-size: .9rem; }
+.admin ul.plain li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.theme-row { display: flex; gap: 8px; align-items: center; }
+
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 20; background: var(--text); color: var(--card);
+  border-radius: 8px; padding: 10px 14px; font-size: .9rem; display: flex; gap: 14px; align-items: center; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+.toast button { background: none; border: 0; color: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+footer { color: var(--muted); font-size: .8rem; padding: 4px 0 24px; }
+
 @media (max-width: 480px) {
-  .layout { padding-left: 0; padding-right: 0; }
-  .post, .box, .panel { border-radius: 0; }
-  .status, footer, aside { padding-left: 16px; padding-right: 16px; }
+  .wrap { padding: 0 12px; }
+  main .card { margin-left: -12px; margin-right: -12px; border-radius: 0; }
   .actions .lbl { display: none; }
-  .logo .full { display: none; }
-  .topbar .in { gap: 8px; }
 }
 </style>
 </head>
 <body>
-{% set feed_items = items|rejectattr("category", "in", ["Community", "Entdecken"])|list %}
+{% set feed_count = items|rejectattr("category", "equalto", "Community")|list|length %}
 <div class="topbar">
-  <div class="in">
-    <div class="logo"><span class="full">Paid Search </span><span>Feed</span></div>
-    <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
-    <button class="pill filters-toggle" id="filtersBtn" type="button">Filter</button>
-    <button class="pill" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
+  <div class="wrap">
+    <div class="bar">
+      <div class="logo">PPC <span>Feed</span></div>
+      <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
+      <button class="icon" id="adminBtn" type="button" aria-pressed="false" title="Quellen und Einstellungen" aria-label="Quellen und Einstellungen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </button>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="feed" aria-selected="true">Feed</button>
+      <button role="tab" data-tab="studies" aria-selected="false">Studien</button>
+      <button role="tab" data-tab="community" aria-selected="false">Community</button>
+      <button role="tab" data-tab="saved" aria-selected="false">Gemerkt</button>
+    </nav>
   </div>
-  <nav class="tabs" role="tablist" id="tabs">
-    <button role="tab" data-tab="feed" aria-selected="true">Feed <span class="n">{{ feed_items|length }}</span></button>
-    <button role="tab" data-tab="studies" aria-selected="false">Studien <span class="n">{{ items|selectattr("study")|list|length }}</span></button>
-    <button role="tab" data-tab="community" aria-selected="false">Community <span class="n">{{ items|selectattr("category", "equalto", "Community")|list|length }}</span></button>
-    <button role="tab" data-tab="discover" aria-selected="false">Entdecken <span class="n">{{ items|selectattr("category", "equalto", "Entdecken")|list|length }}</span></button>
-    <button role="tab" data-tab="favs" aria-selected="false">★ Gemerkt <span class="n" id="nFavs">0</span></button>
-    <button role="tab" data-tab="blog" aria-selected="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
-    <button role="tab" data-tab="sources" aria-selected="false">Quellen</button>
-  </nav>
 </div>
 
-<div class="layout" id="layout">
-  <aside id="aside">
-    <div class="panel nav" id="topicNav">
-      <h3>Themen</h3>
-      <button type="button" data-topic="" aria-pressed="true">Alle Themen</button>
-      {% for t in topics %}
-      <button type="button" data-topic="{{ t }}" aria-pressed="false"{% if not topic_counts[t] %} disabled{% endif %}>
-        <span>#{{ t }} <span class="w" title="Gewicht {{ weights[t] }}">{{ "●" * weights[t] }}</span></span><span class="n">{{ topic_counts[t] }}</span></button>
-      {% endfor %}
-    </div>
-    <div class="panel nav" id="catNav">
-      <h3>Kategorie</h3>
-      <button type="button" data-cat="" aria-pressed="true">Alle</button>
-      {% for cat in categories if cat not in ["Community", "Entdecken"] %}
-      {% set n = items|selectattr("category", "equalto", cat)|list|length %}
-      <button type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }} <span class="n">{{ n }}</span></button>
-      {% endfor %}
-    </div>
-    <div class="panel">
-      <h3>Filter</h3>
-      <select id="source" aria-label="Quelle">
-        <option value="">Alle Quellen</option>
-        {% for s in sources %}<option>{{ s }}</option>{% endfor %}
-      </select>
-      <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue seit letztem Besuch</label>
-      <label class="toggle"><input type="checkbox" id="hideDown"> Abgewertete Quellen ausblenden</label>
-    </div>
-  </aside>
+<div class="wrap">
+  <div class="chips" id="chips" role="group" aria-label="Themen">
+    <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
+    {% for t in topics if topic_counts[t] %}
+    <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
+    {% endfor %}
+  </div>
 
   <main>
-    {# ---------- Überblick (nur im Tab Feed) ---------- #}
-    <section id="overview">
-      {% if yesterday.topics %}
-      <div class="box">
-        <h2>Gestern wichtig</h2>
-        <p class="lead"><time class="day" datetime="{{ yesterday.date }}">{{ yesterday.date }}</time> · {{ yesterday.total }} Beiträge aus festen Quellen · gewichtet nach Themen-Wichtigkeit</p>
-        {% for row in yesterday.topics %}
-        <div class="topic-row">
-          <div class="head"><button class="link" type="button" data-topic="{{ row.topic }}">#{{ row.topic }}</button>
-            <span class="n">{{ row.count }} Beiträge · {{ row.sources }} Quellen</span></div>
-          <ul>{% for a in row.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a> <span class="n">– {{ a.source }}</span></li>{% endfor %}</ul>
-        </div>
-        {% endfor %}
+    <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
+
+    {# ---------- Briefing ---------- #}
+    {% set brief = yesterday.topics[:3] %}
+    {% if brief or rising or stories %}
+    <section class="card briefing" id="briefing">
+      <div class="briefing-head">
+        <h2>Briefing</h2>
+        <button class="link" type="button" id="briefToggle">einklappen</button>
       </div>
-      {% endif %}
-      {% if stories or rising %}
-      <div class="box">
-        <h2>Trends</h2>
-        <p class="lead">Geschichten, über die mehrere deiner Quellen in den letzten 3 Tagen berichten</p>
-        {% for c in stories %}
-        <div class="topic-row">
-          <div class="head"><strong>{{ c.title }}</strong><span class="trend-tag">{{ c.sources }} Quellen</span></div>
-          <ul>{% for a in c.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a> <span class="n">– {{ a.source }}</span></li>{% endfor %}</ul>
+      <div id="briefBody">
+        {% if brief %}
+        <span class="date">Wichtig am <time class="day" datetime="{{ yesterday.date }}">{{ yesterday.date }}</time></span>
+        {% for row in brief %}
+        <div class="brief-topic">
+          <button class="link" type="button" data-topic="{{ row.topic }}">{{ row.topic }}</button>
+          <span class="n">· {{ row.count }} Beiträge</span>
+          <ul>{% for a in row.articles[:2] %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a> <span class="n">– {{ a.source }}</span></li>{% endfor %}</ul>
         </div>
         {% endfor %}
+        {% endif %}
+        {% if stories %}
+        <div class="multi"><span class="n">Mehrfach berichtet:</span>
+          {% for c in stories[:2] %}<a href="{{ c.articles[0].link }}" target="_blank" rel="noopener">{{ c.title }}</a> <span class="n">({{ c.sources }} Quellen)</span>{% if not loop.last %} · {% endif %}{% endfor %}
+        </div>
+        {% endif %}
         {% if rising %}
-        <div class="rising"><span class="n">Steigende Themen:</span>
-          {% for r in rising %}<button type="button" data-topic="{{ r.topic }}" title="{{ r.recent }} Beiträge in 3 Tagen, {{ r.ratio }}× so viele wie üblich">#{{ r.topic }} ↑{{ r.ratio }}×</button>{% endfor %}
+        <div class="brief-line"><span class="n">Im Trend:</span>
+          {% for r in rising %}<button class="chip" type="button" data-topic="{{ r.topic }}" title="{{ r.recent }} Beiträge in 3 Tagen, {{ r.ratio }}× so viele wie üblich">{{ r.topic }} ↑</button>{% endfor %}
         </div>
         {% endif %}
       </div>
-      {% endif %}
     </section>
+    {% endif %}
 
-    <section id="communityHead" class="box" hidden>
+    {% if community %}
+    <section class="card briefing" id="communityBrief" hidden>
       <h2>Diese Woche in der Community</h2>
-      <p class="lead">Häufigste Themen in Reddit r/PPC und r/googleads, letzte 7 Tage</p>
-      <div class="rising">{% for t, n in community %}<button type="button" data-topic="{{ t }}">#{{ t }} · {{ n }}</button>{% else %}<span class="n">Noch keine Themen-Treffer.</span>{% endfor %}</div>
+      <div class="brief-line" style="border-top:0;padding-top:0">
+        {% for t, n in community %}<button class="chip" type="button" data-topic="{{ t }}">{{ t }} · {{ n }}</button>{% endfor %}
+      </div>
     </section>
+    {% endif %}
 
-    <section id="addBox" class="box" hidden>
-      <h2>Artikel ablegen</h2>
-      <p class="lead">Einen Artikel von anderswo merken. Er erscheint unter «Gemerkt» oder «Blog-Ideen».</p>
-      <form class="add-form" id="addForm">
-        <input type="url" id="addUrl" placeholder="https://… Link zum Artikel" required>
-        <input type="text" id="addTitle" placeholder="Titel (optional)">
-        <div class="row">
-          <select id="addTopic"><option value="">Thema (optional)</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
-          <select id="addList"><option value="favs">nach «Gemerkt»</option><option value="blog">nach «Blog-Ideen»</option></select>
+    {# ---------- Gemerkt ---------- #}
+    <section id="savedHead" hidden>
+      <div class="list-head">
+        <div class="seg" id="seg">
+          <button type="button" data-list="favs" aria-pressed="true">Gemerkt <span class="n" id="nFavs">0</span></button>
+          <button type="button" data-list="blog" aria-pressed="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
         </div>
-        <div class="row"><button class="btn" type="submit">Ablegen</button></div>
+        <div>
+          <button class="btn ghost" type="button" id="copyList">Kopieren</button>
+          <button class="btn" type="button" id="addBtn">+ Link</button>
+        </div>
+      </div>
+      <form class="card add-form" id="addForm" hidden>
+        <input type="url" id="addUrl" placeholder="https://… Link zu einem Artikel von anderswo" required>
+        <input type="text" id="addTitle" placeholder="Titel (optional)">
+        <select id="addTopic"><option value="">Thema (optional)</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
+        <div><button class="btn" type="submit">Ablegen</button> <button class="link" type="button" id="addCancel">Abbrechen</button></div>
       </form>
-      <p class="hint">Hat die Seite einen Feed, kann sie als feste Quelle aufgenommen werden. Den Feed findet
-        <code>python find_feed.py &lt;Link&gt;</code> und gibt den Eintrag für <code>sources.yaml</code> aus.</p>
     </section>
-
-    <section id="listTools" hidden><p class="status"><button class="link" type="button" id="copyList">Liste als Text kopieren</button><span id="copyDone" hidden>kopiert</span></p></section>
-
-    <p class="status" id="statusLine"><span id="count"></span><span id="filterInfo" hidden>· <strong id="filterName"></strong>
-      <button class="link" type="button" id="filterClear">× aufheben</button></span></p>
 
     <div id="feed">
     {% for item in items %}
-    <article class="post" data-id="{{ item.id }}" data-cat="{{ item.category }}" data-source="{{ item.source }}"
+    <article class="card post" data-id="{{ item.id }}" data-cat="{{ item.category }}" data-source="{{ item.source }}"
       data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}" data-published="{{ item.published }}"
       data-topics="{{ item.topics|join('|') }}" data-weight="{{ item.weight }}" data-study="{{ 1 if item.study else 0 }}"
       data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source ~ ' ' ~ item.topics|join(' '))|lower }}">
       <header class="post-head">
         <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}<img src="https://www.google.com/s2/favicons?domain={{ item.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.remove()"></span>
         <div class="who">
-          <strong>{{ item.source }}</strong>
-          <span class="sub">{{ item.category }} · <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>{% if item.search %} · Suche: {{ item.search }}{% endif %}</span>
+          <button class="src" type="button" title="Nur diese Quelle zeigen">{{ item.source }}</button>
+          <span class="sub"><time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time></span>
         </div>
-        {% if item.study %}<span class="badge badge-study">Studie</span>{% endif %}
-        <span class="badge badge-new">Neu</span>
+        {% if item.study %}<span class="badge">Studie</span>{% endif %}
       </header>
       <div class="post-body">
         <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
@@ -294,75 +274,86 @@ footer summary { cursor: pointer; }
       </a>
       {% endif %}
       <div class="actions">
-        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg><span class="lbl">Mehr</span></button>
-        <button class="act-down" type="button" data-act="down" title="Weniger von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg><span class="lbl">Weniger</span></button>
-        <button class="act-fav" type="button" data-act="favs" title="Merken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/></svg><span class="lbl">Merken</span></button>
-        <button class="act-blog" type="button" data-act="blog" title="Als Thema für den eigenen Blog vormerken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog</span></button>
-        <a href="{{ item.link }}" target="_blank" rel="noopener" title="Artikel öffnen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span class="lbl">Lesen</span></a>
+        <button class="act-favs" type="button" data-act="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg><span class="lbl">Merken</span></button>
+        <button class="act-blog" type="button" data-act="blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog-Idee</span></button>
+        <button class="more" type="button" data-act="menu" aria-label="Weitere Aktionen"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       </div>
     </article>
     {% endfor %}
     </div>
     <div id="listFeed" hidden></div>
-    <p class="empty" id="empty" hidden>Keine Beiträge für diese Auswahl.</p>
+    <p class="empty" id="empty" hidden></p>
 
-    {# ---------- Quellen-Auswertung ---------- #}
-    <section id="sourcesView" hidden>
-      <div class="box">
-        <h2>Quellen-Auswertung</h2>
+    {# ---------- Pflege (Zahnrad) ---------- #}
+    <section id="admin" hidden>
+      <div class="card admin">
+        <h2>Quellen</h2>
         <p class="lead">Feste Quellen aus <code>sources.yaml</code>, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
-          Bewertungen, Gemerkt und Blog-Ideen stammen aus diesem Browser.</p>
+          Bewertung und Gemerkt stammen aus diesem Browser.</p>
         <div class="table"><table>
-          <thead><tr><th>Quelle</th><th>Kategorie</th><th class="num">Beiträge</th><th class="num">Themen</th><th class="num">Studien</th>
-            <th>Letzter</th><th>Bewertung</th><th class="num">★</th><th class="num">Blog</th></tr></thead>
+          <thead><tr><th>Quelle</th><th class="num">Beiträge</th><th class="num">Themen</th><th>Letzter</th><th>Bewertung</th><th class="num">Gemerkt</th></tr></thead>
           <tbody>
           {% for s in stats %}
             <tr data-source="{{ s.name }}">
-              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.host }}{% if s.filtered %} · gefiltert{% endif %}</span></td>
-              <td>{{ s.category }}</td>
+              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.category }} · {{ s.host }}{% if s.filtered %} · gefiltert{% endif %}</span></td>
               <td class="num">{{ s.count }}</td>
               <td class="num">{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</td>
-              <td class="num">{{ s.studies }}</td>
               <td>{% if s.latest %}<time datetime="{{ s.latest }}">{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.</time>{% else %}–{% endif %}</td>
-              <td class="c-vote">–</td><td class="num c-favs">0</td><td class="num c-blog">0</td>
+              <td class="c-vote">–</td><td class="num c-saved">0</td>
             </tr>
           {% endfor %}
           </tbody>
         </table></div>
       </div>
+
+      <div class="card admin">
+        <h2>Stummgeschaltete Quellen</h2>
+        <ul class="plain" id="mutedList"></ul>
+        <p class="lead" id="mutedEmpty">Keine. Über «⋯» bei einem Beitrag lässt sich eine Quelle stummschalten.</p>
+      </div>
+
       {% if unknown %}
-      <div class="box">
+      <div class="card admin">
         <h2>Vorschläge für neue Quellen</h2>
-        <p class="lead">Domains aus dem Tab «Entdecken», die noch keine feste Quelle sind, häufigste zuerst.
-          Gute Seite → Feed suchen und in <code>sources.yaml</code> aufnehmen. Rauschen → unter <code>suchen → ignorieren</code>.</p>
+        <p class="lead">Seiten, die bei den Google-News-Suchbegriffen auftauchen und noch keine feste Quelle sind, häufigste zuerst.
+          Passt eine, den Feed mit <code>find_feed.py</code> suchen und in <code>sources.yaml</code> aufnehmen.</p>
         <div class="table"><table>
-          <thead><tr><th>Domain</th><th class="num">Treffer</th><th>Zuletzt</th><th>Gefunden über</th><th></th></tr></thead>
+          <thead><tr><th>Seite</th><th class="num">Treffer</th><th>Zuletzt</th></tr></thead>
           <tbody>
-          {% for u in unknown %}
-            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a></td>
+          {% for u in unknown[:40] %}
+            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>
+                <details><summary class="n">Artikel zeigen</summary><ul class="hits">
+                  {% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></li>{% endfor %}
+                </ul></details></td>
               <td class="num">{{ u.count }}</td>
-              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td>
-              <td class="n">{{ u.searches|join(", ") }}</td>
-              <td><button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button></td></tr>
+              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td></tr>
           {% endfor %}
           </tbody>
         </table></div>
       </div>
       {% endif %}
+
+      <div class="card admin">
+        <h2>Darstellung</h2>
+        <div class="theme-row"><span class="muted">Farbschema:</span>
+          <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div>
+        </div>
+      </div>
+
+      <div class="card admin">
+        <h2>Letzter Lauf</h2>
+        <p class="lead">Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time> · {{ stats|length }} feste Quellen</p>
+        {% if errors %}
+        <ul class="plain">{% for e in errors %}<li><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></li>{% endfor %}</ul>
+        {% else %}<p class="lead">Alle Quellen erreichbar.</p>{% endif %}
+      </div>
     </section>
 
-    <footer>
-      Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
-      · {{ stats|length }} feste Quellen · Inhalte gehören den jeweiligen Quellen.
-      {% if errors %}
-      <details>
-        <summary>{{ errors|length }} Quelle{{ "n" if errors|length > 1 }} beim letzten Lauf nicht erreichbar</summary>
-        <ul>{% for e in errors %}<li>{{ e.source }}: {{ e.error }}</li>{% endfor %}</ul>
-      </details>
-      {% endif %}
-    </footer>
+    <footer id="footer">Inhalte gehören den jeweiligen Quellen.</footer>
   </main>
 </div>
+
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastUndo">Rückgängig</button></div>
 
 <script>
 (function () {
@@ -370,26 +361,30 @@ footer summary { cursor: pointer; }
     get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  var DAY = 864e5, VOTE_SHIFT = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
   var $ = function (id) { return document.getElementById(id); };
+  var DAY = 864e5, BOOST = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
 
-  // Farbschema: Auto → Hell → Dunkel
-  var root = document.documentElement, themeBtn = $("theme");
-  var labels = { "": "Auto", light: "Hell", dark: "Dunkel" }, order = ["", "light", "dark"];
-  var theme = store.get("psn-theme", "");
+  // Farbschema
+  var root = document.documentElement, theme = store.get("psn-theme", "");
   function applyTheme() {
     if (theme) root.setAttribute("data-theme", theme); else root.removeAttribute("data-theme");
-    themeBtn.textContent = labels[theme];
+    document.querySelectorAll("#themeSeg button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.theme === theme ? "true" : "false"); });
   }
   applyTheme();
-  themeBtn.addEventListener("click", function () {
-    theme = order[(order.indexOf(theme) + 1) % order.length]; store.set("psn-theme", theme); applyTheme();
+  document.querySelectorAll("#themeSeg button").forEach(function (b) {
+    b.addEventListener("click", function () { theme = b.dataset.theme; store.set("psn-theme", theme); applyTheme(); });
   });
-  $("filtersBtn").addEventListener("click", function () { $("aside").classList.toggle("open"); });
 
-  var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+  // Datumsangaben
+  var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "numeric", month: "long" });
   var dayFmt = new Intl.DateTimeFormat("de-CH", { weekday: "long", day: "numeric", month: "long" });
-  function fmt(iso) { return dateFmt.format(new Date(iso)); }
+  function fmt(iso) {
+    var d = new Date(iso), h = (Date.now() - d) / 36e5;
+    if (h < 1) return "gerade eben";
+    if (h < 24) return "vor " + Math.floor(h) + " Std.";
+    if (h < 48) return "gestern";
+    return dateFmt.format(d);
+  }
   document.querySelectorAll(".post time").forEach(function (t) { t.textContent = fmt(t.dateTime); });
   document.querySelectorAll("time.day").forEach(function (t) { t.textContent = dayFmt.format(new Date(t.dateTime + "T12:00:00")); });
   $("generated").textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date($("generated").dateTime));
@@ -400,18 +395,18 @@ footer summary { cursor: pointer; }
   var feed = $("feed"), listFeed = $("listFeed");
   var posts = Array.prototype.slice.call(feed.querySelectorAll(".post"));
   posts.forEach(paintAvatar);
+  var seenLine = document.createElement("div");
+  seenLine.className = "seen-line"; seenLine.textContent = "Bis hier gelesen";
 
-  // Neu seit letztem Besuch
-  var lastVisit = store.get("psn-last-visit", null), newCount = 0;
-  if (lastVisit) posts.forEach(function (p) {
-    if (p.dataset.seen > lastVisit) { p.classList.add("is-new"); newCount++; }
-  });
+  // Was seit dem letzten Besuch neu ist, steht oben; darunter die Linie "Bis hier gelesen"
+  var lastVisit = store.get("psn-last-visit", null);
   store.set("psn-last-visit", new Date().toISOString());
+  function isNew(p) { return !!lastVisit && p.dataset.seen > lastVisit; }
 
-  // Im Browser gespeichert: Bewertungen je Quelle, Gemerkt, Blog-Ideen
+  // Im Browser gespeichert: Bewertung je Quelle (+1 mehr, -1 stumm), Gemerkt, Blog-Ideen
   var votes = store.get("psn-votes", {});
   var lists = { favs: store.get("psn-favs", {}), blog: store.get("psn-blog", {}) };
-  function saveList(name) { store.set("psn-" + name, lists[name]); }
+  var briefOpen = store.get("psn-brief-open", true);
 
   function snapshot(post) {
     var a = post.querySelector("h2 a"), p = post.querySelector(".post-body p"), img = post.querySelector(".post-img img");
@@ -420,57 +415,48 @@ footer summary { cursor: pointer; }
       image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
   }
 
-  var state = { tab: "feed", cat: "", topic: "", source: "", domain: "", q: "", onlyNew: false, hideDown: false };
+  var state = { tab: "feed", list: "favs", admin: false, topic: "", source: "", q: "" };
   var TABS = {
-    feed: function (p) { return p.dataset.cat !== "Community" && p.dataset.cat !== "Entdecken"; },
+    feed: function (p) { return p.dataset.cat !== "Community"; },
     studies: function (p) { return p.dataset.study === "1"; },
-    community: function (p) { return p.dataset.cat === "Community"; },
-    discover: function (p) { return p.dataset.cat === "Entdecken"; }
+    community: function (p) { return p.dataset.cat === "Community"; }
+  };
+  var EMPTY = {
+    feed: "Keine Beiträge für diese Auswahl.", studies: "Keine Studien für diese Auswahl.", community: "Keine Community-Beiträge für diese Auswahl.",
+    favs: "Noch nichts gemerkt. Über «Merken» bei einem Beitrag oder «+ Link» landet es hier.",
+    blog: "Noch keine Blog-Ideen. Über «Blog-Idee» bei einem Beitrag oder «+ Link» landet es hier."
   };
 
-  function score(post) {
-    return new Date(post.dataset.published).getTime()
-      + (votes[post.dataset.source] || 0) * VOTE_SHIFT
-      + (+post.dataset.weight || 0) * WEIGHT_SHIFT;
+  function score(p) {
+    return new Date(p.dataset.published).getTime() + (votes[p.dataset.source] > 0 ? BOOST : 0) + (+p.dataset.weight || 0) * WEIGHT_SHIFT;
   }
-  function matches(post) {
+  function matches(p) {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
-    var vote = votes[post.dataset.source] || 0;
-    return TABS[state.tab](post)
-      && (!state.cat || post.dataset.cat === state.cat)
-      && (!state.topic || post.dataset.topics.split("|").indexOf(state.topic) !== -1)
-      && (!state.source || post.dataset.source === state.source)
-      && (!state.domain || post.dataset.domain === state.domain)
-      && (!state.onlyNew || post.classList.contains("is-new"))
-      && (!state.hideDown || vote >= 0)
-      && terms.every(function (t) { return post.dataset.text.indexOf(t) !== -1; });
+    return TABS[state.tab](p) && !(votes[p.dataset.source] < 0)
+      && (!state.topic || p.dataset.topics.split("|").indexOf(state.topic) !== -1)
+      && (!state.source || p.dataset.source === state.source)
+      && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; });
   }
-  function decorate(post) {
-    var vote = votes[post.dataset.source] || 0;
-    post.dataset.vote = vote;
-    post.classList.toggle("dim", vote < 0);
-    post.classList.toggle("is-fav", !!lists.favs[post.dataset.id]);
-    post.classList.toggle("is-blog", !!lists.blog[post.dataset.id]);
+  function decorate(p) {
+    p.classList.toggle("is-fav", !!lists.favs[p.dataset.id]);
+    p.classList.toggle("is-blog", !!lists.blog[p.dataset.id]);
   }
 
   function buildSavedPost(f) {
     var live = feed.querySelector('.post[data-id="' + CSS.escape(f.id) + '"]');
     if (live) { var c = live.cloneNode(true); c.hidden = false; return c; }
-    // Nicht (mehr) im Feed – aus dem gespeicherten Stand aufbauen
+    // Nicht (mehr) im Feed: aus dem gespeicherten Stand aufbauen
     var tpl = posts[0].cloneNode(true);
-    tpl.hidden = false; tpl.classList.remove("is-new");
-    tpl.dataset.id = f.id; tpl.dataset.source = f.source; tpl.dataset.cat = f.category;
-    tpl.dataset.published = f.published; tpl.dataset.topics = f.topics || ""; tpl.dataset.domain = f.domain || "";
-    var av = tpl.querySelector(".avatar");
+    tpl.hidden = false;
+    Object.assign(tpl.dataset, { id: f.id, source: f.source, cat: f.category, published: f.published, topics: f.topics || "", domain: f.domain || "" });
+    var av = tpl.querySelector(".avatar"), favicon = av.querySelector("img");
     av.firstChild.textContent = f.source.slice(0, 2).toUpperCase();
-    var fav = av.querySelector("img");
-    if (fav) { if (f.domain) fav.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=64"; else fav.remove(); }
-    tpl.querySelector(".who strong").textContent = f.source;
-    tpl.querySelector(".who .sub").textContent = f.category + " · " + fmt(f.published);
+    if (favicon) { if (f.domain) favicon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=64"; else favicon.remove(); }
+    tpl.querySelector(".src").textContent = f.source;
+    tpl.querySelector(".sub").textContent = f.category === "Abgelegt" ? "selbst abgelegt" : fmt(f.published);
     var a = tpl.querySelector("h2 a"); a.textContent = f.title; a.href = f.link;
-    tpl.querySelectorAll(".actions a").forEach(function (l) { l.href = f.link; });
     var p = tpl.querySelector(".post-body p"); if (p) { p.textContent = f.snippet || ""; p.hidden = !f.snippet; }
-    var tags = tpl.querySelector(".tags"); if (tags) tags.remove();
+    ["tags", "badge", "post-img"].forEach(function (cls) { var el = tpl.querySelector("." + cls); if (el) el.remove(); });
     if (f.topics) {
       var box = document.createElement("div"); box.className = "tags";
       f.topics.split("|").forEach(function (t) {
@@ -478,133 +464,179 @@ footer summary { cursor: pointer; }
       });
       tpl.querySelector(".post-body").appendChild(box);
     }
-    var badge = tpl.querySelector(".badge-study"); if (badge) badge.remove();
-    var img = tpl.querySelector(".post-img"); if (img) img.remove();
     return tpl;
   }
 
-  function renderSources() {
-    document.querySelectorAll("#sourcesView tr[data-source]").forEach(function (tr) {
+  function renderAdmin() {
+    document.querySelectorAll("#admin tr[data-source]").forEach(function (tr) {
       var name = tr.dataset.source, v = votes[name] || 0, cell = tr.querySelector(".c-vote");
-      cell.textContent = v > 0 ? "▲ mehr" : v < 0 ? "▼ weniger" : "–";
+      cell.textContent = v > 0 ? "▲ mehr" : v < 0 ? "stumm" : "–";
       cell.className = "c-vote " + (v > 0 ? "vote-up" : v < 0 ? "vote-down" : "");
-      ["favs", "blog"].forEach(function (l) {
-        tr.querySelector(".c-" + l).textContent = Object.keys(lists[l]).filter(function (id) { return lists[l][id].source === name; }).length;
-      });
+      tr.querySelector(".c-saved").textContent = ["favs", "blog"].reduce(function (sum, l) {
+        return sum + Object.keys(lists[l]).filter(function (id) { return lists[l][id].source === name; }).length;
+      }, 0);
     });
+    var muted = Object.keys(votes).filter(function (n) { return votes[n] < 0; }).sort(), ul = $("mutedList");
+    ul.innerHTML = "";
+    muted.forEach(function (name) {
+      var li = document.createElement("li"), b = document.createElement("button");
+      li.appendChild(document.createTextNode(name));
+      b.className = "link"; b.type = "button"; b.textContent = "zurückholen";
+      b.addEventListener("click", function () { delete votes[name]; store.set("psn-votes", votes); render(); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    $("mutedEmpty").hidden = muted.length > 0;
   }
 
   function render() {
-    var shown = 0, tab = state.tab, isList = tab === "favs" || tab === "blog";
+    var tab = state.tab, saved = tab === "saved", shown = 0, admin = state.admin;
+    var filtered = !!(state.topic || state.source || state.q);
     $("nFavs").textContent = Object.keys(lists.favs).length;
     $("nBlog").textContent = Object.keys(lists.blog).length;
-    $("layout").classList.toggle("wide", tab === "sources");
-    $("overview").hidden = tab !== "feed" || !!(state.topic || state.cat || state.source || state.domain || state.q || state.onlyNew);
-    $("communityHead").hidden = tab !== "community";
-    $("addBox").hidden = !isList;
-    $("listTools").hidden = !isList;
-    $("sourcesView").hidden = tab !== "sources";
-    $("statusLine").hidden = tab === "sources";
-    feed.hidden = isList || tab === "sources";
-    listFeed.hidden = !isList;
-
-    if (tab === "sources") {
-      renderSources();
-    } else if (isList) {
-      listFeed.innerHTML = "";
-      Object.keys(lists[tab]).map(function (id) { return lists[tab][id]; })
-        .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
-        .forEach(function (f) {
-          var post = buildSavedPost(f); paintAvatar(post); decorate(post); listFeed.appendChild(post); shown++;
-        });
-      $("count").textContent = shown + (tab === "favs" ? " gemerkte Beiträge" : " Blog-Ideen");
-    } else {
-      posts.sort(function (a, b) { return score(b) - score(a); });
-      posts.forEach(function (post) {
-        decorate(post);
-        var ok = matches(post);
-        post.hidden = !ok;
-        if (ok) shown++;
-        feed.appendChild(post);
-      });
-      $("count").textContent = shown + " Beiträge" + (lastVisit && tab === "feed" ? " · " + newCount + " neu seit letztem Besuch" : "");
+    $("admin").hidden = !admin;
+    $("adminBtn").setAttribute("aria-pressed", admin ? "true" : "false");
+    $("chips").hidden = admin || saved;
+    var briefing = $("briefing"), communityBrief = $("communityBrief");
+    if (briefing) {
+      briefing.hidden = admin || tab !== "feed" || filtered;
+      $("briefBody").hidden = !briefOpen;
+      $("briefToggle").textContent = briefOpen ? "einklappen" : "aufklappen";
     }
-    $("empty").hidden = shown > 0 || tab === "sources";
-    var active = state.topic ? "#" + state.topic : state.domain ? state.domain : "";
-    $("filterInfo").hidden = !active || isList;
-    $("filterName").textContent = active;
+    if (communityBrief) communityBrief.hidden = admin || tab !== "community" || filtered;
+    $("savedHead").hidden = admin || !saved;
+    feed.hidden = admin || saved;
+    listFeed.hidden = admin || !saved;
+    $("activeFilter").hidden = admin || saved || !(state.topic || state.source);
+    $("clearFilter").textContent = (state.source ? state.source : "#" + state.topic) + "  ×";
+
+    if (admin) {
+      renderAdmin();
+    } else if (saved) {
+      listFeed.innerHTML = "";
+      Object.keys(lists[state.list]).map(function (id) { return lists[state.list][id]; })
+        .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
+        .forEach(function (f) { var p = buildSavedPost(f); paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++; });
+    } else {
+      posts.sort(function (a, b) {
+        var na = isNew(a), nb = isNew(b);
+        return na !== nb ? (na ? -1 : 1) : score(b) - score(a);
+      });
+      var lineAfter = null;
+      posts.forEach(function (p) {
+        decorate(p);
+        var ok = matches(p);
+        p.hidden = !ok;
+        if (ok) { shown++; if (isNew(p)) lineAfter = p; }
+        feed.appendChild(p);
+      });
+      if (lineAfter && !filtered && lineAfter !== posts.filter(function (p) { return !p.hidden; }).pop()) lineAfter.after(seenLine);
+      else seenLine.remove();
+    }
+    var emptyKey = saved ? state.list : tab;
+    $("empty").hidden = admin || shown > 0;
+    $("empty").textContent = EMPTY[emptyKey];
+    document.querySelectorAll("#chips .chip").forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.topic === state.topic ? "true" : "false"); });
   }
 
-  function pressed(navId, key, value) {
-    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
-      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
+  function go(changes) { Object.assign(state, changes); render(); window.scrollTo(0, 0); }
+
+  document.querySelectorAll("#tabs button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("#tabs button").forEach(function (x) { x.setAttribute("aria-selected", x === b ? "true" : "false"); });
+      go({ tab: b.dataset.tab, admin: false });
     });
-  }
-  function setTab(tab) {
-    state.tab = tab;
-    document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false"); });
-    render(); window.scrollTo(0, 0);
-  }
-  function setTopic(topic) {
-    state.topic = topic; pressed("topicNav", "topic", topic);
-    if (!TABS[state.tab]) setTab("feed"); else { render(); window.scrollTo(0, 0); }
-  }
-
-  document.querySelectorAll("#tabs button").forEach(function (b) { b.addEventListener("click", function () { setTab(b.dataset.tab); }); });
-  document.querySelectorAll("#topicNav button").forEach(function (b) { b.addEventListener("click", function () { setTopic(b.dataset.topic); }); });
-  document.querySelectorAll("#catNav button").forEach(function (b) {
-    b.addEventListener("click", function () { state.cat = b.dataset.cat; pressed("catNav", "cat", state.cat); render(); });
+  });
+  $("adminBtn").addEventListener("click", function () { go({ admin: !state.admin }); });
+  $("q").addEventListener("input", function (e) { state.q = e.target.value; if (state.admin) state.admin = false; render(); });
+  $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
+  var briefToggle = $("briefToggle");
+  if (briefToggle) briefToggle.addEventListener("click", function () { briefOpen = !briefOpen; store.set("psn-brief-open", briefOpen); render(); });
+  document.querySelectorAll("#seg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.querySelectorAll("#seg button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      go({ list: b.dataset.list });
+    });
   });
 
-  // Klicks in Beiträgen, Überblick und Tabellen
+  // Toast mit Rückgängig
+  var toastTimer, undoFn;
+  function toast(text, undo) {
+    $("toastText").textContent = text; undoFn = undo; $("toastUndo").hidden = !undo; $("toast").hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { $("toast").hidden = true; }, 5000);
+  }
+  $("toastUndo").addEventListener("click", function () { if (undoFn) undoFn(); $("toast").hidden = true; });
+
+  function closeMenus() { document.querySelectorAll(".menu").forEach(function (m) { m.remove(); }); }
+  function openMenu(post, anchor) {
+    closeMenus();
+    var src = post.dataset.source, menu = document.createElement("div");
+    menu.className = "menu";
+    var boost = document.createElement("button"), mute = document.createElement("button");
+    boost.type = mute.type = "button";
+    boost.textContent = votes[src] > 0 ? "«Mehr von " + src + "» aufheben" : "Mehr von " + src;
+    mute.textContent = src + " stummschalten";
+    boost.addEventListener("click", function () {
+      if (votes[src] > 0) delete votes[src]; else votes[src] = 1;
+      store.set("psn-votes", votes); closeMenus(); render();
+      toast(votes[src] > 0 ? src + " erscheint weiter oben" : "Zurückgesetzt");
+    });
+    mute.addEventListener("click", function () {
+      var before = votes[src];
+      votes[src] = -1; store.set("psn-votes", votes); closeMenus(); render();
+      toast(src + " stummgeschaltet", function () {
+        if (before === undefined) delete votes[src]; else votes[src] = before;
+        store.set("psn-votes", votes); render();
+      });
+    });
+    menu.appendChild(boost); menu.appendChild(mute);
+    anchor.parentNode.appendChild(menu);
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".menu") && !e.target.closest("[data-act=menu]")) closeMenus();
+  });
   document.querySelector("main").addEventListener("click", function (e) {
     var topicBtn = e.target.closest("[data-topic]");
-    if (topicBtn && !topicBtn.closest("#topicNav")) { setTopic(topicBtn.dataset.topic); return; }
-    var domainBtn = e.target.closest("button[data-domain]");
-    if (domainBtn) { state.domain = domainBtn.dataset.domain; setTab("discover"); return; }
+    if (topicBtn && !topicBtn.closest("#chips")) { go({ topic: topicBtn.dataset.topic, source: "", tab: state.tab === "saved" ? "feed" : state.tab }); syncTabs(); return; }
+    var srcBtn = e.target.closest(".src");
+    if (srcBtn) { go({ source: srcBtn.closest(".post").dataset.source, topic: "", tab: state.tab === "saved" ? "feed" : state.tab }); syncTabs(); return; }
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
     var post = btn.closest(".post"), act = btn.dataset.act;
-    if (act === "favs" || act === "blog") {
-      var list = lists[act], id = post.dataset.id;
-      if (list[id]) delete list[id]; else list[id] = snapshot(post);
-      saveList(act);
-    } else {
-      var src = post.dataset.source, v = act === "up" ? 1 : -1;
-      if (votes[src] === v) delete votes[src]; else votes[src] = v;
-      store.set("psn-votes", votes);
-    }
+    if (act === "menu") { openMenu(post, btn); return; }
+    var list = lists[act], id = post.dataset.id, adding = !list[id];
+    if (adding) list[id] = snapshot(post); else delete list[id];
+    store.set("psn-" + act, list);
     render();
+    toast(adding ? (act === "favs" ? "Gemerkt" : "Als Blog-Idee vorgemerkt") : "Entfernt");
   });
-
-  function bind(id, ev, key, prop) {
-    var el = $(id);
-    if (el) el.addEventListener(ev, function () { state[key] = el[prop]; render(); });
+  document.querySelectorAll("#chips .chip").forEach(function (c) {
+    c.addEventListener("click", function () { go({ topic: c.dataset.topic, source: "" }); });
+  });
+  function syncTabs() {
+    document.querySelectorAll("#tabs button").forEach(function (x) { x.setAttribute("aria-selected", x.dataset.tab === state.tab ? "true" : "false"); });
   }
-  bind("source", "change", "source", "value");
-  bind("q", "input", "q", "value");
-  bind("onlyNew", "change", "onlyNew", "checked");
-  bind("hideDown", "change", "hideDown", "checked");
-  $("filterClear").addEventListener("click", function () { state.domain = ""; setTopic(""); });
 
-  // Fremden Artikel ablegen
+  // Links von anderswo ablegen
+  $("addBtn").addEventListener("click", function () { $("addForm").hidden = false; $("addUrl").focus(); });
+  $("addCancel").addEventListener("click", function () { $("addForm").reset(); $("addForm").hidden = true; });
   $("addForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var url = $("addUrl").value.trim(), host;
     try { host = new URL(url).hostname.replace(/^www\./, ""); } catch (err) { return; }
-    var title = $("addTitle").value.trim() || url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 120);
-    var listName = $("addList").value;
-    lists[listName]["manual:" + url] = { id: "manual:" + url, title: title, link: url, source: host, domain: host,
-      category: "Abgelegt", published: new Date().toISOString(), snippet: "", image: null,
-      topics: $("addTopic").value, saved: new Date().toISOString() };
-    saveList(listName);
-    $("addForm").reset();
-    setTab(listName);
+    var now = new Date().toISOString();
+    lists[state.list]["manual:" + url] = { id: "manual:" + url, link: url, source: host, domain: host, category: "Abgelegt",
+      title: $("addTitle").value.trim() || url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 120),
+      published: now, snippet: "", image: null, topics: $("addTopic").value, saved: now };
+    store.set("psn-" + state.list, lists[state.list]);
+    $("addForm").reset(); $("addForm").hidden = true;
+    render(); toast("Abgelegt");
   });
   $("copyList").addEventListener("click", function () {
-    var list = lists[state.tab];
+    var list = lists[state.list];
     var text = Object.keys(list).map(function (id) { var f = list[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
-    navigator.clipboard.writeText(text).then(function () { $("copyDone").hidden = false; setTimeout(function () { $("copyDone").hidden = true; }, 1500); });
+    if (!text) { toast("Liste ist leer"); return; }
+    navigator.clipboard.writeText(text).then(function () { toast("Liste kopiert"); });
   });
 
   render();

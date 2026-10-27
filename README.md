@@ -6,25 +6,32 @@ sind gratis: offene RSS-Feeds und Google News.
 
 ## Was die Seite zeigt
 
+Eine Spalte wie bei LinkedIn, oben vier Tabs und eine Zeile mit Themen.
+
 | Tab | Inhalt |
 |---|---|
-| **Feed** | Beiträge der festen Quellen, oben «Gestern wichtig» und «Trends» |
+| **Feed** | Beiträge der festen Quellen, oben das **Briefing** |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, McKinsey, BCG, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
-| **Entdecken** | Google-News-Treffer der Suchbegriffe von Seiten, die noch keine feste Quelle sind |
-| **Gemerkt** | mit «Merken» gespeicherte Beiträge und von Hand abgelegte Links |
-| **Blog-Ideen** | mit «Blog» vorgemerkte Beiträge als Themen für den eigenen Blog |
-| **Quellen** | Auswertung pro Quelle und Vorschläge für neue Quellen |
+| **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 
-**Gestern wichtig:** Die Themen des Vortages, sortiert nach *Beiträge + Quellen × Gewicht des
-Themas*, je mit den wichtigsten Artikeln (offizielle Quellen zuerst, je Quelle einer).
+**Themen-Zeile:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
+Quellennamen in einem Beitrag zeigt nur diese Quelle.
 
-**Trends:** Geschichten, über die mindestens zwei feste Quellen in den letzten 3 Tagen
-berichten (erkannt über ähnliche Titel). Dazu **steigende Themen**: Themen, die in den letzten
-3 Tagen mindestens 1,5-mal so oft vorkommen wie im 30-Tage-Schnitt.
+**Briefing** (einklappbar):
+- *Wichtig am Vortag:* die 3 wichtigsten Themen, je 2 Artikel. Rangfolge nach
+  *(Beiträge + Quellen) × Gewicht des Themas*, offizielle Quellen zuerst.
+- *Mehrfach berichtet:* Geschichten, über die mindestens zwei feste Quellen in den letzten
+  3 Tagen schreiben (erkannt über ähnliche Titel).
+- *Im Trend:* Themen, die in den letzten 3 Tagen mindestens 1,5-mal so oft vorkommen wie im
+  30-Tage-Schnitt.
 
-**Reihenfolge im Feed:** neueste zuerst. Wichtige Themen rücken leicht nach oben (6 Stunden
-pro Gewichtsstufe), bewertete Quellen deutlich (±2 Tage).
+**Reihenfolge:** Was seit dem letzten Besuch neu ist, steht oben, danach die Linie
+«Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben
+(6 Stunden pro Gewichtsstufe), Quellen mit «Mehr von …» um 2 Tage.
+
+**Zahnrad ⚙** (Pflege): Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
+Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
 
@@ -32,16 +39,12 @@ Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
 
 Unter jedem Beitrag:
 
-- **Mehr / Weniger** bewertet die *Quelle*. «Mehr» rückt alle Beiträge dieser Quelle um zwei
-  Tage nach oben, «Weniger» um zwei Tage nach unten und blasst sie ab. Erneutes Klicken hebt
-  die Bewertung auf. Der Filter «Abgewertete Quellen ausblenden» blendet sie ganz aus.
-- **Merken** legt den Beitrag unter «Gemerkt» ab.
-- **Blog** legt ihn unter «Blog-Ideen» ab.
-- **Lesen** öffnet das Original.
-- **#Thema** filtert auf diesen Themenbereich.
+- **Merken** – legt den Beitrag unter «Gemerkt» ab.
+- **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
+- **⋯** – «Mehr von [Quelle]» rückt deren Beiträge nach oben; «[Quelle] stummschalten»
+  blendet sie aus (mit «Rückgängig»; zurückholen unter ⚙).
 
-In «Gemerkt» und «Blog-Ideen» lassen sich auch **Links von anderswo ablegen** (Link, Titel,
-Thema). «Liste als Text kopieren» gibt die Liste mit Links für Mail oder Dokument aus.
+Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
 
 Bewertungen, Gemerkt und Blog-Ideen werden **im Browser** gespeichert, also pro Gerät und
 Browser. Wer die Browserdaten löscht, verliert sie.
@@ -96,15 +99,15 @@ Stichwort in Titel oder Anriss vorkommt.
 ```
 
 Leerzeichen um ein Stichwort verhindern Teiltreffer: `" ki "` trifft nicht «Kiosk».
-Die Spalte «Themen» im Tab «Quellen» zeigt, welcher Anteil der Beiträge einer Quelle ein
+Die Spalte «Themen» in der Quellen-Auswertung (⚙) zeigt, welcher Anteil der Beiträge einer Quelle ein
 Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
 
 ## Entdecken und Vorschläge
 
 Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe,
 `sprache: de` = Schweizer Ausgabe). Treffer von Seiten, die schon feste Quelle sind, werden
-ausgeblendet; der Rest erscheint im Tab «Entdecken». Im Tab «Quellen» listet
-«Vorschläge für neue Quellen» die Domains daraus, häufigste zuerst. Rauschen unter
+ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern unter ⚙ als
+«Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
 `suchen: ignorieren:` eintragen.
 
 ## Bilder
