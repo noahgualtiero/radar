@@ -85,19 +85,25 @@ svg { flex: none; }
 .hero { margin-top: 4px; }
 
 .content { width: 100%; max-width: 700px; margin: 0 auto; padding: 0 24px 60px; min-width: 0; }
-.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; margin: 0 -24px 6px; padding: 20px 24px 12px;
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-height: 64px; margin: 0 -24px 4px; padding: 12px 24px;
   background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid transparent; transition: border-color .2s, padding .2s; }
 .top.scrolled { border-bottom-color: var(--sep); }
 .eyebrow { font-size: .76rem; font-weight: 600; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 0; }
-.search { position: relative; width: 100%; }
+.search { position: relative; flex: 1; display: none; }
+.top.searching .search, .top.searching .search-cancel { display: block; }
+.top.searching .chips, .top.searching .search-btn { display: none !important; }
+.search-cancel { display: none; white-space: nowrap; }
+.search-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--fill); color: var(--text); display: grid; place-items: center; cursor: pointer; flex: none; }
+.search-btn:hover { background: var(--hover); }
+.search-btn svg { width: 18px; height: 18px; }
 .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--label2); }
 .search input { width: 100%; height: 42px; background: var(--fill); border: 0; border-radius: 12px; padding: 0 12px 0 36px; font-size: 16px; }
 .search input::placeholder { color: var(--label2); }
 .search input:focus { outline: 2px solid var(--accent-soft); background: var(--card); }
 
 /* Themen-Chips (schmale Bildschirme) */
-.chips { display: none; gap: 8px; overflow-x: auto; margin: 4px -24px 14px; padding: 2px 24px 4px; scrollbar-width: none; }
+.chips { display: none; flex: 1; min-width: 0; gap: 8px; overflow-x: auto; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; border: 0; background: var(--fill); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: .88rem; font-weight: 550; white-space: nowrap; }
 .chip:hover { background: var(--hover); }
@@ -234,8 +240,8 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .app { grid-template-columns: minmax(0, 1fr); }
   .rail { display: none; }
   .content { padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
-  .top { margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
-  .chips { display: flex; margin: 4px -16px 14px; padding: 2px 16px 4px; }
+  .top { margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; min-height: 60px; }
+  .chips { display: flex; margin-left: -16px; padding-left: 16px; }
   .tabbar { display: block; }
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
@@ -305,19 +311,23 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   </aside>
 
   <div class="content">
+    {# Kopf: Themen-Chips (Handy) und Lupe; die Lupe klappt das Suchfeld auf #}
     <header class="top" id="top">
+      <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
+        <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
+        {% for t in topics if topic_counts[t] %}
+        <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
+        {% endfor %}
+      </div>
       <label class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche">
+        <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche" enterkeyhint="search">
       </label>
+      <button class="link search-cancel" type="button" id="searchCancel">Abbrechen</button>
+      <button class="search-btn" type="button" id="searchBtn" aria-label="Suchen" title="Suchen (/)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
     </header>
-
-    <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
-      <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
-      {% for t in topics if topic_counts[t] %}
-      <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
-      {% endfor %}
-    </div>
 
     {# ---------- Briefing oben im Feed ---------- #}
     <section class="card hero" id="briefing">
@@ -755,6 +765,18 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     });
   });
   $("q").addEventListener("input", function (e) { state.q = e.target.value; state.admin = false; state.tab = filterTab(); render(); });
+  // Lupe klappt das Suchfeld auf; Abbrechen oder Esc schliesst es und hebt die Suche auf, "/" öffnet es
+  function openSearch() { $("top").classList.add("searching"); $("q").focus(); }
+  function closeSearch() {
+    $("top").classList.remove("searching");
+    if (state.q) { $("q").value = ""; state.q = ""; render(); }
+  }
+  $("searchBtn").addEventListener("click", openSearch);
+  $("searchCancel").addEventListener("click", closeSearch);
+  $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") closeSearch(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+  });
   // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
   var top = $("top");
   window.addEventListener("scroll", function () { top.classList.toggle("scrolled", window.scrollY > 8); }, { passive: true });
@@ -805,7 +827,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var suggest = e.target.closest("[data-suggest]");
     if (suggest) { $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
     var qBtn = e.target.closest("[data-q]");
-    if (qBtn) { $("q").value = qBtn.dataset.q; go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
+    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
     var topicBtn = e.target.closest("[data-topic]");
     if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: filterTab(), admin: false }); return; }
     var srcBtn = e.target.closest(".src");

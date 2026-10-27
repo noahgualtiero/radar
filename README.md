@@ -11,10 +11,11 @@ sind gratis: offene RSS-Feeds und Google News.
 Ruhige, moderne Oberfläche (Schrift Inter):
 
 - **Desktop:** links eine schlanke Navigation mit Bereichen, Themen (Punkt rot = sehr wichtig,
-  orange = wichtig) und unten den Einstellungen; rechts der Inhalt mit der Suche oben, die
-  beim Scrollen durchscheinend stehen bleibt.
-- **Handy:** oben die Suche und die Themen-Chips, unten eine durchscheinende Tab-Leiste mit
-  Feed, Studien, Community, Gemerkt und Einstellungen.
+  orange = wichtig) und unten den Einstellungen; rechts der Inhalt.
+- **Handy:** oben die Themen-Chips, unten eine durchscheinende Tab-Leiste mit Feed, Studien,
+  Community, Gemerkt und Einstellungen.
+- **Suche:** kleine Lupe oben rechts; sie klappt das Suchfeld auf, «Abbrechen» oder Esc
+  schliesst es. Auf dem Desktop öffnet die Taste «/» die Suche.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
