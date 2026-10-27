@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Paid Search Newsfeed</title>
+<style>
+:root {
+  --bg: #f5f6f8; --card: #ffffff; --text: #1b1f27; --muted: #626b7a;
+  --line: #e1e4ea; --accent: #2f5bea; --accent-soft: #e6ecfd; --new: #e8590c;
+  --shadow: 0 1px 2px rgba(20, 25, 35, .06), 0 2px 8px rgba(20, 25, 35, .04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141a; --card: #1a1e26; --text: #e6e8ec; --muted: #9aa3b2;
+    --line: #2a303b; --accent: #7c9cff; --accent-soft: #232c45; --new: #ff8a4c;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141a; --card: #1a1e26; --text: #e6e8ec; --muted: #9aa3b2;
+  --line: #2a303b; --accent: #7c9cff; --accent-soft: #232c45; --new: #ff8a4c;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header { padding: 28px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-size: 1.5rem; margin: 0; letter-spacing: -.01em; }
+.sub { color: var(--muted); font-size: .9rem; margin: 2px 0 0; }
+.theme { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; font: inherit; font-size: .85rem; cursor: pointer; }
+
+.controls { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.row + .row { margin-top: 10px; }
+.chip { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px;
+  padding: 5px 12px; font: inherit; font-size: .88rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip:disabled { opacity: .45; cursor: default; }
+.chip .n { opacity: .7; margin-left: 4px; font-size: .8em; }
+input[type=search], select { font: inherit; font-size: .95rem; color: var(--text); background: var(--card);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+input[type=search] { flex: 1 1 240px; }
+select { flex: 0 1 260px; }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); white-space: nowrap; }
+.count { color: var(--muted); font-size: .85rem; margin: 14px 0 10px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding-bottom: 32px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.card.is-new { border-color: var(--new); }
+.thumb { display: block; aspect-ratio: 16 / 9; background: var(--accent-soft); overflow: hidden; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); }
+.cat { background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 1px 7px; font-weight: 600; }
+.badge-new { background: var(--new); color: #fff; border-radius: 4px; padding: 1px 7px; font-weight: 700; display: none; }
+.card.is-new .badge-new { display: inline-block; }
+.card h2 { font-size: 1.05rem; line-height: 1.35; margin: 0; }
+.card h2 a { color: inherit; text-decoration: none; }
+.card h2 a:hover { color: var(--accent); }
+.card p { margin: 0; color: var(--muted); font-size: .92rem; overflow-wrap: anywhere; }
+.more { margin-top: auto; font-size: .88rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; padding: 18px 0 32px; }
+footer details { margin-top: 6px; }
+footer summary { cursor: pointer; }
+footer ul { margin: 6px 0 0; padding-left: 18px; }
+
+@media (max-width: 560px) {
+  header { padding-top: 18px; }
+  h1 { font-size: 1.25rem; }
+  .controls { position: static; }
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+  select { flex: 1 1 100%; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Paid Search Newsfeed</h1>
+      <p class="sub">Neue Artikel der letzten {{ max_age_days }} Tage, neueste zuerst</p>
+    </div>
+    <button class="theme" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
+  </header>
+
+  <div class="controls">
+    <div class="row chips" role="group" aria-label="Kategorie">
+      <button class="chip" type="button" data-cat="" aria-pressed="true">Alle<span class="n">{{ items|length }}</span></button>
+      {% for cat in categories %}
+      {% set n = items|selectattr("category", "equalto", cat)|list|length %}
+      <button class="chip" type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }}<span class="n">{{ n }}</span></button>
+      {% endfor %}
+    </div>
+    <div class="row">
+      <input type="search" id="q" placeholder="Suchen in Titel und Anriss …" aria-label="Suche">
+      <select id="source" aria-label="Quelle">
+        <option value="">Alle Quellen</option>
+        {% for s in sources %}<option>{{ s }}</option>{% endfor %}
+      </select>
+      <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue</label>
+    </div>
+  </div>
+
+  <p class="count" id="count"></p>
+
+  <main class="grid" id="grid">
+    {% for item in items %}
+    <article class="card" data-cat="{{ item.category }}" data-source="{{ item.source }}" data-seen="{{ item.first_seen }}"
+             data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source)|lower }}">
+      {% if item.image %}
+      <a class="thumb" href="{{ item.link }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+        <img src="{{ item.image }}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()">
+      </a>
+      {% endif %}
+      <div class="body">
+        <div class="meta">
+          <span class="badge-new">Neu</span>
+          <span class="cat">{{ item.category }}</span>
+          <span>{{ item.source }}</span>
+          <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>
+        </div>
+        <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
+        {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
+        <a class="more" href="{{ item.link }}" target="_blank" rel="noopener">Zum Artikel →</a>
+      </div>
+    </article>
+    {% endfor %}
+  </main>
+  <p class="empty" id="empty" hidden>Keine Artikel für diese Auswahl.</p>
+
+  <footer>
+    Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
+    · {{ sources|length }} Quellen · Inhalte gehören den jeweiligen Quellen.
+    {% if errors %}
+    <details>
+      <summary>{{ errors|length }} Quelle{{ "n" if errors|length > 1 }} beim letzten Lauf nicht erreichbar</summary>
+      <ul>{% for e in errors %}<li>{{ e.source }}: {{ e.error }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+  </footer>
+</div>
+
+<script>
+(function () {
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  // Farbschema: Auto → Hell → Dunkel
+  var root = document.documentElement, themeBtn = document.getElementById("theme");
+  var labels = { "": "Auto", light: "Hell", dark: "Dunkel" }, order = ["", "light", "dark"];
+  function applyTheme(t) {
+    if (t) root.setAttribute("data-theme", t); else root.removeAttribute("data-theme");
+    themeBtn.textContent = labels[t];
+  }
+  var theme = store.get("psn-theme") || "";
+  applyTheme(theme);
+  themeBtn.addEventListener("click", function () {
+    theme = order[(order.indexOf(theme) + 1) % order.length];
+    store.set("psn-theme", theme);
+    applyTheme(theme);
+  });
+
+  // Datumsangaben in lokaler Zeit (Schweiz)
+  var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+  document.querySelectorAll(".meta time").forEach(function (t) { t.textContent = dateFmt.format(new Date(t.dateTime)); });
+  var gen = document.getElementById("generated");
+  gen.textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(gen.dateTime));
+
+  // "Neu seit letztem Besuch": Vergleich mit dem Zeitpunkt, an dem der Artikel erstmals im Feed auftauchte
+  var lastVisit = store.get("psn-last-visit");
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+  var newCount = 0;
+  if (lastVisit) {
+    cards.forEach(function (c) {
+      if (c.dataset.seen > lastVisit) { c.classList.add("is-new"); newCount++; }
+    });
+  }
+  store.set("psn-last-visit", new Date().toISOString());
+
+  // Filter
+  var state = { cat: "", source: "", q: "", onlyNew: false };
+  var chips = document.querySelectorAll(".chip"), count = document.getElementById("count"), empty = document.getElementById("empty");
+  function render() {
+    var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
+    cards.forEach(function (c) {
+      var ok = (!state.cat || c.dataset.cat === state.cat)
+        && (!state.source || c.dataset.source === state.source)
+        && (!state.onlyNew || c.classList.contains("is-new"))
+        && terms.every(function (t) { return c.dataset.text.indexOf(t) !== -1; });
+      c.hidden = !ok;
+      if (ok) shown++;
+    });
+    count.textContent = shown + " von " + cards.length + " Artikeln"
+      + (lastVisit ? " · " + newCount + " neu seit letztem Besuch" : "");
+    empty.hidden = shown > 0;
+  }
+  chips.forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      chips.forEach(function (c) { c.setAttribute("aria-pressed", c === chip ? "true" : "false"); });
+      state.cat = chip.dataset.cat;
+      render();
+    });
+  });
+  document.getElementById("source").addEventListener("change", function (e) { state.source = e.target.value; render(); });
+  document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value; render(); });
+  document.getElementById("onlyNew").addEventListener("change", function (e) { state.onlyNew = e.target.checked; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

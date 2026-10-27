@@ -1,0 +1,71 @@
+# Quellen des Paid Search Newsfeeds.
+# Neue Quellen werden NUR hier ergänzt (siehe README).
+#
+# Felder je Quelle:
+#   name:            Anzeigename auf der Karte und im Quellen-Filter
+#   url:             RSS- oder Atom-Feed-URL
+#   kategorie:       eine der Kategorien unten
+#   nur_kategorien:  optional – nur Artikel übernehmen, deren Feed-Kategorie
+#                    einem dieser Begriffe entspricht (Gross/klein egal)
+#   aktiv:           optional – false blendet die Quelle aus, ohne sie zu löschen
+
+kategorien:
+  - Offiziell
+  - News
+  - Studien
+  - DACH
+  - LinkedIn
+
+quellen:
+  # --- Offiziell ---
+  - name: Google Ads & Commerce Blog
+    url: https://blog.google/products/ads-commerce/rss/
+    kategorie: Offiziell
+
+  - name: Microsoft Advertising Blog
+    url: https://about.ads.microsoft.com/en/blog/rss
+    kategorie: Offiziell
+
+  # --- News ---
+  # Die Feeds von Search Engine Land blockieren automatisierte Abrufe (403), der alte
+  # Feedburner-Feed ist eingefroren. Ersatz: Google-News-Suche auf searchengineland.com,
+  # eingeschränkt auf PPC-Begriffe (Links führen über news.google.com, ohne Bilder).
+  - name: Search Engine Land (PPC)
+    url: https://news.google.com/rss/search?q=site:searchengineland.com+(PPC+OR+%22Google+Ads%22+OR+%22Microsoft+Advertising%22+OR+%22paid+search%22+OR+%22Performance+Max%22)+when:30d&hl=en-US&gl=US&ceid=US:en
+    kategorie: News
+
+  - name: Search Engine Roundtable
+    url: https://www.seroundtable.com/index.xml
+    kategorie: News
+
+  - name: PPC Land
+    url: https://ppc.land/rss/
+    kategorie: News
+
+  - name: Search Engine Journal (PPC)
+    url: https://www.searchenginejournal.com/category/paid-media/feed/
+    kategorie: News
+
+  # --- Studien ---
+  - name: Optmyzr Blog
+    url: https://www.optmyzr.com/blog/index.xml
+    kategorie: Studien
+
+  - name: Smarter Ecommerce Blog
+    url: https://smarter-ecommerce.com/blog/en/feed/
+    kategorie: Studien
+
+  # --- DACH ---
+  # Bloofusion bietet aktuell keinen RSS-Feed an (blog.bloofusion.de leitet auf
+  # bloofusion.de/wissen/ratgeber um, dort ist kein Feed verlinkt).
+  # Sobald eine Feed-URL vorliegt (z.B. via RSS.app), url eintragen und aktiv entfernen.
+  - name: Bloofusion Blog
+    url: ""
+    kategorie: DACH
+    aktiv: false
+
+  # --- LinkedIn ---
+  # LinkedIn-Profile und -Seiten folgen als RSS.app-Feeds. Beispiel:
+  # - name: Vorname Nachname (LinkedIn)
+  #   url: https://rss.app/feeds/XXXXXXXXXXXX.xml
+  #   kategorie: LinkedIn
