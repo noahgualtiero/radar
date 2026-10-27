@@ -10,84 +10,109 @@
 :root {
   --bg: #f3f2ef; --card: #ffffff; --text: #191919; --muted: #666a73;
   --line: #e0dfdc; --accent: #0a66c2; --accent-soft: #e8f1fb; --new: #e8590c;
-  --up: #057642; --down: #b24020; --fav: #c37d16;
+  --up: #057642; --down: #b24020; --fav: #c37d16; --blog: #7c3aed; --trend: #b4232f;
   --shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
+  color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
     --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
-    --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --shadow: none;
+    --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --trend: #ff7a85; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
   --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
-  --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --shadow: none;
+  --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --blog: #b79cff; --trend: #ff7a85; --shadow: none;
+  color-scheme: dark;
 }
-:root { color-scheme: light dark; }
 :root[data-theme="light"] { color-scheme: light; }
-:root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text);
   font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
-button { font: inherit; color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--accent); }
 
 .topbar { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); }
-.topbar .in { max-width: 1040px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 12px; align-items: center; }
+.topbar .in { max-width: 1080px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 10px; align-items: center; }
 .logo { font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-.logo span { color: var(--accent); }
-.topbar input { flex: 1; min-width: 0; font: inherit; color: var(--text); background: var(--bg);
+.logo span:last-child { color: var(--accent); }
+.topbar input { flex: 1; min-width: 0; color: var(--text); background: var(--bg);
   border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; }
 .topbar input:focus { outline: none; border-color: var(--accent); }
-.icon-btn { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
-  cursor: pointer; font-size: .85rem; white-space: nowrap; }
+.pill { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: .85rem; white-space: nowrap; }
+.tabs { max-width: 1080px; margin: 0 auto; padding: 0 16px; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 12px; cursor: pointer;
+  color: var(--muted); font-weight: 600; font-size: .9rem; white-space: nowrap; }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.tabs .n { font-weight: 400; font-size: .8em; margin-left: 3px; }
 
-.layout { max-width: 1040px; margin: 0 auto; padding: 20px 16px 40px; display: grid;
-  grid-template-columns: 250px minmax(0, 580px); gap: 24px; justify-content: center; }
-aside { position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 90px); overflow: auto; }
+.layout { max-width: 1080px; margin: 0 auto; padding: 18px 16px 40px; display: grid;
+  grid-template-columns: 240px minmax(0, 600px); gap: 24px; justify-content: center; }
+.layout.wide { grid-template-columns: minmax(0, 860px); }
+.layout.wide aside { display: none; }
+aside { position: sticky; top: 104px; align-self: start; max-height: calc(100vh - 120px); overflow: auto; }
 .panel { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
-.panel h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.panel h3, .box h3 { font-size: .76rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
 .nav button { display: flex; width: 100%; justify-content: space-between; background: none; border: 0;
-  padding: 7px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
+  padding: 6px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
 .nav button:hover { background: var(--bg); }
 .nav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .nav button:disabled { opacity: .4; cursor: default; }
-.nav .n { color: var(--muted); font-size: .85em; }
-.panel select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
-  border-radius: 6px; padding: 7px 8px; margin-bottom: 8px; }
-.toggle { display: flex; gap: 8px; align-items: center; font-size: .9rem; cursor: pointer; }
-.votes-list { list-style: none; margin: 0; padding: 0; font-size: .88rem; }
-.votes-list li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
-.votes-list .up { color: var(--up); } .votes-list .down { color: var(--down); }
+.n { color: var(--muted); font-size: .85em; }
+.w { color: var(--fav); font-size: .75em; letter-spacing: -1px; }
+.panel select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; margin-bottom: 8px; }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: .9rem; cursor: pointer; margin-top: 4px; }
 .link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: .85rem; }
 .hint { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
+.muted { color: var(--muted); }
 
+/* Überblick */
+.box { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 14px; }
+.box h2 { font-size: 1rem; margin: 0 0 2px; }
+.box .lead { color: var(--muted); font-size: .82rem; margin: 0 0 10px; }
+.topic-row { padding: 8px 0; border-top: 1px solid var(--line); }
+.topic-row:first-of-type { border-top: 0; }
+.topic-row .head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.topic-row .head button { font-weight: 700; }
+.topic-row ul { margin: 4px 0 0; padding-left: 18px; font-size: .9rem; }
+.topic-row li { margin: 2px 0; }
+.topic-row li a { color: var(--text); text-decoration: none; }
+.topic-row li a:hover { color: var(--accent); text-decoration: underline; }
+.trend-tag { color: var(--trend); font-weight: 700; font-size: .78rem; }
+.rising { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rising button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: .82rem; }
+
+/* Beiträge */
 .status { color: var(--muted); font-size: .85rem; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .post { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
 .post.dim { opacity: .55; }
 .post.is-new { box-shadow: 0 0 0 2px var(--new); }
 .post-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px 8px; }
-.avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
-  font-weight: 700; font-size: .85rem; color: #fff; background: hsl(var(--h, 210) 55% 45%); }
+.avatar { position: relative; width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  font-weight: 700; font-size: .85rem; color: #fff; background: hsl(var(--h, 210) 55% 45%); overflow: hidden; }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 7px; background: #fff; object-fit: contain; }
 .who { min-width: 0; flex: 1; }
 .who strong { display: block; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .who .sub { color: var(--muted); font-size: .78rem; }
-.badge-new { background: var(--new); color: #fff; border-radius: 4px; padding: 1px 7px; font-size: .72rem; font-weight: 700; display: none; }
+.badge { border-radius: 4px; padding: 1px 7px; font-size: .72rem; font-weight: 700; }
+.badge-new { background: var(--new); color: #fff; display: none; }
 .post.is-new .badge-new { display: inline-block; }
+.badge-study { background: var(--accent-soft); color: var(--accent); }
 .post-body { padding: 0 14px 10px; }
 .post-body h2 { font-size: 1.05rem; line-height: 1.35; margin: 0 0 6px; }
 .post-body h2 a { color: inherit; text-decoration: none; }
 .post-body h2 a:hover { color: var(--accent); text-decoration: underline; }
-.post-body p { margin: 0; color: var(--text); opacity: .85; font-size: .93rem; overflow-wrap: anywhere; }
+.post-body p { margin: 0; opacity: .85; font-size: .93rem; overflow-wrap: anywhere; }
 .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .tag { background: none; border: 0; padding: 0; color: var(--accent); font-size: .85rem; font-weight: 600; cursor: pointer; }
 .post-img { display: block; background: var(--bg); }
-.post-img img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+.post-img img { width: 100%; max-height: 380px; object-fit: cover; display: block; }
 .actions { display: flex; border-top: 1px solid var(--line); margin: 0 6px; }
-.actions button, .actions a { flex: 1; display: flex; gap: 6px; justify-content: center; align-items: center;
-  background: none; border: 0; padding: 10px 4px; color: var(--muted); font-size: .85rem; font-weight: 600;
+.actions button, .actions a { flex: 1; display: flex; gap: 5px; justify-content: center; align-items: center;
+  background: none; border: 0; padding: 10px 2px; color: var(--muted); font-size: .82rem; font-weight: 600;
   cursor: pointer; text-decoration: none; border-radius: 6px; white-space: nowrap; }
 .actions button:hover, .actions a:hover { background: var(--bg); }
 .actions svg { width: 18px; height: 18px; flex: none; }
@@ -95,28 +120,36 @@ aside { position: sticky; top: 72px; align-self: start; max-height: calc(100vh -
 .post[data-vote="-1"] .act-down { color: var(--down); }
 .post.is-fav .act-fav { color: var(--fav); }
 .post.is-fav .act-fav svg path { fill: currentColor; }
+.post.is-blog .act-blog { color: var(--blog); }
+.post.is-blog .act-blog svg path { fill: currentColor; }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 
-.unknown { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-top: 20px; }
-.unknown summary { cursor: pointer; font-weight: 700; }
-.unknown ol { margin: 10px 0 0; padding-left: 20px; font-size: .88rem; }
-.unknown li { padding: 5px 0; border-bottom: 1px solid var(--line); }
-.unknown li a { color: var(--accent); font-weight: 600; }
-.muted { color: var(--muted); }
+/* Formular und Tabellen */
+.add-form { display: grid; gap: 8px; }
+.add-form input, .add-form select { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.add-form .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.add-form .row > * { flex: 1 1 160px; }
+.btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+.btn.ghost { background: none; color: var(--accent); border: 1px solid var(--accent); }
+.table { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .76rem; white-space: nowrap; }
+td.num, th.num { text-align: right; }
+.vote-up { color: var(--up); font-weight: 700; } .vote-down { color: var(--down); font-weight: 700; }
 footer { color: var(--muted); font-size: .8rem; padding: 16px 0; }
 footer summary { cursor: pointer; }
 
 .filters-toggle { display: none; }
 @media (max-width: 860px) {
-  .layout { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
+  .layout, .layout.wide { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
   aside { position: static; max-height: none; display: none; }
   aside.open { display: block; }
   .filters-toggle { display: inline-block; }
-  .logo small { display: none; }
 }
 @media (max-width: 480px) {
   .layout { padding-left: 0; padding-right: 0; }
-  .post, .unknown, .panel { border-radius: 0; }
+  .post, .box, .panel { border-radius: 0; }
   .status, footer, aside { padding-left: 16px; padding-right: 16px; }
   .actions .lbl { display: none; }
   .logo .full { display: none; }
@@ -125,34 +158,41 @@ footer summary { cursor: pointer; }
 </style>
 </head>
 <body>
-<div class="topbar"><div class="in">
-  <div class="logo"><span class="full">Paid Search </span><span>Feed</span></div>
-  <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
-  <button class="icon-btn filters-toggle" id="filtersBtn" type="button">Filter</button>
-  <button class="icon-btn" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
-</div></div>
+{% set feed_items = items|rejectattr("category", "in", ["Community", "Entdecken"])|list %}
+<div class="topbar">
+  <div class="in">
+    <div class="logo"><span class="full">Paid Search </span><span>Feed</span></div>
+    <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
+    <button class="pill filters-toggle" id="filtersBtn" type="button">Filter</button>
+    <button class="pill" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="feed" aria-selected="true">Feed <span class="n">{{ feed_items|length }}</span></button>
+    <button role="tab" data-tab="studies" aria-selected="false">Studien <span class="n">{{ items|selectattr("study")|list|length }}</span></button>
+    <button role="tab" data-tab="community" aria-selected="false">Community <span class="n">{{ items|selectattr("category", "equalto", "Community")|list|length }}</span></button>
+    <button role="tab" data-tab="discover" aria-selected="false">Entdecken <span class="n">{{ items|selectattr("category", "equalto", "Entdecken")|list|length }}</span></button>
+    <button role="tab" data-tab="favs" aria-selected="false">★ Gemerkt <span class="n" id="nFavs">0</span></button>
+    <button role="tab" data-tab="blog" aria-selected="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
+    <button role="tab" data-tab="sources" aria-selected="false">Quellen</button>
+  </nav>
+</div>
 
-<div class="layout">
+<div class="layout" id="layout">
   <aside id="aside">
-    <div class="panel nav" id="viewNav">
-      <h3>Ansicht</h3>
-      <button type="button" data-view="feed" aria-pressed="true">Feed <span class="n" id="nFeed">{{ items|length }}</span></button>
-      <button type="button" data-view="favs" aria-pressed="false">★ Favoriten <span class="n" id="nFavs">0</span></button>
-    </div>
-    <div class="panel nav" id="catNav">
-      <h3>Kategorie</h3>
-      <button type="button" data-cat="" aria-pressed="true">Alle <span class="n">{{ items|length }}</span></button>
-      {% for cat in categories %}
-      {% set n = items|selectattr("category", "equalto", cat)|list|length %}
-      <button type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }} <span class="n">{{ n }}</span></button>
-      {% endfor %}
-    </div>
     <div class="panel nav" id="topicNav">
       <h3>Themen</h3>
       <button type="button" data-topic="" aria-pressed="true">Alle Themen</button>
       {% for t in topics %}
-      {% set n = topic_counts[t] %}
-      <button type="button" data-topic="{{ t }}" aria-pressed="false"{% if not n %} disabled{% endif %}>#{{ t }} <span class="n">{{ n }}</span></button>
+      <button type="button" data-topic="{{ t }}" aria-pressed="false"{% if not topic_counts[t] %} disabled{% endif %}>
+        <span>#{{ t }} <span class="w" title="Gewicht {{ weights[t] }}">{{ "●" * weights[t] }}</span></span><span class="n">{{ topic_counts[t] }}</span></button>
+      {% endfor %}
+    </div>
+    <div class="panel nav" id="catNav">
+      <h3>Kategorie</h3>
+      <button type="button" data-cat="" aria-pressed="true">Alle</button>
+      {% for cat in categories if cat not in ["Community", "Entdecken"] %}
+      {% set n = items|selectattr("category", "equalto", cat)|list|length %}
+      <button type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }} <span class="n">{{ n }}</span></button>
       {% endfor %}
     </div>
     <div class="panel">
@@ -161,39 +201,87 @@ footer summary { cursor: pointer; }
         <option value="">Alle Quellen</option>
         {% for s in sources %}<option>{{ s }}</option>{% endfor %}
       </select>
-      {% if searches %}
-      <select id="search" aria-label="Suchbegriff">
-        <option value="">Alle Suchbegriffe</option>
-        {% for s in searches %}<option>{{ s }}</option>{% endfor %}
-      </select>
-      {% endif %}
       <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue seit letztem Besuch</label>
       <label class="toggle"><input type="checkbox" id="hideDown"> Abgewertete Quellen ausblenden</label>
-    </div>
-    <div class="panel">
-      <h3>Deine Quellen-Bewertung</h3>
-      <ul class="votes-list" id="votesList"></ul>
-      <p class="hint" id="votesHint">«Mehr davon» rückt Beiträge einer Quelle um zwei Tage nach oben, «Weniger» um zwei Tage nach unten und blasst sie ab. Gespeichert in diesem Browser.</p>
     </div>
   </aside>
 
   <main>
-    <p class="status"><span id="count"></span><span id="domainInfo" hidden>· Quelle: <strong id="domainName"></strong>
-      <button class="link" type="button" id="domainClear">× aufheben</button></span></p>
+    {# ---------- Überblick (nur im Tab Feed) ---------- #}
+    <section id="overview">
+      {% if yesterday.topics %}
+      <div class="box">
+        <h2>Gestern wichtig</h2>
+        <p class="lead"><time class="day" datetime="{{ yesterday.date }}">{{ yesterday.date }}</time> · {{ yesterday.total }} Beiträge aus festen Quellen · gewichtet nach Themen-Wichtigkeit</p>
+        {% for row in yesterday.topics %}
+        <div class="topic-row">
+          <div class="head"><button class="link" type="button" data-topic="{{ row.topic }}">#{{ row.topic }}</button>
+            <span class="n">{{ row.count }} Beiträge · {{ row.sources }} Quellen</span></div>
+          <ul>{% for a in row.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a> <span class="n">– {{ a.source }}</span></li>{% endfor %}</ul>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if stories or rising %}
+      <div class="box">
+        <h2>Trends</h2>
+        <p class="lead">Geschichten, über die mehrere deiner Quellen in den letzten 3 Tagen berichten</p>
+        {% for c in stories %}
+        <div class="topic-row">
+          <div class="head"><strong>{{ c.title }}</strong><span class="trend-tag">{{ c.sources }} Quellen</span></div>
+          <ul>{% for a in c.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a> <span class="n">– {{ a.source }}</span></li>{% endfor %}</ul>
+        </div>
+        {% endfor %}
+        {% if rising %}
+        <div class="rising"><span class="n">Steigende Themen:</span>
+          {% for r in rising %}<button type="button" data-topic="{{ r.topic }}" title="{{ r.recent }} Beiträge in 3 Tagen, {{ r.ratio }}× so viele wie üblich">#{{ r.topic }} ↑{{ r.ratio }}×</button>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </section>
+
+    <section id="communityHead" class="box" hidden>
+      <h2>Diese Woche in der Community</h2>
+      <p class="lead">Häufigste Themen in Reddit r/PPC und r/googleads, letzte 7 Tage</p>
+      <div class="rising">{% for t, n in community %}<button type="button" data-topic="{{ t }}">#{{ t }} · {{ n }}</button>{% else %}<span class="n">Noch keine Themen-Treffer.</span>{% endfor %}</div>
+    </section>
+
+    <section id="addBox" class="box" hidden>
+      <h2>Artikel ablegen</h2>
+      <p class="lead">Einen Artikel von anderswo merken. Er erscheint unter «Gemerkt» oder «Blog-Ideen».</p>
+      <form class="add-form" id="addForm">
+        <input type="url" id="addUrl" placeholder="https://… Link zum Artikel" required>
+        <input type="text" id="addTitle" placeholder="Titel (optional)">
+        <div class="row">
+          <select id="addTopic"><option value="">Thema (optional)</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
+          <select id="addList"><option value="favs">nach «Gemerkt»</option><option value="blog">nach «Blog-Ideen»</option></select>
+        </div>
+        <div class="row"><button class="btn" type="submit">Ablegen</button></div>
+      </form>
+      <p class="hint">Hat die Seite einen Feed, kann sie als feste Quelle aufgenommen werden. Den Feed findet
+        <code>python find_feed.py &lt;Link&gt;</code> und gibt den Eintrag für <code>sources.yaml</code> aus.</p>
+    </section>
+
+    <section id="listTools" hidden><p class="status"><button class="link" type="button" id="copyList">Liste als Text kopieren</button><span id="copyDone" hidden>kopiert</span></p></section>
+
+    <p class="status" id="statusLine"><span id="count"></span><span id="filterInfo" hidden>· <strong id="filterName"></strong>
+      <button class="link" type="button" id="filterClear">× aufheben</button></span></p>
 
     <div id="feed">
     {% for item in items %}
     <article class="post" data-id="{{ item.id }}" data-cat="{{ item.category }}" data-source="{{ item.source }}"
-      data-search="{{ item.search or '' }}" data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}"
-      data-published="{{ item.published }}" data-topics="{{ item.topics|join('|') }}"
+      data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}" data-published="{{ item.published }}"
+      data-topics="{{ item.topics|join('|') }}" data-weight="{{ item.weight }}" data-study="{{ 1 if item.study else 0 }}"
       data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source ~ ' ' ~ item.topics|join(' '))|lower }}">
       <header class="post-head">
-        <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}</span>
+        <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}<img src="https://www.google.com/s2/favicons?domain={{ item.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.remove()"></span>
         <div class="who">
           <strong>{{ item.source }}</strong>
           <span class="sub">{{ item.category }} · <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>{% if item.search %} · Suche: {{ item.search }}{% endif %}</span>
         </div>
-        <span class="badge-new">Neu</span>
+        {% if item.study %}<span class="badge badge-study">Studie</span>{% endif %}
+        <span class="badge badge-new">Neu</span>
       </header>
       <div class="post-body">
         <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
@@ -206,36 +294,66 @@ footer summary { cursor: pointer; }
       </a>
       {% endif %}
       <div class="actions">
-        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg><span class="lbl">Mehr davon</span></button>
+        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg><span class="lbl">Mehr</span></button>
         <button class="act-down" type="button" data-act="down" title="Weniger von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg><span class="lbl">Weniger</span></button>
-        <button class="act-fav" type="button" data-act="fav" title="Zu Favoriten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/></svg><span class="lbl">Merken</span></button>
-        <a href="{{ item.link }}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span class="lbl">Lesen</span></a>
+        <button class="act-fav" type="button" data-act="favs" title="Merken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/></svg><span class="lbl">Merken</span></button>
+        <button class="act-blog" type="button" data-act="blog" title="Als Thema für den eigenen Blog vormerken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog</span></button>
+        <a href="{{ item.link }}" target="_blank" rel="noopener" title="Artikel öffnen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span class="lbl">Lesen</span></a>
       </div>
     </article>
     {% endfor %}
     </div>
-    <div id="favFeed" hidden></div>
+    <div id="listFeed" hidden></div>
     <p class="empty" id="empty" hidden>Keine Beiträge für diese Auswahl.</p>
 
-    {% if unknown %}
-    <details class="unknown" id="unknown">
-      <summary>Unbekannte Quellen ({{ unknown|length }})</summary>
-      <p class="hint">Domains aus den Suchtreffern, die noch nicht als feste Quelle in <code>sources.yaml</code>
-        stehen, häufigste zuerst. Passende Seiten als Quelle aufnehmen, Rauschen unter <code>suchen → ignorieren</code>.</p>
-      <ol>
-        {% for u in unknown %}
-        <li><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>
-          · {{ u.count }} Treffer · zuletzt <time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time>
-          · <button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button><br>
-          <span class="muted">{{ u.searches|join(", ") }}</span></li>
-        {% endfor %}
-      </ol>
-    </details>
-    {% endif %}
+    {# ---------- Quellen-Auswertung ---------- #}
+    <section id="sourcesView" hidden>
+      <div class="box">
+        <h2>Quellen-Auswertung</h2>
+        <p class="lead">Feste Quellen aus <code>sources.yaml</code>, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
+          Bewertungen, Gemerkt und Blog-Ideen stammen aus diesem Browser.</p>
+        <div class="table"><table>
+          <thead><tr><th>Quelle</th><th>Kategorie</th><th class="num">Beiträge</th><th class="num">Themen</th><th class="num">Studien</th>
+            <th>Letzter</th><th>Bewertung</th><th class="num">★</th><th class="num">Blog</th></tr></thead>
+          <tbody>
+          {% for s in stats %}
+            <tr data-source="{{ s.name }}">
+              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.host }}{% if s.filtered %} · gefiltert{% endif %}</span></td>
+              <td>{{ s.category }}</td>
+              <td class="num">{{ s.count }}</td>
+              <td class="num">{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</td>
+              <td class="num">{{ s.studies }}</td>
+              <td>{% if s.latest %}<time datetime="{{ s.latest }}">{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.</time>{% else %}–{% endif %}</td>
+              <td class="c-vote">–</td><td class="num c-favs">0</td><td class="num c-blog">0</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      </div>
+      {% if unknown %}
+      <div class="box">
+        <h2>Vorschläge für neue Quellen</h2>
+        <p class="lead">Domains aus dem Tab «Entdecken», die noch keine feste Quelle sind, häufigste zuerst.
+          Gute Seite → Feed suchen und in <code>sources.yaml</code> aufnehmen. Rauschen → unter <code>suchen → ignorieren</code>.</p>
+        <div class="table"><table>
+          <thead><tr><th>Domain</th><th class="num">Treffer</th><th>Zuletzt</th><th>Gefunden über</th><th></th></tr></thead>
+          <tbody>
+          {% for u in unknown %}
+            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a></td>
+              <td class="num">{{ u.count }}</td>
+              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td>
+              <td class="n">{{ u.searches|join(", ") }}</td>
+              <td><button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button></td></tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      </div>
+      {% endif %}
+    </section>
 
     <footer>
       Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
-      · {{ sources|length }} Quellen · Inhalte gehören den jeweiligen Quellen.
+      · {{ stats|length }} feste Quellen · Inhalte gehören den jeweiligen Quellen.
       {% if errors %}
       <details>
         <summary>{{ errors|length }} Quelle{{ "n" if errors|length > 1 }} beim letzten Lauf nicht erreichbar</summary>
@@ -252,10 +370,11 @@ footer summary { cursor: pointer; }
     get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
-  var DAY = 864e5, VOTE_SHIFT = 2 * DAY;
+  var DAY = 864e5, VOTE_SHIFT = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
+  var $ = function (id) { return document.getElementById(id); };
 
   // Farbschema: Auto → Hell → Dunkel
-  var root = document.documentElement, themeBtn = document.getElementById("theme");
+  var root = document.documentElement, themeBtn = $("theme");
   var labels = { "": "Auto", light: "Hell", dark: "Dunkel" }, order = ["", "light", "dark"];
   var theme = store.get("psn-theme", "");
   function applyTheme() {
@@ -266,53 +385,61 @@ footer summary { cursor: pointer; }
   themeBtn.addEventListener("click", function () {
     theme = order[(order.indexOf(theme) + 1) % order.length]; store.set("psn-theme", theme); applyTheme();
   });
-  document.getElementById("filtersBtn").addEventListener("click", function () {
-    document.getElementById("aside").classList.toggle("open");
-  });
+  $("filtersBtn").addEventListener("click", function () { $("aside").classList.toggle("open"); });
 
   var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
+  var dayFmt = new Intl.DateTimeFormat("de-CH", { weekday: "long", day: "numeric", month: "long" });
   function fmt(iso) { return dateFmt.format(new Date(iso)); }
   document.querySelectorAll(".post time").forEach(function (t) { t.textContent = fmt(t.dateTime); });
-  var gen = document.getElementById("generated");
-  gen.textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(gen.dateTime));
+  document.querySelectorAll("time.day").forEach(function (t) { t.textContent = dayFmt.format(new Date(t.dateTime + "T12:00:00")); });
+  $("generated").textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date($("generated").dateTime));
 
   function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
   function paintAvatar(post) { post.querySelector(".avatar").style.setProperty("--h", hue(post.dataset.source)); }
 
-  var feed = document.getElementById("feed"), favFeed = document.getElementById("favFeed");
+  var feed = $("feed"), listFeed = $("listFeed");
   var posts = Array.prototype.slice.call(feed.querySelectorAll(".post"));
   posts.forEach(paintAvatar);
 
-  // Neu seit letztem Besuch (Zeitpunkt, an dem der Beitrag erstmals im Feed auftauchte)
+  // Neu seit letztem Besuch
   var lastVisit = store.get("psn-last-visit", null), newCount = 0;
   if (lastVisit) posts.forEach(function (p) {
     if (p.dataset.seen > lastVisit) { p.classList.add("is-new"); newCount++; }
   });
   store.set("psn-last-visit", new Date().toISOString());
 
-  // Bewertungen pro Quelle und Favoriten (im Browser gespeichert)
+  // Im Browser gespeichert: Bewertungen je Quelle, Gemerkt, Blog-Ideen
   var votes = store.get("psn-votes", {});
-  var favs = store.get("psn-favs", {});
+  var lists = { favs: store.get("psn-favs", {}), blog: store.get("psn-blog", {}) };
+  function saveList(name) { store.set("psn-" + name, lists[name]); }
 
   function snapshot(post) {
     var a = post.querySelector("h2 a"), p = post.querySelector(".post-body p"), img = post.querySelector(".post-img img");
-    return { id: post.dataset.id, title: a.textContent, link: a.href, source: post.dataset.source,
+    return { id: post.dataset.id, title: a.textContent, link: a.href, source: post.dataset.source, domain: post.dataset.domain,
       category: post.dataset.cat, published: post.dataset.published, snippet: p ? p.textContent : "",
       image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
   }
 
-  var state = { view: "feed", cat: "", topic: "", source: "", search: "", domain: "", q: "", onlyNew: false, hideDown: false };
+  var state = { tab: "feed", cat: "", topic: "", source: "", domain: "", q: "", onlyNew: false, hideDown: false };
+  var TABS = {
+    feed: function (p) { return p.dataset.cat !== "Community" && p.dataset.cat !== "Entdecken"; },
+    studies: function (p) { return p.dataset.study === "1"; },
+    community: function (p) { return p.dataset.cat === "Community"; },
+    discover: function (p) { return p.dataset.cat === "Entdecken"; }
+  };
 
   function score(post) {
-    return new Date(post.dataset.published).getTime() + (votes[post.dataset.source] || 0) * VOTE_SHIFT;
+    return new Date(post.dataset.published).getTime()
+      + (votes[post.dataset.source] || 0) * VOTE_SHIFT
+      + (+post.dataset.weight || 0) * WEIGHT_SHIFT;
   }
   function matches(post) {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
     var vote = votes[post.dataset.source] || 0;
-    return (!state.cat || post.dataset.cat === state.cat)
+    return TABS[state.tab](post)
+      && (!state.cat || post.dataset.cat === state.cat)
       && (!state.topic || post.dataset.topics.split("|").indexOf(state.topic) !== -1)
       && (!state.source || post.dataset.source === state.source)
-      && (!state.search || post.dataset.search === state.search)
       && (!state.domain || post.dataset.domain === state.domain)
       && (!state.onlyNew || post.classList.contains("is-new"))
       && (!state.hideDown || vote >= 0)
@@ -322,55 +449,76 @@ footer summary { cursor: pointer; }
     var vote = votes[post.dataset.source] || 0;
     post.dataset.vote = vote;
     post.classList.toggle("dim", vote < 0);
-    post.classList.toggle("is-fav", !!favs[post.dataset.id]);
+    post.classList.toggle("is-fav", !!lists.favs[post.dataset.id]);
+    post.classList.toggle("is-blog", !!lists.blog[post.dataset.id]);
   }
 
-  function buildFavPost(f) {
+  function buildSavedPost(f) {
     var live = feed.querySelector('.post[data-id="' + CSS.escape(f.id) + '"]');
-    if (live) return live.cloneNode(true);
-    // Beitrag ist aus dem 30-Tage-Fenster gefallen: aus dem gespeicherten Stand neu aufbauen
+    if (live) { var c = live.cloneNode(true); c.hidden = false; return c; }
+    // Nicht (mehr) im Feed – aus dem gespeicherten Stand aufbauen
     var tpl = posts[0].cloneNode(true);
+    tpl.hidden = false; tpl.classList.remove("is-new");
     tpl.dataset.id = f.id; tpl.dataset.source = f.source; tpl.dataset.cat = f.category;
-    tpl.dataset.published = f.published; tpl.dataset.topics = f.topics || ""; tpl.classList.remove("is-new");
-    tpl.querySelector(".avatar").textContent = f.source.slice(0, 2).toUpperCase();
+    tpl.dataset.published = f.published; tpl.dataset.topics = f.topics || ""; tpl.dataset.domain = f.domain || "";
+    var av = tpl.querySelector(".avatar");
+    av.firstChild.textContent = f.source.slice(0, 2).toUpperCase();
+    var fav = av.querySelector("img");
+    if (fav) { if (f.domain) fav.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=64"; else fav.remove(); }
     tpl.querySelector(".who strong").textContent = f.source;
     tpl.querySelector(".who .sub").textContent = f.category + " · " + fmt(f.published);
     var a = tpl.querySelector("h2 a"); a.textContent = f.title; a.href = f.link;
     tpl.querySelectorAll(".actions a").forEach(function (l) { l.href = f.link; });
-    var p = tpl.querySelector(".post-body p"); if (p) p.textContent = f.snippet;
+    var p = tpl.querySelector(".post-body p"); if (p) { p.textContent = f.snippet || ""; p.hidden = !f.snippet; }
     var tags = tpl.querySelector(".tags"); if (tags) tags.remove();
+    if (f.topics) {
+      var box = document.createElement("div"); box.className = "tags";
+      f.topics.split("|").forEach(function (t) {
+        var b = document.createElement("button"); b.className = "tag"; b.type = "button"; b.dataset.topic = t; b.textContent = "#" + t; box.appendChild(b);
+      });
+      tpl.querySelector(".post-body").appendChild(box);
+    }
+    var badge = tpl.querySelector(".badge-study"); if (badge) badge.remove();
     var img = tpl.querySelector(".post-img"); if (img) img.remove();
     return tpl;
   }
 
-  function renderVotes() {
-    var list = document.getElementById("votesList"), names = Object.keys(votes).sort();
-    list.innerHTML = "";
-    names.forEach(function (name) {
-      var li = document.createElement("li"), label = document.createElement("span"), reset = document.createElement("button");
-      label.textContent = (votes[name] > 0 ? "▲ " : "▼ ") + name;
-      label.className = votes[name] > 0 ? "up" : "down";
-      reset.className = "link"; reset.type = "button"; reset.textContent = "zurücksetzen";
-      reset.addEventListener("click", function () { delete votes[name]; store.set("psn-votes", votes); render(); });
-      li.appendChild(label); li.appendChild(reset); list.appendChild(li);
+  function renderSources() {
+    document.querySelectorAll("#sourcesView tr[data-source]").forEach(function (tr) {
+      var name = tr.dataset.source, v = votes[name] || 0, cell = tr.querySelector(".c-vote");
+      cell.textContent = v > 0 ? "▲ mehr" : v < 0 ? "▼ weniger" : "–";
+      cell.className = "c-vote " + (v > 0 ? "vote-up" : v < 0 ? "vote-down" : "");
+      ["favs", "blog"].forEach(function (l) {
+        tr.querySelector(".c-" + l).textContent = Object.keys(lists[l]).filter(function (id) { return lists[l][id].source === name; }).length;
+      });
     });
   }
 
   function render() {
-    var shown = 0;
-    document.getElementById("nFavs").textContent = Object.keys(favs).length;
-    renderVotes();
-    if (state.view === "favs") {
-      feed.hidden = true; favFeed.hidden = false; favFeed.innerHTML = "";
-      Object.keys(favs).map(function (id) { return favs[id]; })
+    var shown = 0, tab = state.tab, isList = tab === "favs" || tab === "blog";
+    $("nFavs").textContent = Object.keys(lists.favs).length;
+    $("nBlog").textContent = Object.keys(lists.blog).length;
+    $("layout").classList.toggle("wide", tab === "sources");
+    $("overview").hidden = tab !== "feed" || !!(state.topic || state.cat || state.source || state.domain || state.q || state.onlyNew);
+    $("communityHead").hidden = tab !== "community";
+    $("addBox").hidden = !isList;
+    $("listTools").hidden = !isList;
+    $("sourcesView").hidden = tab !== "sources";
+    $("statusLine").hidden = tab === "sources";
+    feed.hidden = isList || tab === "sources";
+    listFeed.hidden = !isList;
+
+    if (tab === "sources") {
+      renderSources();
+    } else if (isList) {
+      listFeed.innerHTML = "";
+      Object.keys(lists[tab]).map(function (id) { return lists[tab][id]; })
         .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
         .forEach(function (f) {
-          var post = buildFavPost(f); post.hidden = false; paintAvatar(post); decorate(post);
-          favFeed.appendChild(post); shown++;
+          var post = buildSavedPost(f); paintAvatar(post); decorate(post); listFeed.appendChild(post); shown++;
         });
-      document.getElementById("count").textContent = shown + " Favoriten";
+      $("count").textContent = shown + (tab === "favs" ? " gemerkte Beiträge" : " Blog-Ideen");
     } else {
-      feed.hidden = false; favFeed.hidden = true;
       posts.sort(function (a, b) { return score(b) - score(a); });
       posts.forEach(function (post) {
         decorate(post);
@@ -379,63 +527,85 @@ footer summary { cursor: pointer; }
         if (ok) shown++;
         feed.appendChild(post);
       });
-      document.getElementById("count").textContent = shown + " von " + posts.length + " Beiträgen"
-        + (lastVisit ? " · " + newCount + " neu seit letztem Besuch" : "");
+      $("count").textContent = shown + " Beiträge" + (lastVisit && tab === "feed" ? " · " + newCount + " neu seit letztem Besuch" : "");
     }
-    document.getElementById("empty").hidden = shown > 0;
-    document.getElementById("domainInfo").hidden = !state.domain;
-    document.getElementById("domainName").textContent = state.domain;
+    $("empty").hidden = shown > 0 || tab === "sources";
+    var active = state.topic ? "#" + state.topic : state.domain ? state.domain : "";
+    $("filterInfo").hidden = !active || isList;
+    $("filterName").textContent = active;
   }
 
-  // Aktionen auf Beiträgen (Feed und Favoriten)
+  function pressed(navId, key, value) {
+    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
+    });
+  }
+  function setTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false"); });
+    render(); window.scrollTo(0, 0);
+  }
+  function setTopic(topic) {
+    state.topic = topic; pressed("topicNav", "topic", topic);
+    if (!TABS[state.tab]) setTab("feed"); else { render(); window.scrollTo(0, 0); }
+  }
+
+  document.querySelectorAll("#tabs button").forEach(function (b) { b.addEventListener("click", function () { setTab(b.dataset.tab); }); });
+  document.querySelectorAll("#topicNav button").forEach(function (b) { b.addEventListener("click", function () { setTopic(b.dataset.topic); }); });
+  document.querySelectorAll("#catNav button").forEach(function (b) {
+    b.addEventListener("click", function () { state.cat = b.dataset.cat; pressed("catNav", "cat", state.cat); render(); });
+  });
+
+  // Klicks in Beiträgen, Überblick und Tabellen
   document.querySelector("main").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-act]"), tag = e.target.closest(".tag[data-topic]");
-    if (tag) { setPressed("topicNav", "topic", tag.dataset.topic); return; }
+    var topicBtn = e.target.closest("[data-topic]");
+    if (topicBtn && !topicBtn.closest("#topicNav")) { setTopic(topicBtn.dataset.topic); return; }
+    var domainBtn = e.target.closest("button[data-domain]");
+    if (domainBtn) { state.domain = domainBtn.dataset.domain; setTab("discover"); return; }
+    var btn = e.target.closest("[data-act]");
     if (!btn) return;
-    var post = btn.closest(".post"), src = post.dataset.source, act = btn.dataset.act;
-    if (act === "fav") {
-      if (favs[post.dataset.id]) delete favs[post.dataset.id]; else favs[post.dataset.id] = snapshot(post);
-      store.set("psn-favs", favs);
+    var post = btn.closest(".post"), act = btn.dataset.act;
+    if (act === "favs" || act === "blog") {
+      var list = lists[act], id = post.dataset.id;
+      if (list[id]) delete list[id]; else list[id] = snapshot(post);
+      saveList(act);
     } else {
-      var v = act === "up" ? 1 : -1;
+      var src = post.dataset.source, v = act === "up" ? 1 : -1;
       if (votes[src] === v) delete votes[src]; else votes[src] = v;
       store.set("psn-votes", votes);
     }
     render();
   });
 
-  function setPressed(navId, key, value) {
-    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
-      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
-    });
-    state[key] = value;
-    if (key !== "view") { state.view = "feed"; setPressedOnly("viewNav", "view", "feed"); }
-    render(); window.scrollTo(0, 0);
-  }
-  function setPressedOnly(navId, key, value) {
-    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
-      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
-    });
-  }
-  [["viewNav", "view"], ["catNav", "cat"], ["topicNav", "topic"]].forEach(function (pair) {
-    document.querySelectorAll("#" + pair[0] + " button").forEach(function (b) {
-      b.addEventListener("click", function () { setPressed(pair[0], pair[1], b.dataset[pair[1]]); });
-    });
-  });
   function bind(id, ev, key, prop) {
-    var el = document.getElementById(id);
+    var el = $(id);
     if (el) el.addEventListener(ev, function () { state[key] = el[prop]; render(); });
   }
   bind("source", "change", "source", "value");
-  bind("search", "change", "search", "value");
   bind("q", "input", "q", "value");
   bind("onlyNew", "change", "onlyNew", "checked");
   bind("hideDown", "change", "hideDown", "checked");
-  document.querySelectorAll("#unknown [data-domain]").forEach(function (b) {
-    b.addEventListener("click", function () { state.domain = b.dataset.domain; setPressed("viewNav", "view", "feed"); });
+  $("filterClear").addEventListener("click", function () { state.domain = ""; setTopic(""); });
+
+  // Fremden Artikel ablegen
+  $("addForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var url = $("addUrl").value.trim(), host;
+    try { host = new URL(url).hostname.replace(/^www\./, ""); } catch (err) { return; }
+    var title = $("addTitle").value.trim() || url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 120);
+    var listName = $("addList").value;
+    lists[listName]["manual:" + url] = { id: "manual:" + url, title: title, link: url, source: host, domain: host,
+      category: "Abgelegt", published: new Date().toISOString(), snippet: "", image: null,
+      topics: $("addTopic").value, saved: new Date().toISOString() };
+    saveList(listName);
+    $("addForm").reset();
+    setTab(listName);
   });
-  document.getElementById("domainClear").addEventListener("click", function () { state.domain = ""; render(); });
-  document.querySelectorAll("#unknown time").forEach(function (t) { t.textContent = fmt(t.dateTime).slice(0, 6); });
+  $("copyList").addEventListener("click", function () {
+    var list = lists[state.tab];
+    var text = Object.keys(list).map(function (id) { var f = list[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
+    navigator.clipboard.writeText(text).then(function () { $("copyDone").hidden = false; setTimeout(function () { $("copyDone").hidden = true; }, 1500); });
+  });
 
   render();
 })();

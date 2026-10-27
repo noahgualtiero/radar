@@ -2,7 +2,8 @@
 
 Holt alle Feeds aus sources.yaml, führt sie mit dem bisherigen Bestand zusammen
 (items.json der live Seite oder einer lokalen Datei), entfernt Duplikate,
-behält die letzten 30 Tage und schreibt site/index.html + site/items.json.
+behält die letzten 30 Tage, ordnet Themen zu, erkennt Studien, Vortages-Themen
+und Trends und schreibt site/index.html + site/items.json.
 
 Aufruf:
     python build.py [--previous URL_ODER_PFAD] [--out site]
@@ -15,11 +16,13 @@ import html
 import json
 import re
 import sys
+import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from collections import Counter
-from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
+from zoneinfo import ZoneInfo
 
 import feedparser
 import yaml
@@ -31,13 +34,30 @@ SNIPPET_CHARS = 240
 TIMEOUT = 25
 USER_AGENT = "paid-search-newsfeed/1.0 (+https://github.com)"
 TRACKING_PARAMS = re.compile(r"^(utm_|fbclid$|gclid$|mc_|ref$|source$)")
+TZ = ZoneInfo("Europe/Zurich")
 DISCOVER = "Entdecken"
-NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
-ARXIV_SEARCH = "https://export.arxiv.org/api/query?search_query={q}&sortBy=submittedDate&sortOrder=descending&max_results=50"
-OPENALEX_SEARCH = (
-    "https://api.openalex.org/works?filter=primary_location.source.issn:{issns},"
-    "title_and_abstract.search:{q},from_publication_date:{since}{oa}&sort=publication_date:desc&per-page=100"
+COMMUNITY = "Community"
+STUDIES = "Studien"
+TREND_DAYS = 3
+OG_IMAGE_LIMIT = 40  # Titelbilder, die pro Lauf höchstens nachgeladen werden
+OG_IMAGE = re.compile(
+    r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*content=["\']([^"\']+)'
+    r'|<meta[^>]+content=["\']([^"\']+)["\'][^>]*(?:property|name)=["\'](?:og:image|twitter:image)["\']',
+    re.I,
 )
+# Wörter, an denen ein Beitrag aus einer beliebigen festen Quelle als Studie erkannt wird
+STUDY_PATTERN = re.compile(
+    r"\b(study|studies|studie|studien|benchmarks?|survey|umfrage|whitepaper|research|"
+    r"we analy[sz]ed|analysis of|data shows|report finds|new report|state of|forecast|prognose)\b"
+)
+STOPWORDS = set("""
+    about after again also among and from have here into just more most must over than that their them
+    then there these they this those through under what when where which while will with without your
+    google ads says said adds gets launches launch update updates new now how why the for are you can
+    über eine einen einem einer nicht noch oder sich sind wird werden wurde zum zur beim bei dass mehr
+    neue neuer neues jetzt diese dieser dieses wie was mit von für und der die das den dem des auf aus
+""".split())
+NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
 LOCALES = {
     "en": "hl=en-US&gl=US&ceid=US:en",
     "de": "hl=de&gl=CH&ceid=CH:de",
@@ -138,74 +158,7 @@ def search_sources(config: dict) -> list[dict]:
     return sources
 
 
-def research_sources(config: dict) -> list[dict]:
-    """Wissenschaftliche Quellen: arXiv (Preprints) und ausgewählte Fachzeitschriften via OpenAlex."""
-    category = config.get("kategorie", "Forschung")
-    sources = []
-    arxiv = config.get("arxiv") or {}
-    if arxiv.get("begriffe"):
-        query = " OR ".join(f"abs:{term}" for term in arxiv["begriffe"])
-        sources.append({"name": "arXiv", "url": ARXIV_SEARCH.format(q=quote(query)), "kategorie": category})
-    journals = config.get("fachzeitschriften") or {}
-    if journals.get("begriffe") and journals.get("issn"):
-        since = (now_utc() - timedelta(days=MAX_AGE_DAYS)).date().isoformat()
-        sources.append({
-            "name": "Fachzeitschriften",
-            "url": OPENALEX_SEARCH.format(
-                issns="|".join(journals["issn"]),
-                q=quote("|".join(journals["begriffe"])),
-                since=since,
-                oa=",open_access.is_oa:true" if journals.get("nur_open_access") else "",
-            ),
-            "kategorie": category,
-            "art": "openalex",
-            "begriffe": [term.strip('"').lower() for term in journals["begriffe"]],
-        })
-    return sources
-
-
-def openalex_abstract(index: dict | None) -> str:
-    if not index:
-        return ""
-    words = sorted((pos, word) for word, positions in index.items() for pos in positions)
-    return " ".join(word for _, word in words)
-
-
-def parse_openalex(source: dict, seen_at: str) -> list[dict]:
-    """OpenAlex liefert JSON statt eines Feeds; Journal-Name wird als Quelle angezeigt."""
-    works = json.loads(fetch(source["url"])).get("results", [])
-    items = []
-    for work in works:
-        link = work.get("doi") or (work.get("primary_location") or {}).get("landing_page_url")
-        title = strip_html(work.get("title") or "")
-        if not link or not title:
-            continue
-        abstract = openalex_abstract(work.get("abstract_inverted_index"))
-        # OpenAlex sucht mit Wortstämmen; nur behalten, was eine Phrase wörtlich enthält
-        text = f"{title} {abstract}".lower()
-        if not any(term in text for term in source["begriffe"]):
-            continue
-        journal = ((work.get("primary_location") or {}).get("source") or {}).get("display_name")
-        items.append({
-            "id": normalize_url(link),
-            "title": title,
-            "link": link,
-            "feed": source["name"],
-            "source": journal or source["name"],
-            "domain": domain_of(link),
-            "search": None,
-            "category": source["kategorie"],
-            "published": datetime.fromisoformat(work["publication_date"]).replace(tzinfo=timezone.utc).isoformat(),
-            "first_seen": seen_at,
-            "image": None,
-            "snippet": snippet(abstract),
-        })
-    return items
-
-
 def parse_source(source: dict, seen_at: str) -> list[dict]:
-    if source.get("art") == "openalex":
-        return parse_openalex(source, seen_at)
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
         reason = feed.get("bozo_exception") or "keine Einträge im Feed"
@@ -278,6 +231,9 @@ def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str]) -> li
         old = by_id.get(item["id"])
         if old:
             item["first_seen"] = old.get("first_seen", item["first_seen"])
+            if not item["image"]:
+                item["image"] = old.get("image")
+                item["image_checked"] = old.get("image_checked", False)
         if not item["published"]:
             item["published"] = old["published"] if old else item["first_seen"]
         by_id[item["id"]] = item
@@ -340,6 +296,150 @@ def unknown_sources(items: list[dict]) -> list[dict]:
     return rows
 
 
+def add_cover_images(items: list[dict]) -> None:
+    """Holt für Beiträge ohne Bild das Titelbild (og:image) der Artikelseite, einmal pro Beitrag."""
+    todo = [i for i in items if not i.get("image") and not i.get("image_checked")
+            and i["category"] != DISCOVER and "news.google.com" not in i["link"] and "reddit.com" not in i["link"]]
+    for item in todo[:OG_IMAGE_LIMIT]:
+        item["image_checked"] = True
+        try:
+            req = urllib.request.Request(item["link"], headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                head = resp.read(200_000).decode("utf-8", "ignore")
+        except Exception:
+            continue
+        match = OG_IMAGE.search(head)
+        url = html.unescape(next((g for g in match.groups() if g), "")) if match else ""
+        if url.startswith("http"):
+            item["image"] = url
+
+
+def mark_studies(items: list[dict]) -> None:
+    for item in items:
+        text = f"{item['title']} {item['snippet']}".lower()
+        item["study"] = item["category"] == STUDIES or (
+            item["category"] not in (DISCOVER, COMMUNITY) and bool(STUDY_PATTERN.search(text))
+        )
+
+
+def local_date(item: dict):
+    return datetime.fromisoformat(item["published"]).astimezone(TZ).date()
+
+
+def pick_articles(items: list[dict], n: int = 3) -> list[dict]:
+    """Bevorzugt offizielle Quellen, dann je Quelle nur einen Beitrag, neueste zuerst."""
+    ranked = sorted(items, key=lambda i: (i["category"] == "Offiziell", i["published"]), reverse=True)
+    picked, sources = [], set()
+    for item in ranked:
+        if item["source"] not in sources:
+            sources.add(item["source"])
+            picked.append(item)
+    return picked[:n]
+
+
+def yesterday_topics(items: list[dict], weights: dict[str, int]) -> dict:
+    """Wichtigste Themen des Vortages: Beiträge × Quellen, gewichtet mit der Themen-Wichtigkeit."""
+    day = datetime.now(TZ).date() - timedelta(days=1)
+    pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
+    rows = []
+    for name, weight in weights.items():
+        hits = [i for i in pool if name in i["topics"]]
+        if not hits:
+            continue
+        sources = {i["source"] for i in hits}
+        rows.append({
+            "topic": name, "weight": weight, "count": len(hits), "sources": len(sources),
+            "score": weight * (len(hits) + len(sources)), "articles": pick_articles(hits),
+        })
+    rows.sort(key=lambda r: -r["score"])
+    return {"date": day.isoformat(), "total": len(pool), "topics": rows[:5]}
+
+
+def title_tokens(title: str) -> set[str]:
+    words = re.findall(r"[a-zäöüß0-9][a-zäöüß0-9\-]+", title.lower())
+    return {w for w in words if len(w) >= 4 and w not in STOPWORDS}
+
+
+def story_clusters(items: list[dict], weights: dict[str, int]) -> list[dict]:
+    """Geschichten, über die mehrere feste Quellen in den letzten Tagen berichten (Titel-Ähnlichkeit)."""
+    cutoff = now_utc() - timedelta(days=TREND_DAYS)
+    pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY)
+            and datetime.fromisoformat(i["published"]) >= cutoff]
+    tokens = [title_tokens(i["title"]) for i in pool]
+    parent = list(range(len(pool)))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for a in range(len(pool)):
+        for b in range(a + 1, len(pool)):
+            shared = tokens[a] & tokens[b]
+            if len(shared) >= 2 and len(shared) / len(tokens[a] | tokens[b]) >= 0.3:
+                parent[find(a)] = find(b)
+
+    groups: dict[int, list[dict]] = {}
+    for idx, item in enumerate(pool):
+        groups.setdefault(find(idx), []).append(item)
+    clusters = []
+    for members in groups.values():
+        sources = {i["source"] for i in members}
+        if len(sources) < 2:
+            continue
+        topic_counts = Counter(t for i in members for t in i["topics"])
+        weight = max((weights.get(t, 1) for t in topic_counts), default=1)
+        articles = pick_articles(members, n=5)
+        clusters.append({
+            "title": articles[0]["title"], "sources": len(sources), "weight": weight,
+            "topics": [t for t, _ in topic_counts.most_common(2)],
+            "latest": max(i["published"] for i in members), "articles": articles,
+        })
+    clusters.sort(key=lambda c: (c["sources"] * c["weight"], c["latest"]), reverse=True)
+    return clusters[:6]
+
+
+def rising_topics(items: list[dict], weights: dict[str, int]) -> list[dict]:
+    """Themen, die in den letzten Tagen deutlich häufiger vorkommen als im 30-Tage-Schnitt."""
+    now = now_utc()
+    pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY)]
+    rows = []
+    for name, weight in weights.items():
+        ages = [(now - datetime.fromisoformat(i["published"])).days for i in pool if name in i["topics"]]
+        recent = sum(1 for a in ages if a < TREND_DAYS)
+        before = sum(1 for a in ages if a >= TREND_DAYS)
+        baseline = before / (MAX_AGE_DAYS - TREND_DAYS)
+        ratio = (recent / TREND_DAYS) / max(baseline, 0.2)
+        if recent >= 3 and ratio >= 1.5:
+            rows.append({"topic": name, "recent": recent, "ratio": round(ratio, 1), "score": ratio * weight})
+    rows.sort(key=lambda r: -r["score"])
+    return rows[:5]
+
+
+def community_topics(items: list[dict]) -> list[tuple[str, int]]:
+    cutoff = now_utc() - timedelta(days=7)
+    return Counter(
+        t for i in items if i["category"] == COMMUNITY and datetime.fromisoformat(i["published"]) >= cutoff
+        for t in i["topics"]
+    ).most_common(6)
+
+
+def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
+    rows = []
+    for source in sources:
+        hits = [i for i in items if i.get("feed") == source["name"]]
+        rows.append({
+            "name": source["name"], "category": source["kategorie"], "count": len(hits),
+            "topic_share": round(100 * sum(1 for i in hits if i["topics"]) / len(hits)) if hits else None,
+            "studies": sum(1 for i in hits if i.get("study")),
+            "latest": max((i["published"] for i in hits), default=None),
+            "filtered": bool(source.get("nur_begriffe")),
+            "host": domain_of(source["url"]),
+        })
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--previous", help="URL oder Pfad zur bisherigen items.json")
@@ -350,11 +450,16 @@ def main() -> int:
     categories = config.get("kategorien", [])
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
     searches = config.get("suchen") or {}
-    feeds = sources + search_sources(searches) + research_sources(config.get("forschung") or {})
+    feeds = sources + search_sources(searches)
 
     seen_at = now_utc().isoformat()
     fresh, errors = [], []
+    last_host = None
     for source in feeds:
+        host = domain_of(source["url"])
+        if host == last_host and "reddit.com" in host:
+            time.sleep(8)  # Reddit drosselt schnelle Folgeabrufe (HTTP 429)
+        last_host = host
         try:
             items = parse_source(source, seen_at)
             fresh.extend(items)
@@ -367,6 +472,11 @@ def main() -> int:
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
     tag_topics(items, topics)
+    mark_studies(items)
+    add_cover_images(items)
+    weights = {t["name"]: int(t.get("gewicht", 1)) for t in topics}
+    for item in items:
+        item["weight"] = max((weights.get(t, 1) for t in item["topics"]), default=0)
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -385,6 +495,12 @@ def main() -> int:
         searches=sorted({f["suche"] for f in feeds if f.get("suche")}),
         unknown=unknown_sources(items),
         topics=[t["name"] for t in topics],
+        weights=weights,
+        yesterday=yesterday_topics(items, weights),
+        stories=story_clusters(items, weights),
+        rising=rising_topics(items, weights),
+        community=community_topics(items),
+        stats=source_stats(sources, items),
         topic_counts=Counter(t for i in items for t in i["topics"]),
         errors=errors,
         generated=generated,

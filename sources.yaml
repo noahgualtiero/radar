@@ -11,7 +11,7 @@
 #                    dieser Begriffe enthält (für breite Marketing-Medien, z.B. *paid)
 #   aktiv:           optional – false blendet die Quelle aus, ohne sie zu löschen
 #
-# Alle Quellen sind gratis: offene RSS-Feeds, Google News, arXiv und OpenAlex.
+# Alle Quellen sind gratis: offene RSS-Feeds und Google News.
 
 kategorien:
   - Offiziell
@@ -19,30 +19,58 @@ kategorien:
   - Studien
   - DACH
   - LinkedIn
-  - Community   # Foren wie Reddit
-  - Entdecken   # Treffer der Suchbegriffe unten
-  - Forschung   # wissenschaftliche Arbeiten, siehe "forschung" unten
+  - Community   # Foren wie Reddit – eigener Tab
+  - Entdecken   # Treffer der Suchbegriffe unten – eigener Tab
 
-# Themenbereiche: Jeder Artikel erhält die Themen, deren Stichwörter in Titel oder Anriss
+# Themenkatalog: Jeder Beitrag erhält die Themen, deren Stichwörter in Titel oder Anriss
 # vorkommen (Gross/klein egal). Leerzeichen um ein Stichwort verhindern Teiltreffer,
 # z.B. " ki " trifft nicht "Kiosk". Themen erscheinen als Filter und als #Tags.
+#   gewicht: 1 = normal, 2 = wichtig, 3 = sehr wichtig. Wichtige Themen zählen bei
+#            "Gestern wichtig" und "Trends" stärker und rücken im Feed etwas nach oben.
 themen:
   - name: Google Ads
-    stichwoerter: [google ads, performance max, pmax, demand gen, ai max, responsive search ad, " rsa ", search campaign, youtube ads]
-  - name: Microsoft Ads
-    stichwoerter: [microsoft advertising, microsoft ads, bing ads, copilot ads]
-  - name: Shopping & Feeds
-    stichwoerter: [shopping, merchant center, product feed, produktfeed, feed-optimierung, " gmc "]
+    gewicht: 3
+    stichwoerter: [google ads, performance max, pmax, demand gen, ai max, responsive search ad, " rsa ", search campaign, suchkampagne, broad match, keyword planner]
   - name: KI-Suche & ChatGPT Ads
-    stichwoerter: [chatgpt, openai, ai overview, ai mode, gemini, perplexity, llm, " ki ", " ai ", agentic, generative]
+    gewicht: 3
+    stichwoerter: [chatgpt, openai, ai overview, ai mode, gemini, perplexity, copilot, llm, " ki-", " ki ", agentic, generative ai, generative search]
   - name: Gebote & Budgets
-    stichwoerter: [bidding, gebot, auction, auktion, autobidding, troas, tcpa, target roas, target cpa, budget]
+    gewicht: 2
+    stichwoerter: [bidding, bid strateg, gebot, auction, auktion, autobidding, troas, tcpa, target roas, target cpa, budget, cpc]
   - name: Tracking & Messung
-    stichwoerter: [tracking, consent, conversion, attribution, incrementality, measurement, messung, ga4, server-side, enhanced conversions, meridian]
+    gewicht: 2
+    stichwoerter: [tracking, consent, conversion, attribution, incrementality, measurement, messung, ga4, server-side, enhanced conversions, meridian, " mmm"]
+  - name: Shopping & Feeds
+    gewicht: 2
+    stichwoerter: [shopping, merchant center, product feed, produktfeed, feed-optimierung, " gmc ", product listing]
+  - name: Microsoft Ads
+    gewicht: 1
+    stichwoerter: [microsoft advertising, microsoft ads, bing ads]
   - name: Retail Media
+    gewicht: 1
     stichwoerter: [retail media, amazon ads, sponsored products, sponsored brands, commerce media]
   - name: Richtlinien & Recht
-    stichwoerter: [policy, richtlinie, dsgvo, gdpr, dma, lawsuit, klage, antitrust, kartell, regulation]
+    gewicht: 1
+    stichwoerter: [policy, policies, richtlinie, dsgvo, gdpr, " dma", lawsuit, klage, antitrust, kartell, regulation, verified]
+  - name: Agentur & Strategie
+    gewicht: 1
+    stichwoerter: [agency, agentur, client, kunde, strategy, strategie, hiring, career, pricing]
+
+# Begriffe, mit denen Beratungs-Feeds auf Marketing-Themen eingegrenzt werden
+marketing_begriffe: &marketing
+  - marketing
+  - advertising
+  - " ads "
+  - advertiser
+  - media
+  - search
+  - consumer
+  - e-commerce
+  - ecommerce
+  - retail
+  - brand
+  - customer
+  - personalization
 
 # Begriffe, mit denen breite Marketing-Medien auf Paid Search eingeschränkt werden
 paid_begriffe: &paid
@@ -69,53 +97,6 @@ paid_begriffe: &paid
   - ai overviews
   - ai max
   - smart bidding
-
-# Wissenschaftliche Arbeiten. Google Scholar hat weder API noch Feed und darf nicht
-# automatisiert abgefragt werden; stattdessen zwei offene Quellen:
-#   arxiv:             Preprints (v.a. Informatik/Ökonomie: Auktionen, Autobidding,
-#                      Werbesysteme – oft von Google, Meta, Alibaba). Begriff gilt für den Abstract.
-#   fachzeitschriften: neue Artikel aus den gelisteten Journals über OpenAlex,
-#                      gefiltert auf Titel/Abstract. Journal über die ISSN ergänzen.
-#                      nur_open_access: nur Artikel, die frei lesbar sind.
-forschung:
-  kategorie: Forschung
-  arxiv:
-    begriffe:
-      - '"sponsored search"'
-      - '"search advertising"'
-      - '"search ads"'
-      - '"ad auction"'
-      - '"ad auctions"'
-      - 'autobidding'
-      - '"auto-bidding"'
-      - '"paid search"'
-      - '"keyword advertising"'
-  fachzeitschriften:
-    nur_open_access: true
-    begriffe:
-      - '"search advertising"'
-      - '"sponsored search"'
-      - '"paid search"'
-      - '"search engine"'
-      - '"online advertising"'
-      - '"digital advertising"'
-      - '"advertising auction"'
-      - '"keyword advertising"'
-      - '"programmatic"'
-      - '"retail media"'
-      - '"advertising attribution"'
-      - '"multi-touch attribution"'
-      - '"incrementality"'
-    issn:
-      - 0022-2429   # Journal of Marketing
-      - 0022-2437   # Journal of Marketing Research
-      - 0732-2399   # Marketing Science
-      - 0025-1909   # Management Science
-      - 0021-8499   # Journal of Advertising Research
-      - 0091-3367   # Journal of Advertising
-      - 0167-8116   # International Journal of Research in Marketing
-      - 1094-9968   # Journal of Interactive Marketing
-      - 1570-7156   # Quantitative Marketing and Economics
 
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
@@ -210,6 +191,22 @@ quellen:
     url: https://blog.adnabu.com/feed/
     kategorie: Studien
 
+  # Beratungen und Verbände: breit, deshalb auf Marketing/Werbung eingegrenzt
+  - name: McKinsey Insights
+    url: https://www.mckinsey.com/insights/rss
+    kategorie: Studien
+    nur_begriffe: *marketing
+
+  - name: IAB
+    url: https://www.iab.com/feed/
+    kategorie: Studien
+
+  # BCG hat keinen eigenen Feed – Ersatz über Google News (nur bcg.com)
+  - name: BCG
+    url: https://news.google.com/rss/search?q=site:bcg.com+(marketing+OR+advertising+OR+%22generative+AI%22+OR+search)+when:30d&hl=en-US&gl=US&ceid=US:en
+    kategorie: Studien
+    nur_begriffe: *marketing
+
   # --- DACH ---
   # Bloofusion bietet aktuell keinen RSS-Feed an (blog.bloofusion.de leitet auf
   # bloofusion.de/wissen/ratgeber um, dort ist kein Feed verlinkt).
@@ -264,6 +261,10 @@ quellen:
   # Reddit begrenzt anonyme Abrufe; fällt der Feed aus, steht das im Footer.
   - name: Reddit r/PPC
     url: https://www.reddit.com/r/PPC/.rss
+    kategorie: Community
+
+  - name: Reddit r/googleads
+    url: https://www.reddit.com/r/googleads/.rss
     kategorie: Community
 
   # --- LinkedIn ---

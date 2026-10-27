@@ -1,150 +1,137 @@
 # Paid Search Newsfeed
 
-Eine schlichte Webseite, die neue Artikel aus festgelegten Paid-Search-Quellen als Karten
-anzeigt, neueste zuerst. Keine Zusammenfassungen, keine Bewertungen: Titel, Quelle, Datum,
-Anrisstext aus dem Feed und Link zum Original.
+Ein Newsfeed im Stil von LinkedIn mit Neuigkeiten aus selbst festgelegten Paid-Search-Quellen.
+Läuft kostenlos über **GitHub Actions** (alle 3 Stunden) und **GitHub Pages**. Alle Quellen
+sind gratis: offene RSS-Feeds und Google News.
 
-- Läuft kostenlos über **GitHub Actions** (alle 3 Stunden) und **GitHub Pages**.
-- Zeigt die Artikel der letzten **30 Tage**, Duplikate werden entfernt.
-- Filter nach Kategorie und Quelle, Suchfeld, Hell-/Dunkelmodus, mobil lesbar.
-- Markierung **«Neu»** für alles, was seit dem letzten Besuch dazugekommen ist (im Browser
-  gespeichert, pro Gerät).
-- Ist eine Quelle nicht erreichbar, läuft der Rest weiter; die betroffene Quelle steht
-  dezent im Footer.
-- Die Seite ist mit `noindex` versehen und sperrt Suchmaschinen per `robots.txt` aus.
+## Was die Seite zeigt
+
+| Tab | Inhalt |
+|---|---|
+| **Feed** | Beiträge der festen Quellen, oben «Gestern wichtig» und «Trends» |
+| **Studien** | Beiträge aus Studien-Quellen (Optmyzr, McKinsey, BCG, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
+| **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
+| **Entdecken** | Google-News-Treffer der Suchbegriffe von Seiten, die noch keine feste Quelle sind |
+| **Gemerkt** | mit «Merken» gespeicherte Beiträge und von Hand abgelegte Links |
+| **Blog-Ideen** | mit «Blog» vorgemerkte Beiträge als Themen für den eigenen Blog |
+| **Quellen** | Auswertung pro Quelle und Vorschläge für neue Quellen |
+
+**Gestern wichtig:** Die Themen des Vortages, sortiert nach *Beiträge + Quellen × Gewicht des
+Themas*, je mit den wichtigsten Artikeln (offizielle Quellen zuerst, je Quelle einer).
+
+**Trends:** Geschichten, über die mindestens zwei feste Quellen in den letzten 3 Tagen
+berichten (erkannt über ähnliche Titel). Dazu **steigende Themen**: Themen, die in den letzten
+3 Tagen mindestens 1,5-mal so oft vorkommen wie im 30-Tage-Schnitt.
+
+**Reihenfolge im Feed:** neueste zuerst. Wichtige Themen rücken leicht nach oben (6 Stunden
+pro Gewichtsstufe), bewertete Quellen deutlich (±2 Tage).
+
+Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
+
+## Bedienung
+
+Unter jedem Beitrag:
+
+- **Mehr / Weniger** bewertet die *Quelle*. «Mehr» rückt alle Beiträge dieser Quelle um zwei
+  Tage nach oben, «Weniger» um zwei Tage nach unten und blasst sie ab. Erneutes Klicken hebt
+  die Bewertung auf. Der Filter «Abgewertete Quellen ausblenden» blendet sie ganz aus.
+- **Merken** legt den Beitrag unter «Gemerkt» ab.
+- **Blog** legt ihn unter «Blog-Ideen» ab.
+- **Lesen** öffnet das Original.
+- **#Thema** filtert auf diesen Themenbereich.
+
+In «Gemerkt» und «Blog-Ideen» lassen sich auch **Links von anderswo ablegen** (Link, Titel,
+Thema). «Liste als Text kopieren» gibt die Liste mit Links für Mail oder Dokument aus.
+
+Bewertungen, Gemerkt und Blog-Ideen werden **im Browser** gespeichert, also pro Gerät und
+Browser. Wer die Browserdaten löscht, verliert sie.
 
 ## Aufbau
 
 | Datei | Zweck |
 |---|---|
-| `sources.yaml` | Liste der Quellen – **nur hier** werden Quellen ergänzt |
-| `build.py` | Holt alle Feeds, entfernt Duplikate, sortiert, baut die Seite |
+| `sources.yaml` | Quellen, Themenkatalog, Suchbegriffe – **alles Inhaltliche wird hier gepflegt** |
+| `build.py` | Holt alle Feeds, entfernt Duplikate, ordnet Themen zu, berechnet Überblick und Trends, baut die Seite |
+| `find_feed.py` | Findet den Feed einer Seite und gibt den Eintrag für `sources.yaml` aus |
 | `templates/index.html.j2` | Vorlage der Webseite |
 | `.github/workflows/build.yml` | Automatischer Lauf und Veröffentlichung |
 
 ## Quelle hinzufügen
 
-1. `sources.yaml` öffnen (auf GitHub direkt über das Stift-Symbol bearbeitbar).
-2. Unter `quellen:` einen Eintrag ergänzen:
+1. Feed finden:
 
-   ```yaml
-   - name: Name der Quelle
-     url: https://example.com/feed/
-     kategorie: News
+   ```bash
+   .venv/bin/python find_feed.py https://example.com/ein-artikel Studien
    ```
 
-   `kategorie` muss eine der Kategorien oben in der Datei sein:
-   Offiziell, News, Studien, DACH, LinkedIn.
-3. Speichern (Commit auf `main`). Die Seite wird automatisch neu gebaut.
+   Das Skript prüft die Feed-Links der Seite und übliche Pfade (`/feed/`, `/rss.xml` …) und
+   gibt den fertigen Eintrag aus. Findet es nichts: RSS.app verwenden oder eine Google-News-Suche
+   mit `site:domain` (Beispiel BCG in `sources.yaml`).
+2. Eintrag in `sources.yaml` unter `quellen:` einfügen. `kategorie` ist eine der Kategorien
+   oben in der Datei.
+3. Speichern und committen. Die Seite wird automatisch neu gebaut.
 
-**Feed-URL finden:** Bei WordPress-Seiten funktioniert meist `…/feed/`. Sonst im
-Seitenquelltext nach `application/rss+xml` suchen. Ob die URL taugt, zeigt ein Aufruf im
-Browser: Es muss XML mit `<item>`- oder `<entry>`-Einträgen erscheinen.
+Weitere Felder pro Quelle:
 
-**LinkedIn:** LinkedIn bietet keine eigenen Feeds. Profile oder Unternehmensseiten zuerst
-bei [RSS.app](https://rss.app) in einen Feed umwandeln, dann die RSS.app-URL mit
-`kategorie: LinkedIn` eintragen. Ein Beispiel steht auskommentiert in `sources.yaml`.
+- `nur_begriffe: *paid` – nur Beiträge mit Paid-Search-Bezug (für breite Medien wie t3n)
+- `nur_begriffe: *marketing` – nur Marketing-Themen (für Beratungen wie McKinsey)
+- `aktiv: false` – Quelle vorübergehend ausblenden
 
-**Quelle vorübergehend ausblenden:** `aktiv: false` beim Eintrag setzen.
+Breite Medien liefern im Feed nur ihre neuesten Artikel. Gefilterte Quellen füllen sich
+deshalb mit jedem Lauf.
 
-**Nur bestimmte Themen einer Quelle:** Mit `nur_kategorien: [PPC]` werden nur Artikel
-übernommen, die im Feed diese Kategorie tragen.
+**LinkedIn:** Profile oder Seiten bei [RSS.app](https://rss.app) in einen Feed umwandeln und
+mit `kategorie: LinkedIn` eintragen.
 
-## Bedienung
+## Themenkatalog
 
-Der Feed ist wie bei LinkedIn aufgebaut: ein Beitrag unter dem anderen, links die Filter
-(auf dem Handy über «Filter»).
-
-- **Mehr davon / Weniger** bewertet die *Quelle* eines Beitrags. «Mehr davon» rückt alle
-  Beiträge dieser Quelle um zwei Tage nach oben, «Weniger» um zwei Tage nach unten und
-  blasst sie ab. Mit «Abgewertete Quellen ausblenden» verschwinden sie ganz. Die Liste
-  «Deine Quellen-Bewertung» zeigt alle Bewertungen und setzt sie zurück. Erneutes Klicken
-  hebt eine Bewertung auf.
-- **Merken** legt einen Beitrag in die **Favoriten**. Favoriten bleiben auch erhalten,
-  wenn der Beitrag nach 30 Tagen aus dem Feed fällt.
-- **#Themen** unter einem Beitrag filtern auf diesen Themenbereich.
-
-Bewertungen und Favoriten werden im Browser gespeichert (pro Gerät und Browser, nicht
-synchronisiert). Wer Browserdaten löscht, verliert sie.
-
-## Themenbereiche
-
-Unter `themen:` in `sources.yaml` stehen die Themenbereiche mit ihren Stichwörtern. Jeder
-Beitrag erhält die Themen, deren Stichwörter in Titel oder Anriss vorkommen. Neues Thema:
+Unter `themen:` in `sources.yaml`. Jedes Thema hat ein **Gewicht** (1 = normal,
+2 = wichtig, 3 = sehr wichtig) und **Stichwörter**. Ein Beitrag erhält jedes Thema, dessen
+Stichwort in Titel oder Anriss vorkommt.
 
 ```yaml
   - name: YouTube
+    gewicht: 1
     stichwoerter: [youtube, video ads, ctv]
 ```
 
-## Breite Medien eingrenzen
+Leerzeichen um ein Stichwort verhindern Teiltreffer: `" ki "` trifft nicht «Kiosk».
+Die Spalte «Themen» im Tab «Quellen» zeigt, welcher Anteil der Beiträge einer Quelle ein
+Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
 
-Allgemeine Marketing-Medien (W&V, t3n, persoenlich.com …) sind mit `nur_begriffe: *paid`
-eingetragen: Es erscheinen nur Artikel, die einen Begriff aus der Liste `paid_begriffe`
-enthalten. Da deren Feeds nur die neuesten Artikel enthalten, füllt sich dieser Teil mit
-jedem Lauf.
+## Entdecken und Vorschläge
 
-## Suchbegriffe und unbekannte Quellen
+Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe,
+`sprache: de` = Schweizer Ausgabe). Treffer von Seiten, die schon feste Quelle sind, werden
+ausgeblendet; der Rest erscheint im Tab «Entdecken». Im Tab «Quellen» listet
+«Vorschläge für neue Quellen» die Domains daraus, häufigste zuerst. Rauschen unter
+`suchen: ignorieren:` eintragen.
 
-Neben den festen Quellen fragt der Lauf für jeden Suchbegriff unter `suchen:` in
-`sources.yaml` Google News ab (Zeitraum: letzte 7 Tage). Treffer von Seiten, die schon als
-feste Quelle geführt sind, werden ausgeblendet. Der Rest erscheint in der Kategorie
-**Entdecken**, mit dem Suchbegriff auf der Karte.
+## Bilder
 
-Unten auf der Seite listet **Unbekannte Quellen** alle Domains aus diesen Treffern, häufigste
-zuerst, mit Anzahl, letztem Treffer und den Suchbegriffen. «Treffer zeigen» filtert die
-Karten auf diese Domain. Danach:
-
-- Passende Seite → Feed-URL suchen und unter `quellen:` aufnehmen.
-- Rauschen → Domain unter `suchen: ignorieren:` eintragen.
-
-Suchbegriff ergänzen:
-
-```yaml
-    - { begriff: '"Consent Mode" Google Ads', sprache: en }
-```
-
-`sprache: en` fragt die US-Ausgabe von Google News ab, `sprache: de` die Schweizer Ausgabe.
-Anführungszeichen erzwingen die exakte Phrase, `OR` verbindet Alternativen.
-
-## Forschung
-
-Die Kategorie **Forschung** zeigt neue wissenschaftliche Arbeiten aus zwei offenen Quellen
-(Abschnitt `forschung:` in `sources.yaml`):
-
-- **arXiv**: Preprints, meist aus Informatik und Ökonomie (Auktionen, Autobidding,
-  Werbesysteme), oft von Forschungsteams bei Google, Meta oder Alibaba. Die Begriffe werden
-  im Abstract gesucht.
-- **Fachzeitschriften**: neue Artikel aus den unter `issn:` gelisteten Journals (Journal of
-  Marketing, Marketing Science, Management Science usw.), abgefragt über
-  [OpenAlex](https://openalex.org). Ein Artikel erscheint nur, wenn einer der Begriffe
-  wörtlich in Titel oder Abstract vorkommt. Weiteres Journal: ISSN ergänzen.
-  Mit `nur_open_access: true` erscheinen nur frei lesbare Artikel (bei diesen Journals
-  selten – `false` zeigt alle, der Volltext ist dann teils kostenpflichtig).
-
-Google Scholar ist nicht eingebunden: Es bietet weder API noch Feed und untersagt
-automatisierte Abfragen. Google-Scholar-Alerts gibt es nur per E-Mail.
+Profilbild eines Beitrags ist das Favicon der Quelle (über den Favicon-Dienst von Google),
+sonst die Initialen. Liefert ein Feed kein Bild, holt der Lauf das Titelbild (`og:image`) der
+Artikelseite, höchstens 40 pro Lauf und einmal pro Artikel.
 
 ## GitHub Pages aktivieren (einmalig)
 
 1. Repository auf GitHub öffnen → **Settings** → **Pages**.
 2. Unter **Build and deployment** bei **Source** «**GitHub Actions**» wählen.
-3. Die Action einmal manuell starten (siehe unten). Nach 1–2 Minuten steht die Adresse
-   der Seite oben unter Settings → Pages (Format `https://<konto>.github.io/<repo>/`).
+3. Die Action einmal manuell starten (siehe unten). Nach wenigen Minuten steht die Adresse
+   unter Settings → Pages (`https://<konto>.github.io/<repo>/`).
 
-Hinweis: Bei einem privaten Repository braucht GitHub Pages einen kostenpflichtigen Plan
-(Pro/Team). Mit einem öffentlichen Repository ist alles kostenlos; die Seite selbst ist
-dank `noindex` nicht in Suchmaschinen auffindbar, aber für alle mit dem Link erreichbar.
+GitHub Pages ist nur für **öffentliche** Repositories gratis. Die Seite ist dank `noindex`
+nicht in Suchmaschinen, aber für alle mit dem Link erreichbar.
 
 ## Action manuell starten
 
-1. Im Repository den Reiter **Actions** öffnen.
+1. Reiter **Actions** öffnen.
 2. Links **«Newsfeed bauen und veröffentlichen»** wählen.
-3. Rechts **Run workflow** → Branch `main` → **Run workflow**.
+3. **Run workflow** → Branch `main` → **Run workflow**.
 
-Ausserdem läuft die Action automatisch alle 3 Stunden und nach jeder Änderung auf `main`.
-Hinweis: GitHub pausiert zeitgesteuerte Actions, wenn im Repository 60 Tage lang nichts
-passiert ist. Dann unter Actions einmal «Enable workflow» klicken.
+Sonst läuft sie alle 3 Stunden und nach jeder Änderung auf `main`. GitHub pausiert
+zeitgesteuerte Actions nach 60 Tagen ohne Aktivität im Repository; dann unter Actions
+«Enable workflow» klicken.
 
 ## Lokal testen
 
@@ -155,12 +142,11 @@ python3 -m venv .venv
 open site/index.html
 ```
 
-## Bekannte Einschränkungen der Startquellen
+## Bekannte Einschränkungen
 
-- **Search Engine Land** blockiert automatisierte Abrufe seiner Feeds. Ersatzweise wird
-  eine Google-News-Suche auf searchengineland.com verwendet, eingeschränkt auf
-  PPC-Begriffe. Dadurch fehlen Bilder und Anrisstext, die Links führen über
-  news.google.com, und vereinzelt rutscht ein SEO-Artikel durch.
-- **Bloofusion** bietet derzeit keinen RSS-Feed an. Der Eintrag ist in `sources.yaml`
-  vorbereitet und deaktiviert; sobald eine Feed-URL (z.B. via RSS.app) vorliegt, eintragen
-  und `aktiv: false` entfernen.
+- **Search Engine Land** und **BCG** sperren bzw. haben keinen Feed; beide laufen über eine
+  Google-News-Suche (ohne Bilder, Links über news.google.com).
+- **Bloofusion** hat keinen Feed; der Eintrag ist vorbereitet und deaktiviert.
+- **Reddit** drosselt anonyme Abrufe. Fällt ein Abruf aus, steht das im Footer, die
+  Beiträge des letzten Laufs bleiben erhalten.
+- Die **Themenzuordnung** läuft über Stichwörter und ist grob (z.B. «Siri AI» → KI-Thema).
