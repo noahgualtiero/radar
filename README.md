@@ -19,7 +19,7 @@ Moderne Oberfläche im Stil von Facebook (Meta), Schrift Inter:
 | Tab | Inhalt |
 |---|---|
 | **Feed** | Beiträge der festen Quellen, oben das **Briefing** |
-| **Studien** | Beiträge aus Studien-Quellen (Optmyzr, McKinsey, BCG, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
+| **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 
@@ -121,7 +121,7 @@ das Formular vor.
 
    Das Skript prüft die Feed-Links der Seite und übliche Pfade (`/feed/`, `/rss.xml` …) und
    gibt den fertigen Eintrag aus. Findet es nichts: RSS.app verwenden oder eine Google-News-Suche
-   mit `site:domain` (Beispiel BCG in `sources.yaml`).
+   mit `site:domain` (Beispiel Search Engine Land in `sources.yaml`).
 2. Eintrag in `sources.yaml` unter `quellen:` einfügen. `kategorie` ist eine der Kategorien
    oben in der Datei.
 3. Speichern und committen. Die Seite wird automatisch neu gebaut.
@@ -228,7 +228,7 @@ open site/index.html
 
 ## Bekannte Einschränkungen
 
-- **Search Engine Land** und **BCG** sperren bzw. haben keinen Feed; beide laufen über eine
+- **Search Engine Land** sperrt seinen Feed und läuft deshalb über eine
   Google-News-Suche (ohne Bilder, Links über news.google.com).
 - **Bloofusion** hat keinen Feed; der Eintrag ist vorbereitet und deaktiviert.
 - **Reddit** drosselt anonyme Abrufe. Fällt ein Abruf aus, steht das im Footer, die
