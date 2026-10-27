@@ -42,6 +42,22 @@ Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
 
+## Passwort
+
+Vor der Seite steht eine einfache Passwort-Sperre. Nach einmaliger Eingabe bleibt der Browser
+freigeschaltet. In `sources.yaml` unter `zugang:` steht nur der SHA-256-Hash des Passworts.
+Neues Passwort setzen:
+
+```bash
+printf '%s' 'NEUES-PASSWORT' | shasum -a 256
+```
+
+Den ausgegebenen Wert bei `passwort_sha256` eintragen, committen, pushen.
+
+Die Sperre ist ein Vorhang, kein Tresor: Das Repository und `items.json` sind öffentlich
+lesbar. Für die Inhalte (öffentliche News) reicht das; Gemerkt und Bewertungen liegen ohnehin
+nur im eigenen Browser.
+
 ## Bedienung
 
 Unter jedem Beitrag:

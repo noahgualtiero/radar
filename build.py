@@ -506,6 +506,7 @@ def main() -> int:
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,
+        password_hash=(config.get("zugang") or {}).get("passwort_sha256", ""),
     )
     (out / "index.html").write_text(page, encoding="utf-8")
     print(f"{len(items)} Artikel, {len(errors)} fehlerhafte Quellen → {out / 'index.html'}")

@@ -13,6 +13,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% if password_hash %}
+<script>
+  // Passwort-Sperre: blendet die Seite aus, bis das Passwort einmal eingegeben wurde
+  try { if (localStorage.getItem("psn-auth") !== "{{ password_hash }}") document.documentElement.classList.add("locked"); }
+  catch (e) { document.documentElement.classList.add("locked"); }
+</script>
+{% endif %}
 <style>
 /* Farben nach den iOS-Systemfarben (Hintergrund gruppiert, Labels, Trennlinien, Systemblau) */
 :root {
@@ -191,6 +198,20 @@ th { color: var(--label2); font-weight: 600; font-size: .76rem; white-space: now
 .toast button { background: none; border: 0; color: #64d2ff; font-weight: 600; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 4px 0 24px; }
 
+/* Passwort-Sperre */
+.gate { display: none; }
+html.locked .navbar, html.locked .shell, html.locked .tabbar { display: none; }
+html.locked .gate { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+.gate form { width: 100%; max-width: 320px; text-align: center; }
+.gate img { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+.gate h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; margin: 16px 0 4px; }
+.gate p { color: var(--label2); margin: 0 0 20px; font-size: .92rem; }
+.gate input { width: 100%; background: var(--card); border: 0; border-radius: 12px; padding: 13px 14px; font-size: 16px;
+  box-shadow: var(--shadow), 0 0 0 .5px var(--sep); text-align: center; }
+.gate input:focus { outline: 2px solid var(--accent); }
+.gate .btn { width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; }
+.gate .err { color: var(--red); font-size: .88rem; margin-top: 10px; min-height: 1.3em; }
+
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 640px); }
   .sidebar { display: none; }
@@ -215,6 +236,37 @@ footer { color: var(--label2); font-size: .8rem; padding: 4px 0 24px; }
 {% set ico_community %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>{% endset %}
 {% set ico_saved %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>{% endset %}
 {% set tabs = [("feed", "Feed", ico_feed), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
+
+{% if password_hash %}
+<div class="gate">
+  <form id="gateForm">
+    <img src="logo.svg" alt="">
+    <h1>Radar</h1>
+    <p>Bitte Passwort eingeben.</p>
+    <input type="password" id="gatePw" autocomplete="current-password" aria-label="Passwort" autofocus>
+    <button class="btn" type="submit">Öffnen</button>
+    <div class="err" id="gateErr"></div>
+  </form>
+</div>
+<script>
+  (function () {
+    var HASH = "{{ password_hash }}";
+    document.getElementById("gateForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var pw = document.getElementById("gatePw").value;
+      crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw)).then(function (buf) {
+        var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+        if (hex === HASH) {
+          try { localStorage.setItem("psn-auth", HASH); } catch (err) {}
+          document.documentElement.classList.remove("locked");
+        } else {
+          document.getElementById("gateErr").textContent = "Falsches Passwort.";
+        }
+      });
+    });
+  })();
+</script>
+{% endif %}
 
 <header class="navbar">
   <div class="in">

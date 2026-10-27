@@ -13,6 +13,12 @@
 #
 # Alle Quellen sind gratis: offene RSS-Feeds und Google News.
 
+# Zugang: einfache Passwort-Sperre vor der Seite. Gespeichert ist nur der SHA-256-Hash.
+# Neues Passwort setzen:  printf '%s' 'NEUES-PASSWORT' | shasum -a 256
+# Achtung: Das ist ein Vorhang, kein Tresor. Repo und items.json sind öffentlich lesbar.
+zugang:
+  passwort_sha256: aa60c8150f45ec991c70d83d16f063d4601243a9d0597d6fe8e93a4d53a075b5
+
 kategorien:
   - Offiziell
   - News
