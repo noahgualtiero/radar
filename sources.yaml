@@ -115,18 +115,18 @@ paid_begriffe: &paid
 suchen:
   zeitraum_tage: 7
   begriffe:
-    - { begriff: '"Google Ads"', sprache: en }
-    - { begriff: '"Performance Max"', sprache: en }
-    - { begriff: '"Demand Gen" Google', sprache: en }
-    - { begriff: '"AI Max" Google', sprache: en }
-    - { begriff: '"Smart Bidding"', sprache: en }
-    - { begriff: '"Merchant Center"', sprache: en }
-    - { begriff: '"Microsoft Advertising"', sprache: en }
-    - { begriff: '"ChatGPT ads" OR "ChatGPT advertising"', sprache: en }
-    - { begriff: '"paid search" OR "PPC campaign" OR "PPC advertising"', sprache: en }
-    - { begriff: '"Google Ads"', sprache: de }
-    - { begriff: '"Performance Max"', sprache: de }
-    - { begriff: 'Suchmaschinenwerbung OR SEA-Kampagne', sprache: de }
+    - {begriff: '"Google Ads"', sprache: en}
+    - {begriff: '"Performance Max"', sprache: en}
+    - {begriff: '"Demand Gen" Google', sprache: en}
+    - {begriff: '"AI Max" Google', sprache: en}
+    - {begriff: '"Smart Bidding"', sprache: en}
+    - {begriff: '"Merchant Center"', sprache: en}
+    - {begriff: '"Microsoft Advertising"', sprache: en}
+    - {begriff: '"ChatGPT ads" OR "ChatGPT advertising"', sprache: en}
+    - {begriff: '"paid search" OR "PPC campaign" OR "PPC advertising"', sprache: en}
+    - {begriff: '"Google Ads"', sprache: de}
+    - {begriff: '"Performance Max"', sprache: de}
+    - {begriff: 'Suchmaschinenwerbung OR SEA-Kampagne', sprache: de}
   # Domains, deren Treffer nie angezeigt werden (Rauschen)
   ignorieren:
     - google.com

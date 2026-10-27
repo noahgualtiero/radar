@@ -576,10 +576,13 @@ def main() -> int:
 
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape())
     shown = [i for i in items if i["category"] != DISCOVER]  # Entdecken erscheint nur als Vorschlagsliste
+    repo = repo_slug()
     page = env.get_template("index.html.j2").render(
         items=shown,
         unknown=unknown_sources(items),
         topics=[t["name"] for t in topics],
+        topic_defs=topics,
+        search_defs=searches.get("begriffe") or [],
         weights=weights,
         yesterday=yesterday_topics(items, weights),
         stories=story_clusters(items, weights),
@@ -590,7 +593,8 @@ def main() -> int:
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,
-        repo=repo_slug(),
+        repo=repo,
+        site_url=f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/" if "/" in repo else "",
         categories=[c for c in config.get("kategorien", []) if c != DISCOVER],
         password_hash=(config.get("zugang") or {}).get("passwort_sha256", ""),
     )

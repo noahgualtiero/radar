@@ -8,8 +8,20 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#242526" media="(prefers-color-scheme: dark)">
 <title>Radar</title>
+<meta name="description" content="Newsradar für Paid Search: Neuigkeiten, Studien und Trends aus ausgewählten Quellen.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="logo.svg">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Radar">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Radar">
+<meta property="og:description" content="Newsradar für Paid Search">
+{% if site_url %}<meta property="og:url" content="{{ site_url }}">
+<meta property="og:image" content="{{ site_url }}og.png">{% endif %}
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -189,6 +201,9 @@ table { border-collapse: collapse; width: 100%; font-size: .87rem; }
 th, td { text-align: left; padding: 9px 10px 9px 0; border-bottom: 1px solid var(--sep); vertical-align: top; }
 th { color: var(--label2); font-weight: 600; font-size: .78rem; white-space: nowrap; }
 .num { text-align: right; }
+.link.danger { color: var(--red); }
+.actions-cell { white-space: nowrap; }
+.actions-cell .link + .link { margin-left: 12px; }
 .vote-up { color: var(--green); font-weight: 600; } .vote-down { color: var(--red); font-weight: 600; }
 .hits { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
 .admin ul.plain { list-style: none; padding: 0; margin: 0; font-size: .93rem; }
@@ -454,7 +469,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
         <p class="lead">Feste Quellen, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
           Bewertung und Gemerkt stammen aus diesem Browser.</p>
         <div class="table"><table>
-          <thead><tr><th>Quelle</th><th class="num">Beiträge</th><th class="num">Themen</th><th>Letzter</th><th>Bewertung</th><th class="num">Gemerkt</th></tr></thead>
+          <thead><tr><th>Quelle</th><th class="num">Beiträge</th><th class="num">Themen</th><th>Letzter</th><th>Bewertung</th><th class="num">Gemerkt</th><th></th></tr></thead>
           <tbody>
           {% for s in stats %}
             <tr data-source="{{ s.name }}">
@@ -463,10 +478,60 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
               <td class="num">{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</td>
               <td>{% if s.latest %}<time datetime="{{ s.latest }}">{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.</time>{% else %}–{% endif %}</td>
               <td class="c-vote">–</td><td class="num c-saved">0</td>
+              <td><button class="link danger" type="button" data-issue="Quelle entfernen: {{ s.name }}" data-body="name: {{ s.name }}" data-confirm="{{ s.name }} entfernen?">Entfernen</button></td>
             </tr>
           {% endfor %}
           </tbody>
         </table></div>
+      </div>
+
+      <div class="card admin">
+        <h2>Themen</h2>
+        <p class="lead">Ein Beitrag erhält ein Thema, wenn eines der Stichwörter in Titel oder Anriss steht. Das Gewicht steuert
+          Briefing und Reihenfolge (3 = sehr wichtig). Leerzeichen um ein Stichwort verhindern Teiltreffer (« ki »).</p>
+        <div class="table"><table>
+          <thead><tr><th>Thema</th><th>Gewicht</th><th>Stichwörter</th><th></th></tr></thead>
+          <tbody>
+          {% for t in topic_defs %}
+            <tr>
+              <td><strong>{{ t.name }}</strong><br><span class="n">{{ topic_counts[t.name] }} Beiträge</span></td>
+              <td>{{ ["", "normal", "wichtig", "sehr wichtig"][t.gewicht or 1] }}</td>
+              <td class="n">{{ t.stichwoerter|join(", ") }}</td>
+              <td class="actions-cell">
+                <button class="link" type="button" data-edit-topic="{{ t.name }}" data-weight="{{ t.gewicht or 1 }}" data-words="{{ t.stichwoerter|join(', ') }}">Bearbeiten</button>
+                <button class="link danger" type="button" data-issue="Thema: {{ t.name }}" data-body="name: {{ t.name }}&#10;entfernen: ja" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+        <form class="form" id="topicForm" style="margin-top:14px">
+          <div class="row">
+            <input type="text" id="topicName" placeholder="Thema, z.B. YouTube" required>
+            <select id="topicWeight" aria-label="Gewicht"><option value="1">normal</option><option value="2">wichtig</option><option value="3">sehr wichtig</option></select>
+          </div>
+          <input type="text" id="topicWords" placeholder="Stichwörter mit Komma getrennt, z.B. youtube, video ads, ctv">
+          <div><button class="btn" type="submit">Thema auf GitHub speichern</button> <span class="n">Neu oder bestehendes ändern (gleicher Name)</span></div>
+        </form>
+      </div>
+
+      <div class="card admin">
+        <h2>Suchbegriffe für Vorschläge</h2>
+        <p class="lead">Mit diesen Begriffen sucht Radar in Google News nach Seiten, die noch keine Quelle sind
+          (Liste «Vorschläge für neue Quellen»). «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
+        <ul class="plain">
+          {% for b in search_defs %}
+          <li><span>{{ b.begriff }} <span class="n">· {{ "Schweiz (de)" if b.sprache == "de" else "USA (en)" }}</span></span>
+            <button class="link danger" type="button" data-issue="Suchbegriff: {{ b.begriff }}" data-body="begriff: {{ b.begriff }}&#10;sprache: {{ b.sprache or 'en' }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b.begriff }} entfernen?">Entfernen</button></li>
+          {% endfor %}
+        </ul>
+        <form class="form" id="searchForm" style="margin-top:14px">
+          <div class="row">
+            <input type="text" id="searchTerm" placeholder='z.B. "Consent Mode" Google' required>
+            <select id="searchLang" aria-label="Sprache"><option value="en">USA (en)</option><option value="de">Schweiz (de)</option></select>
+          </div>
+          <div><button class="btn" type="submit">Suchbegriff auf GitHub hinzufügen</button></div>
+        </form>
       </div>
 
       <div class="card admin">
@@ -810,16 +875,40 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     navigator.clipboard.writeText(text).then(function () { toast("Liste kopiert"); });
   });
 
-  // Quelle aufnehmen: vorbereiteten Auftrag (Issue) auf GitHub öffnen; die Action add-source.yml erledigt den Rest
+  // Änderungen an Quellen, Themen und Suchbegriffen: vorbereiteten Auftrag (Issue) auf GitHub öffnen;
+  // die Action settings.yml übernimmt ihn in sources.yaml und baut die Seite neu
+  function openIssue(title, body) {
+    if (!REPO) { toast("Repository unbekannt"); return; }
+    body += "\n\n(Wird automatisch von der Action «Einstellungen übernehmen» verarbeitet.)";
+    window.open("https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent(title) + "&body=" + encodeURIComponent(body), "_blank", "noopener");
+    toast("Auf GitHub «Create» klicken – nach etwa 3 Minuten ist es übernommen");
+  }
   $("sourceForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    if (!REPO) { toast("Repository unbekannt"); return; }
     var url = $("srcUrl").value.trim();
-    var body = "url: " + url + "\nkategorie: " + $("srcCat").value + "\nname: " + $("srcName").value.trim()
-      + "\n\n(Automatisch verarbeitet von der Action «Quelle aufnehmen».)";
-    var href = "https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent("Quelle: " + url) + "&body=" + encodeURIComponent(body);
-    window.open(href, "_blank", "noopener");
+    openIssue("Quelle: " + url, "url: " + url + "\nkategorie: " + $("srcCat").value + "\nname: " + $("srcName").value.trim());
     $("sourceForm").reset();
+  });
+  $("topicForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = $("topicName").value.trim();
+    openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + $("topicWeight").value + "\nstichwoerter: " + $("topicWords").value.trim());
+    $("topicForm").reset();
+  });
+  $("searchForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var term = $("searchTerm").value.trim();
+    openIssue("Suchbegriff: " + term, "begriff: " + term + "\nsprache: " + $("searchLang").value);
+    $("searchForm").reset();
+  });
+  document.querySelector("#admin").addEventListener("click", function (e) {
+    var issue = e.target.closest("[data-issue]");
+    if (issue && confirm(issue.dataset.confirm)) openIssue(issue.dataset.issue, issue.dataset.body);
+    var edit = e.target.closest("[data-edit-topic]");
+    if (edit) {
+      $("topicName").value = edit.dataset.editTopic; $("topicWeight").value = edit.dataset.weight; $("topicWords").value = edit.dataset.words;
+      $("topicName").scrollIntoView({ block: "center" }); $("topicWords").focus();
+    }
   });
 
   render();

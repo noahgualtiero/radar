@@ -39,7 +39,7 @@ Quellennamen in einem Beitrag zeigt nur diese Quelle.
 «Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben
 (6 Stunden pro Gewichtsstufe), Quellen mit «Mehr von …» um 2 Tage.
 
-**Zahnrad** (Einstellungen): Quelle aufnehmen, Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
+**Zahnrad** (Einstellungen): Quellen aufnehmen und entfernen, Themen und Suchbegriffe pflegen, Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
 Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
@@ -81,17 +81,34 @@ Browser. Wer die Browserdaten löscht, verliert sie.
 | `sources.yaml` | Quellen, Themenkatalog, Suchbegriffe – **alles Inhaltliche wird hier gepflegt** |
 | `build.py` | Holt alle Feeds, entfernt Duplikate, ordnet Themen zu, berechnet Überblick und Trends, baut die Seite |
 | `find_feed.py` | Findet den Feed einer Seite und gibt den Eintrag für `sources.yaml` aus |
+| `apply_issue.py` | Übernimmt Änderungen aus den Einstellungen (Issues) in `sources.yaml` |
+| `.github/workflows/settings.yml` | Action dazu: «Einstellungen übernehmen» |
 | `templates/index.html.j2` | Vorlage der Webseite |
 | `.github/workflows/build.yml` | Automatischer Lauf und Veröffentlichung |
 
+## Über die Seite pflegen
+
+In den Einstellungen (Zahnrad) lassen sich ohne Code ändern:
+
+| Was | Wie |
+|---|---|
+| Quelle aufnehmen | Link eingeben, Kategorie wählen; der Feed wird automatisch gesucht |
+| Quelle entfernen | «Entfernen» in der Quellen-Tabelle; setzt `aktiv: false` (erneut aufnehmen macht sie wieder aktiv) |
+| Thema anlegen oder ändern | Name, Gewicht, Stichwörter; «Bearbeiten» füllt das Formular mit dem bestehenden Thema |
+| Thema entfernen | «Entfernen» in der Themen-Tabelle |
+| Suchbegriff hinzufügen oder entfernen | Begriff und Ausgabe (USA oder Schweiz) |
+
+Jeder Knopf öffnet auf GitHub einen vorbereiteten Auftrag (Issue); dort auf «Create»
+klicken. Die Action `settings.yml` («Einstellungen übernehmen») schreibt die Änderung in
+`sources.yaml` – Kommentare und Verweise wie `*paid` bleiben erhalten –, committet sie,
+baut die Seite neu und schreibt das Ergebnis als Kommentar ins Issue. Nach etwa 3 Minuten
+ist die Änderung sichtbar. Nur Issues des Repo-Inhabers werden verarbeitet. Das Skript
+dahinter ist `apply_issue.py`.
+
 ## Quelle hinzufügen
 
-**Über die Seite:** Zahnrad → «Quelle aufnehmen» → Link eingeben, Kategorie wählen →
-«Auf GitHub aufnehmen». Es öffnet sich ein vorbereiteter Auftrag (Issue) auf GitHub; dort
-auf «Create» klicken. Die Action `add-source.yml` sucht den Feed, trägt die Quelle in
-`sources.yaml` ein und baut die Seite neu. Das Ergebnis steht als Kommentar im Issue, das
-danach geschlossen wird. Nur Issues des Repo-Inhabers werden verarbeitet. Bei den
-«Vorschlägen für neue Quellen» füllt «Aufnehmen» das Formular vor.
+**Über die Seite:** siehe oben. Bei den «Vorschlägen für neue Quellen» füllt «Aufnehmen»
+das Formular vor.
 
 **Von Hand:**
 
@@ -155,6 +172,17 @@ Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe
 ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern unter dem Zahnrad als
 «Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
 `suchen: ignorieren:` eintragen.
+
+## Icons und Vorschaubild
+
+`static/logo.svg` ist das Logo und Favicon. Daraus erzeugt `tools/make_icons.py` die PNGs:
+iOS-Icon (`apple-touch-icon.png`), App-Icons für das Web-Manifest, PNG-Favicon und das
+Vorschaubild für geteilte Links (`og.png`, 1200×630). Nur nötig, wenn sich das Logo ändert:
+
+```bash
+.venv/bin/python -m pip install Pillow
+.venv/bin/python tools/make_icons.py
+```
 
 ## Bilder
 

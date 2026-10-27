@@ -1,7 +1,8 @@
-name: Quelle aufnehmen
+name: Einstellungen übernehmen
 
-# Ausgelöst vom Formular «Quelle aufnehmen» in den Einstellungen der Seite:
-# Es öffnet ein Issue «Quelle: <URL>». Nur Issues des Repo-Inhabers werden verarbeitet.
+# Ausgelöst von den Formularen in den Einstellungen der Seite: Sie öffnen ein Issue mit dem
+# Titel «Quelle: …», «Quelle entfernen: …», «Thema: …» oder «Suchbegriff: …».
+# Nur Issues des Repo-Inhabers werden verarbeitet.
 on:
   issues:
     types: [opened]
@@ -12,8 +13,13 @@ permissions:
   actions: write
 
 jobs:
-  add:
-    if: startsWith(github.event.issue.title, 'Quelle:') && github.event.issue.user.login == github.repository_owner
+  apply:
+    if: >-
+      github.event.issue.user.login == github.repository_owner && (
+        startsWith(github.event.issue.title, 'Quelle:') ||
+        startsWith(github.event.issue.title, 'Quelle entfernen:') ||
+        startsWith(github.event.issue.title, 'Thema:') ||
+        startsWith(github.event.issue.title, 'Suchbegriff:'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,27 +31,27 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - id: add
-        name: Feed suchen und eintragen
+      - id: apply
+        name: Änderung in sources.yaml übernehmen
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-        run: python add_source.py
+        run: python apply_issue.py
 
-      - if: steps.add.outputs.status == 'ok'
+      - if: steps.apply.outputs.status == 'ok'
         name: Änderung committen
         env:
-          NAME: ${{ steps.add.outputs.name }}
+          SUMMARY: ${{ steps.apply.outputs.summary }}
           NUMBER: ${{ github.event.issue.number }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add sources.yaml
-          git commit -m "Quelle aufgenommen: $NAME (#$NUMBER)"
+          git commit -m "$SUMMARY (#$NUMBER)"
           git push
 
       # Ein Push mit dem Action-Token startet keine weiteren Workflows, deshalb den Bau direkt anstossen
-      - if: steps.add.outputs.status == 'ok'
+      - if: steps.apply.outputs.status == 'ok'
         name: Seite neu bauen
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,5 +62,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           NUMBER: ${{ github.event.issue.number }}
-          MESSAGE: ${{ steps.add.outputs.message || 'Es ist ein Fehler aufgetreten, Details im Action-Log.' }}
+          MESSAGE: ${{ steps.apply.outputs.message || 'Es ist ein Fehler aufgetreten, Details im Action-Log.' }}
         run: gh issue close "$NUMBER" --repo "$GITHUB_REPOSITORY" --comment "$MESSAGE"
