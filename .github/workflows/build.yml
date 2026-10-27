@@ -1,20 +1,22 @@
-name: Radar bauen und veröffentlichen
+name: Radar abrufen und veröffentlichen
 
+# Holt alle Quellen, ordnet mit der KI ein, schreibt das Briefing und veröffentlicht die Seite auf
+# Cloudflare Pages. Der Bestand (items.json) liegt zwischen den Läufen im Branch «data».
+#
+# Secrets:   OPENAI_API_KEY, CLOUDFLARE_API_TOKEN
+# Variablen: CLOUDFLARE_ACCOUNT_ID, D1_DATABASE_ID
 on:
   schedule:
     - cron: "17 */3 * * *"   # alle 3 Stunden (UTC), versetzt zur vollen Stunde
-  workflow_dispatch:          # manuell über "Run workflow"
+  workflow_dispatch:          # manuell über "Run workflow" oder aus Radar nach einer Änderung
   push:
     branches: [main]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-  models: read        # GitHub Models für den Briefing-Text (gratis Kontingent)
+  contents: write             # Bestand in den Branch «data» schreiben
 
 concurrency:
-  group: pages
+  group: radar
   cancel-in-progress: false
 
 jobs:
@@ -30,26 +32,30 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - id: pages
-        uses: actions/configure-pages@v5
+      - name: Bisherigen Bestand holen
+        run: git fetch --depth=1 origin data && git show origin/data:items.json > previous.json || echo "Noch kein Bestand, erster Lauf"
 
-      # Bisherigen Bestand von der live Seite übernehmen, damit Artikel 30 Tage
-      # sichtbar bleiben, auch wenn sie aus dem Feed einer Quelle herausfallen.
-      - name: Feed bauen
+      - name: Abrufen und bauen
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: python build.py --previous "${{ steps.pages.outputs.base_url }}/items.json" --out site
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ vars.D1_DATABASE_ID }}
+        run: python build.py --previous previous.json --out site
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+      - name: Bestand sichern
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/data && cp site/items.json /tmp/data/ && cd /tmp/data
+          git init -q -b data
+          git add items.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Bestand $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Auf Cloudflare veröffentlichen
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx -y wrangler@4.149.0 pages deploy site --project-name radar --branch main --commit-dirty=true

@@ -28,13 +28,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-{% if password_hash %}
-<script>
-  // Passwort-Sperre: blendet die Seite aus, bis das Passwort einmal eingegeben wurde
-  try { if (localStorage.getItem("psn-auth") !== "{{ password_hash }}") document.documentElement.classList.add("locked"); }
-  catch (e) { document.documentElement.classList.add("locked"); }
-</script>
-{% endif %}
 <script>
   // Seitenleiste: gespeicherte Wahl, sonst auf breiten Bildschirmen aufgeklappt
   try {
@@ -311,19 +304,6 @@ body { -webkit-tap-highlight-color: transparent; }
   html, body { overscroll-behavior-y: none; }   /* kein Gummiband; Neuladen über das eigene Ziehen nach unten */
 }
 
-/* Passwort-Sperre */
-.gate { display: none; }
-html.locked .app, html.locked .tabbar { display: none; }
-html.locked .gate { display: grid; place-items: center; min-height: 100vh; min-height: 100dvh; padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom)); }
-.gate form { width: 100%; max-width: 340px; text-align: center; }
-.gate img { width: 72px; height: 72px; border-radius: 17px; box-shadow: var(--shadow-lg); }
-.gate h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em; margin: 18px 0 4px; }
-.gate p { color: var(--label2); margin: 0 0 22px; font-size: .95rem; }
-.gate input { width: 100%; background: var(--card); border: 1px solid var(--sep); border-radius: 12px; padding: 13px 14px; font-size: 16px; text-align: center; }
-.gate input:focus { outline: 2px solid var(--accent-soft); }
-.gate .btn { width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; }
-.gate .err { color: var(--red); font-size: .88rem; margin-top: 10px; min-height: 1.3em; }
-
 /* Handy und schmale Fenster */
 @media (max-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -436,6 +416,34 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .post-img { margin: 0 0 4px; border-radius: 0; border-left: 0; border-right: 0; }
   .actions { padding: 4px 4px 0; margin: 0; }
 }
+
+/* Chips: Gruppen je Tab; auf breiten Bildschirmen umbrechen statt seitlich abschneiden */
+.chipset { display: contents; }
+.chipset[hidden] { display: none !important; }
+.chip.team { background: rgba(31,157,85,.12); color: var(--green); }
+.chip.team[aria-pressed="true"] { background: var(--green); color: #fff; }
+@media (min-width: 901px) {
+  .top .chips { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
+}
+
+/* Typ-Abzeichen in Entdecken */
+.badge.t-studie { background: rgba(139,92,246,.12); color: var(--purple); }
+.badge.t-kennzahlen { background: rgba(10,102,255,.1); color: var(--accent); }
+.badge.t-best-practice { background: rgba(13,148,136,.12); color: var(--teal); }
+.badge.t-news { background: var(--fill); color: var(--label2); }
+.badge.t-diskussion { background: rgba(232,137,12,.12); color: var(--orange); }
+
+/* Auch bei …, Zähler am Daumen */
+.post-body p.also { margin-top: 6px; font-size: .84rem; }
+.post-body p.also a { color: var(--label2); font-weight: 600; text-decoration: none; }
+.post-body p.also a:hover { text-decoration: underline; }
+.actions .cnt { font-size: .86rem; font-weight: 650; min-width: 0; }
+.actions .cnt:empty { display: none; }
+
+/* Vorschläge oben im Feed */
+.suggestion { padding: 16px 18px; margin-bottom: 22px; background: var(--panel); border-color: var(--sep-soft); }
+.suggestion p { margin: 0 0 12px; font-size: .95rem; font-weight: 550; }
+@media (max-width: 900px) { #suggest { margin: 10px 12px 0; } }
 </style>
 </head>
 <body>
@@ -445,38 +453,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 {% set ico_saved %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg>{% endset %}
 {% set ico_gear %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>{% endset %}
 {% set ico_brief %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>{% endset %}
-{% set tabs = [("feed", "Feed", ico_feed), ("briefing", "Briefing", ico_brief), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
-
-{% if password_hash %}
-<div class="gate">
-  <form id="gateForm">
-    <img src="logo.svg" alt="">
-    <h1>Radar</h1>
-    <p>Bitte Passwort eingeben.</p>
-    <input type="password" id="gatePw" autocomplete="current-password" placeholder="Passwort" aria-label="Passwort" autofocus>
-    <button class="btn" type="submit">Öffnen</button>
-    <div class="err" id="gateErr"></div>
-  </form>
-</div>
-<script>
-  (function () {
-    var HASH = "{{ password_hash }}";
-    document.getElementById("gateForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var pw = document.getElementById("gatePw").value;
-      crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw)).then(function (buf) {
-        var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
-        if (hex === HASH) {
-          try { localStorage.setItem("psn-auth", HASH); } catch (err) {}
-          document.documentElement.classList.remove("locked");
-        } else {
-          document.getElementById("gateErr").textContent = "Falsches Passwort.";
-        }
-      });
-    });
-  })();
-</script>
-{% endif %}
+{% set ico_discover %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2z"/></svg>{% endset %}
+{% set ico_sources %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="18" cy="6" r="2"/><circle cx="18" cy="18" r="2"/></svg>{% endset %}
+{% set tabs = [("feed", "Feed", ico_feed), ("discover", "Entdecken", ico_discover), ("briefing", "Briefing", ico_brief), ("saved", "Gemerkt", ico_saved), ("sources", "Quellen", ico_sources)] %}
 
 <div class="app">
   {# ---------- Navigation links (Desktop) ---------- #}
@@ -488,7 +467,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       {% endfor %}
     </nav>
     <div class="rail-foot nav">
-      <button type="button" data-tab="settings" aria-selected="false" title="Einstellungen">{{ ico_gear }}<span class="lbl">Einstellungen</span></button>
       <button type="button" id="railToggle" title="Leiste einklappen" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M9 4v16"/></svg><span class="lbl">Einklappen</span></button>
     </div>
   </aside>
@@ -498,10 +476,18 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     <div class="top" id="top">
       <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
         <button class="chip search-chip open-search" type="button" title="Suchen (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg>Suchen</button>
-        <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
-        {% for t in topics if topic_counts[t] %}
-        <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
-        {% endfor %}
+        <button class="chip" type="button" data-topic="" data-type="" aria-pressed="true" id="chipAll">Alle</button>
+        <span class="chipset" data-for="feed">
+          <button class="chip team" type="button" data-team="1" aria-pressed="false" id="teamChip" hidden title="Artikel, die jemand anderes aus dem Team hochgevotet hat">Team-Tipps<span class="n" id="nTeam"></span></button>
+          {% for t in topics if topic_counts[t] %}
+          <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
+          {% endfor %}
+        </span>
+        <span class="chipset" data-for="discover">
+          {% for t in types if type_counts[t] %}
+          <button class="chip" type="button" data-type="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ type_counts[t] }}</span></button>
+          {% endfor %}
+        </span>
       </div>
       <label class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg>
@@ -557,26 +543,13 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       {% endfor %}
     </section>
 
-    {% if community %}
-    <section class="card hero" id="communityBrief" hidden>
-      <p class="eyebrow">Diese Woche in der Community</p>
-      <div class="chip-row" style="margin-top:12px">{% for t, n in community %}<button class="chip" type="button" data-topic="{{ t }}">{{ t }}<span class="n">{{ n }}</span></button>{% endfor %}</div>
-    </section>
-    {% endif %}
-
   <main>
     <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
 
     {# ---------- Gemerkt ---------- #}
-    {# Profil: Gemerkt, Blog-Ideen und Einstellungen in einem Bereich #}
-    <div class="seg profile-seg" id="seg" hidden>
-      <button type="button" data-list="favs" aria-pressed="true">Gemerkt <span class="n" id="nFavs">0</span></button>
-      <button type="button" data-list="blog" aria-pressed="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
-      <button type="button" data-list="settings" aria-pressed="false">Einstellungen</button>
-    </div>
     <section id="savedHead" hidden>
       <div class="list-head">
-        <div class="n" id="savedHint"></div>
+        <div class="n" id="savedHint">Zum späteren Lesen, auf all deinen Geräten</div>
         <div>
           <button class="btn plain" type="button" id="copyList">Kopieren</button>
           <button class="btn" type="button" id="addBtn">+ Link</button>
@@ -590,23 +563,25 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       </form>
     </section>
 
+    <div id="suggest" hidden></div>
     <div id="feed">
     {% for item in items %}
-    <article class="card post" data-id="{{ item.id }}" data-cat="{{ item.category }}" data-source="{{ item.source }}"
-      data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}" data-published="{{ item.published }}"
-      data-topics="{{ item.topics|join('|') }}" data-weight="{{ item.weight }}" data-study="{{ 1 if item.study else 0 }}"
+    <article class="card post" data-id="{{ item.id }}" data-kind="{{ 'entdecken' if item.category == 'Entdecken' else 'feed' }}" data-cat="{{ item.category }}"
+      data-source="{{ item.source }}" data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}" data-published="{{ item.published }}"
+      data-topics="{{ item.topics|join('|') }}" data-weight="{{ item.weight }}" data-type="{{ item.type }}" data-rel="{{ item.rel }}"
       data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source ~ ' ' ~ item.topics|join(' '))|lower }}">
       <header class="post-head">
         <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}<img src="https://www.google.com/s2/favicons?domain={{ item.domain }}&amp;sz=128" alt="" loading="lazy" onerror="this.remove()"></span>
         <div class="who">
           <button class="src" type="button" title="Nur diese Quelle zeigen">{{ item.source }}</button>
-          <span class="sub"><time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time></span>
+          <span class="sub"><time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>{% if item.search == "KI-Websuche" %} · KI-Websuche{% endif %}</span>
         </div>
-        {% if item.study %}<span class="badge">Studie</span>{% endif %}
+        {% if item.category in ("Entdecken", "Community") or item.type in ("Studie", "Kennzahlen") %}<span class="badge t-{{ item.type|lower|replace(' ', '-') }}">{{ item.type }}</span>{% endif %}
       </header>
       <div class="post-body">
         <h2><a href="{{ item.link }}" target="_blank" rel="noopener nofollow external">{{ item.title }}</a></h2>
         {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
+        {% if item.also %}<p class="also">Auch bei {% for a in item.also[:3] %}<a href="{{ a.link }}" target="_blank" rel="noopener nofollow external">{{ a.source }}</a>{{ ", " if not loop.last }}{% endfor %}{% if item.also|length > 3 %} und {{ item.also|length - 3 }} weiteren{% endif %}</p>{% endif %}
       </div>
       {% if item.topics %}<div class="post-body tags-wrap"><div class="tags">{% for t in item.topics %}<button class="tag" type="button" data-topic="{{ t }}">{{ t }}</button>{% endfor %}</div></div>{% endif %}
       {% if item.image %}
@@ -615,13 +590,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       </a>
       {% endif %}
       <div class="actions">
-        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle" aria-label="Mehr von dieser Quelle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg></button>
-        <button class="act-down" type="button" data-act="down" title="Weniger von dieser Quelle" aria-label="Weniger von dieser Quelle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg></button>
+        <button class="act-up" type="button" data-act="up" title="Guter Artikel" aria-label="Guter Artikel" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg><span class="cnt"></span></button>
+        <button class="act-down" type="button" data-act="down" title="Nicht relevant" aria-label="Nicht relevant" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg></button>
         <button class="act-share" type="button" data-act="share" title="Teilen" aria-label="Teilen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5 10 14"/><path d="m21.5 2.5-7 19-4.5-7.5L2.5 9.5l19-7z"/></svg></button>
         <span class="spacer"></span>
-        <button class="act-favs" type="button" data-act="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg><span class="lbl">Merken</span></button>
-        <button class="act-blog" type="button" data-act="blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog-Idee</span></button>
-        <button class="more" type="button" data-act="menu" aria-label="Weitere Aktionen"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+        <button class="act-favs" type="button" data-act="save" title="Merken" aria-label="Merken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg></button>
       </div>
     </article>
     {% endfor %}
@@ -629,38 +602,34 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     <div id="listFeed" hidden></div>
     <p class="empty" id="empty" hidden></p>
 
-    {# ---------- Einstellungen ---------- #}
+    {# ---------- Quellen und Einstellungen ---------- #}
     <section id="admin" hidden>
-      {# Quellen: Zeile mit Bewertung, Tippen öffnet Details und Aktionen #}
       <h3 class="group-title">Quellen <span class="n">{{ stats|length }}</span></h3>
       <div class="card group">
         {% for s in stats %}
         <details class="row" data-source="{{ s.name }}">
           <summary>
             <img class="fav" src="https://www.google.com/s2/favicons?domain={{ s.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}<span class="muted-flag" hidden> · stumm</span></span></div>
-            <div class="votes">
-              <button class="vote" type="button" data-vote="-1" aria-pressed="false" aria-label="Weniger von {{ s.name }}" title="Weniger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg></button>
-              <button class="vote" type="button" data-vote="1" aria-pressed="false" aria-label="Mehr von {{ s.name }}" title="Mehr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg></button>
-            </div>
+            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}<span class="eng"></span></span></div>
             <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
           </summary>
           <div class="row-body">
             <div class="facts">
-              <div><span>Themen-Treffer</span><b>{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</b></div>
+              <div><span>Votes (30 Tage)</span><b class="f-votes">–</b></div>
+              <div><span>Geöffnet (30 Tage)</span><b class="f-clicks">–</b></div>
+              <div><span>Ø Relevanz</span><b>{{ s.rel if s.rel is not none else "–" }}</b></div>
               <div><span>Letzter Beitrag</span><b>{% if s.latest %}{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.{% else %}–{% endif %}</b></div>
-              <div><span>Gemerkt</span><b class="c-saved">0</b></div>
+              <div><span>Themen-Treffer</span><b>{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</b></div>
               <div><span>Feed</span><b>{{ s.host }}</b></div>
             </div>
             <div class="row-actions">
-              <button class="btn plain" type="button" data-mute="{{ s.name }}">Stummschalten</button>
-              <button class="btn plain danger" type="button" data-issue="Quelle entfernen: {{ s.name }}" data-body="name: {{ s.name }}" data-confirm="{{ s.name }} entfernen?">Quelle entfernen</button>
+              <button class="btn plain danger" type="button" data-op="source_remove" data-name="{{ s.name }}" data-confirm="{{ s.name }} als Quelle entfernen?">Quelle entfernen</button>
             </div>
           </div>
         </details>
         {% endfor %}
         <details class="row" id="addSource">
-          <summary><span class="plus">+</span><div class="row-main"><b>Quelle aufnehmen</b><span>Seite, Blog oder Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
+          <summary><span class="plus">+</span><div class="row-main"><b>Quelle aufnehmen</b><span>Website, Blog oder Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
           <div class="row-body">
             <form class="form flat" id="sourceForm">
               <input type="url" id="srcUrl" placeholder="https://…" required>
@@ -668,16 +637,14 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
                 <select id="srcCat" aria-label="Kategorie">{% for c in categories %}<option{% if c == "News" %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
                 <input type="text" id="srcName" placeholder="Name (optional)">
               </div>
-              <button class="btn" type="submit">Auf GitHub aufnehmen</button>
+              <button class="btn" type="submit">Aufnehmen</button>
             </form>
           </div>
         </details>
       </div>
-      <p class="group-note">Daumen hoch rückt eine Quelle im Feed nach oben, Daumen runter nach unten. Stummgeschaltete Quellen
-        erscheinen gar nicht. Gespeichert in diesem Browser. Aufnehmen und Entfernen öffnen einen Auftrag auf GitHub («Create» klicken),
-        nach etwa 3 Minuten ist die Änderung da.</p>
+      <p class="group-note">Die Reihenfolge im Feed richtet sich nach Aktualität, Daumen und geöffneten Artikeln des Teams.
+        Radar schlägt oben im Feed vor, Quellen aufzunehmen oder zu entfernen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
 
-      {# Regeln für alle Quellen #}
       <h3 class="group-title">Regeln für alle Quellen</h3>
       <form class="card group" id="rulesForm">
         <label class="setting"><span>Titel mindestens</span><span class="ctl"><input type="number" id="ruleWords" min="0" max="30" value="{{ rules.min_woerter or 0 }}"> Wörter</span></label>
@@ -693,7 +660,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       </form>
       <p class="group-note">Gelten für jede Quelle gleich. Liefert eine Quelle damit nichts Brauchbares, besser entfernen statt eine Ausnahme machen.</p>
 
-      {# Themen: Tippen öffnet die Bearbeitung #}
       <h3 class="group-title">Themen</h3>
       <div class="card group">
         {% for t in topic_defs %}
@@ -706,10 +672,10 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
           <div class="row-body">
             <form class="form flat topic-form" data-name="{{ t.name }}">
               <select name="gewicht" aria-label="Gewicht">{% for v, label in [(1, "normal"), (2, "wichtig"), (3, "sehr wichtig")] %}<option value="{{ v }}"{% if (t.gewicht or 1) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-              <textarea name="stichwoerter" rows="2" aria-label="Stichwörter">{{ t.stichwoerter|join(", ") }}</textarea>
+              <textarea name="stichwoerter" rows="2" aria-label="Stichwörter">{% for w in t.stichwoerter %}{{ ('"' ~ w ~ '"') if w != w.strip() else w }}{{ ", " if not loop.last }}{% endfor %}</textarea>
               <div class="row-actions">
                 <button class="btn" type="submit">Speichern</button>
-                <button class="btn plain danger" type="button" data-issue="Thema: {{ t.name }}" data-body="name: {{ t.name }}&#10;entfernen: ja" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
+                <button class="btn plain danger" type="button" data-op="topic_remove" data-name="{{ t.name }}" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
               </div>
             </form>
           </div>
@@ -727,42 +693,22 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
           </div>
         </details>
       </div>
-      <p class="group-note">Ein Beitrag erhält ein Thema, wenn eines der Stichwörter in Titel oder Anriss steht. Leerzeichen um ein
-        Stichwort verhindern Teiltreffer (« ki » trifft nicht «Kiosk»).</p>
+      <p class="group-note">Ein Beitrag erhält ein Thema, wenn eines der Stichwörter in Titel oder Anriss steht. Ein Stichwort in
+        Anführungszeichen mit Leerzeichen trifft nur ganze Wörter (" rsa " trifft nicht «Versa»).</p>
 
-      {# Suchbegriffe #}
-      <h3 class="group-title">Suchbegriffe für Vorschläge</h3>
+      <h3 class="group-title">Suchbegriffe für Entdecken</h3>
       <div class="card group">
         {% for b in search_defs %}
         <div class="row line"><div class="row-main"><b>{{ b }}</b></div>
-          <button class="x" type="button" data-issue="Suchbegriff: {{ b }}" data-body="begriff: {{ b }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b }} entfernen?" aria-label="Entfernen">✕</button></div>
+          <button class="x" type="button" data-op="search_remove" data-term="{{ b }}" data-confirm="Suchbegriff {{ b }} entfernen?" aria-label="Entfernen">✕</button></div>
         {% endfor %}
         <form class="row line" id="searchForm">
           <input type="text" id="searchTerm" placeholder='Neuer Begriff, z.B. "Consent Mode" Google' required>
           <button class="btn" type="submit">Hinzufügen</button>
         </form>
       </div>
-      <p class="group-note">Gesucht wird in Google News in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz.
-        «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
-
-      {% if unknown %}
-      <h3 class="group-title">Vorschläge für neue Quellen</h3>
-      <div class="card group">
-        {% for u in unknown[:25] %}
-        <details class="row">
-          <summary>
-            <img class="fav" src="https://www.google.com/s2/favicons?domain={{ u.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <div class="row-main"><b>{{ u.domain }}</b><span>{{ u.count }} Treffer · zuletzt {{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</span></div>
-            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
-          </summary>
-          <div class="row-body">
-            <ul class="hits">{% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener nofollow external">{{ a.title }}</a></li>{% endfor %}</ul>
-            <div class="row-actions"><button class="btn plain" type="button" data-suggest="https://{{ u.domain }}">Als Quelle aufnehmen</button></div>
-          </div>
-        </details>
-        {% endfor %}
-      </div>
-      {% endif %}
+      <p class="group-note">Gesucht wird in Google News (USA, Grossbritannien, Irland, Deutschland, Österreich, Schweiz),
+        dazu einmal pro Woche eine KI-Websuche. Die KI ordnet jeden Fund ein; in «Entdecken» erscheint, was relevant genug ist.</p>
 
       <h3 class="group-title">Darstellung</h3>
       <div class="card group"><div class="setting"><span>Farbschema</span>
@@ -771,13 +717,15 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       <h3 class="group-title">Letzter Lauf</h3>
       <div class="card group">
         <div class="setting"><span>Stand</span><span class="n"><time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time></span></div>
-        {% set latest = briefings[0] if briefings else none %}
-        <div class="setting"><span>Briefing</span><span class="n">{% if latest and latest.by == "ki" %}von der KI{% else %}automatisch{% endif %} · {{ briefings|selectattr("by", "equalto", "ki")|list|length }} von {{ briefings|length }} Tagen mit KI</span></div>
-        {% if briefing_note %}<div class="setting stack"><span class="n">KI nicht verfügbar: {{ briefing_note }}</span></div>{% endif %}
+        <div class="setting"><span>Angemeldet</span><span class="n" id="me">–</span></div>
+        <div class="setting"><span>KI diesen Monat</span><span class="n">{{ "%.2f"|format(ai_cost.spent) }} von {{ "%.2f"|format(ai_cost.budget) }} USD · {{ ai_cost.calls }} Aufrufe</span></div>
+        <div class="setting"><span>Letzte KI-Websuche</span><span class="n">{% if ai_cost.last_websearch %}{{ ai_cost.last_websearch[8:10] }}.{{ ai_cost.last_websearch[5:7] }}.{{ ai_cost.last_websearch[0:4] }}{% else %}noch keine{% endif %}</span></div>
+        <div class="setting"><span>Einstellungen aus</span><span class="n">{{ config_origin }}</span></div>
+        {% for k, v in notes.items() %}<div class="setting stack"><span>{{ k }}</span><span class="n">{{ v }}</span></div>{% endfor %}
         {% for e in errors %}<div class="setting stack"><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></div>{% endfor %}
-        {% if repo %}<div class="setting end"><a class="btn plain" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Jetzt aktualisieren</a></div>{% endif %}
+        {% if repo %}<div class="setting end"><a class="btn plain" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Abruf auf GitHub</a></div>{% endif %}
       </div>
-      <p class="group-note">Läuft automatisch alle 3 Stunden. «Jetzt aktualisieren» öffnet GitHub, dort «Run workflow».</p>
+      <p class="group-note">Läuft automatisch alle 3 Stunden; Änderungen hier stossen einen Abruf an.</p>
     </section>
 
     <footer>Inhalte gehören den jeweiligen Quellen.</footer>
@@ -787,10 +735,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 <nav class="tabbar" aria-label="Bereiche">
   <div class="in">
-    {% for key, label, icon in tabs if key != "saved" %}
+    {% for key, label, icon in tabs %}
     <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}<span>{{ label }}</span></button>
     {% endfor %}
-    <button type="button" data-tab="saved" data-profile="1" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg><span>Profil</span></button>
   </div>
 </nav>
 
@@ -799,14 +746,15 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 <script>
 (function () {
-  var REPO = "{{ repo }}";
   var store = {
     get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
   var $ = function (id) { return document.getElementById(id); };
   var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
-  var DAY = 864e5, BOOST = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
+  // Gewichte der Reihenfolge (Einstellung «gewichtung» in sources.yaml)
+  var RANK = Object.assign({ halbwertszeit_stunden: 36, vote: 2, klick: 0.5, artikel: 0.2, quelle: 0.25, thema: 0.08,
+    relevanz: 0.1, schub_min: -0.3, schub_max: 0.5 }, {{ ranking|tojson }});
 
   // Farbschema
   var root = document.documentElement, theme = store.get("psn-theme", "");
@@ -821,7 +769,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
   // Datumsangaben
   var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "numeric", month: "long" });
-  var dayFmt = new Intl.DateTimeFormat("de-CH", { weekday: "long", day: "numeric", month: "long" });
   function fmt(iso) {
     var d = new Date(iso), h = (Date.now() - d) / 36e5;
     if (h < 1) return "Gerade eben";
@@ -830,7 +777,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     return dateFmt.format(d);
   }
   $$(".post time").forEach(function (t) { t.textContent = fmt(t.dateTime); });
-  $$("time.day").forEach(function (t) { t.textContent = dayFmt.format(new Date(t.dateTime + "T12:00:00")); });
   $("generated").textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date($("generated").dateTime));
 
   function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
@@ -842,77 +788,109 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   var seenLine = document.createElement("div");
   seenLine.className = "seen-line"; seenLine.textContent = "Bis hier gelesen";
 
-  // Was seit dem letzten Besuch neu ist, steht oben; darunter die Linie "Bis hier gelesen"
+  // Was seit dem letzten Besuch neu ist, steht im Feed oben; darunter die Linie "Bis hier gelesen"
   var lastVisit = store.get("psn-last-visit", null);
   store.set("psn-last-visit", new Date().toISOString());
   function isNew(p) { return !!lastVisit && p.dataset.seen > lastVisit; }
 
-  // Im Browser gespeichert: Bewertung je Quelle (1 = mehr, -1 = weniger, -2 = stumm), Gemerkt, Blog-Ideen
-  var MUTED = -2;
-  var votes = store.get("psn-votes", {});
-  if (store.get("psn-votes-version", 1) < 2) {  // früher bedeutete -1 «stumm»
-    Object.keys(votes).forEach(function (k) { if (votes[k] < 0) votes[k] = MUTED; });
-    store.set("psn-votes", votes); store.set("psn-votes-version", 2);
-  }
-  function setVote(src, value) {
-    if (value) votes[src] = value; else delete votes[src];
-    store.set("psn-votes", votes); render();
-  }
-  var lists = { favs: store.get("psn-favs", {}), blog: store.get("psn-blog", {}) };
+  // ---------- Daten des Teams (API) ----------
+  // Online: Votes, Klicks und Gemerkt liegen in der Datenbank. Ohne API (z.B. Datei lokal geöffnet)
+  // bleiben eigene Votes und Gemerkt in diesem Browser.
+  var server = { online: false, me: "", articles: {}, votes: {}, suggestions: [], autoRebuild: false };
+  var localVotes = store.get("psn-avotes", {});
+  var saved = store.get("psn-favs", {});
+  var clicked = {};
 
-  function snapshot(post) {
-    var a = post.querySelector("h2 a"), p = post.querySelector(".post-body p"), img = post.querySelector(".post-img img");
-    return { id: post.dataset.id, title: a.textContent, link: a.href, source: post.dataset.source, domain: post.dataset.domain,
-      category: post.dataset.cat, published: post.dataset.published, snippet: p ? p.textContent : "",
-      image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
+  function api(path, body) {
+    var opts = body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : { cache: "no-store" };
+    opts.credentials = "same-origin";
+    return fetch("api/" + path, opts).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(d.error || "Fehler " + r.status);
+        return d;
+      });
+    });
+  }
+  function myVote(id) { return (server.online ? server.votes : localVotes)[id] || 0; }
+  function counts(id) { return server.articles[id] || (server.articles[id] = { up: 0, down: 0, team: 0, clicks: 0 }); }
+  function ref(post) { return { id: post.dataset.id, source: post.dataset.source, domain: post.dataset.domain, kind: post.dataset.kind || "feed" }; }
+
+  // ---------- Reihenfolge ----------
+  // Aktualität (Halbwertszeit) mal (1 + Schub); der Schub kommt aus Votes und Klicks am Artikel,
+  // dem Schnitt der Quelle über ihre Beiträge der letzten 30 Tage, dem Thema und der KI-Relevanz
+  var sourceAvg = {};
+  function engagement(id) { var c = counts(id); return RANK.vote * (c.up - c.down) + RANK.klick * c.clicks; }
+  function computeSourceAvg() {
+    var sum = {}, n = {};
+    posts.forEach(function (p) {
+      var s = p.dataset.source;
+      sum[s] = (sum[s] || 0) + engagement(p.dataset.id); n[s] = (n[s] || 0) + 1;
+    });
+    sourceAvg = {};
+    Object.keys(sum).forEach(function (s) { sourceAvg[s] = sum[s] / n[s]; });
+  }
+  function score(p) {
+    var boost = RANK.artikel * Math.tanh(engagement(p.dataset.id) / 3)
+      + RANK.quelle * Math.tanh(sourceAvg[p.dataset.source] || 0)
+      + RANK.thema * (+p.dataset.weight || 0);
+    if (p.dataset.kind === "entdecken") boost += RANK.relevanz * ((+p.dataset.rel || 3) - 3);
+    boost = Math.min(RANK.schub_max, Math.max(RANK.schub_min, boost));
+    var hours = Math.max(0, (Date.now() - new Date(p.dataset.published)) / 36e5);
+    return Math.pow(0.5, hours / RANK.halbwertszeit_stunden) * (1 + boost);
   }
 
-  var state = { tab: "feed", list: "favs", admin: false, topic: "", source: "", q: "" };
+  // ---------- Darstellung ----------
+  var state = { tab: "feed", topic: "", type: "", team: false, source: "", q: "" };
   var TABS = {
-    feed: function (p) { return p.dataset.cat !== "Community"; },
-    studies: function (p) { return p.dataset.study === "1"; },
-    community: function (p) { return p.dataset.cat === "Community"; }
+    feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community"; },
+    discover: function (p) { return p.dataset.kind === "entdecken" || p.dataset.cat === "Community"; }
   };
   var EMPTY = {
-    feed: "Keine Beiträge für diese Auswahl.", studies: "Keine Studien für diese Auswahl.", community: "Keine Community-Beiträge für diese Auswahl.",
-    favs: "Noch nichts gemerkt. Über «Merken» bei einem Beitrag oder «+ Link» landet es hier.",
-    blog: "Noch keine Blog-Ideen. Über «Blog-Idee» bei einem Beitrag oder «+ Link» landet es hier."
+    feed: "Keine Beiträge für diese Auswahl.",
+    discover: "Keine Funde für diese Auswahl.",
+    saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag oder «+ Link» landet es hier."
   };
 
-  function score(p) {
-    var v = votes[p.dataset.source] || 0;
-    return new Date(p.dataset.published).getTime() + (v === 1 ? BOOST : v === -1 ? -BOOST : 0) + (+p.dataset.weight || 0) * WEIGHT_SHIFT;
-  }
   function matches(p) {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
-    return TABS[state.tab](p) && votes[p.dataset.source] !== MUTED
+    return TABS[state.tab](p)
       && (!state.topic || p.dataset.topics.split("|").indexOf(state.topic) !== -1)
+      && (!state.type || p.dataset.type === state.type)
+      && (!state.team || counts(p.dataset.id).team > 0)
       && (!state.source || p.dataset.source === state.source)
       && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; });
   }
   function decorate(p) {
-    var v = votes[p.dataset.source] || 0;
-    p.querySelector(".act-up").setAttribute("aria-pressed", v === 1 ? "true" : "false");
+    var id = p.dataset.id, v = myVote(id), c = counts(id), up = p.querySelector(".act-up");
+    up.setAttribute("aria-pressed", v === 1 ? "true" : "false");
     p.querySelector(".act-down").setAttribute("aria-pressed", v === -1 ? "true" : "false");
-    p.classList.toggle("is-fav", !!lists.favs[p.dataset.id]);
-    p.classList.toggle("is-blog", !!lists.blog[p.dataset.id]);
+    up.querySelector(".cnt").textContent = c.up > 0 ? c.up : "";
+    up.title = c.team ? c.team + (c.team === 1 ? " Person" : " Personen") + " aus dem Team fanden das gut" : "Guter Artikel";
+    p.classList.toggle("is-fav", !!saved[id]);
   }
 
+  function snapshot(post) {
+    var a = post.querySelector("h2 a"), p = post.querySelector(".post-body p:not(.also)"), img = post.querySelector(".post-img img");
+    return { id: post.dataset.id, title: a.textContent, link: a.href, source: post.dataset.source, domain: post.dataset.domain,
+      kind: post.dataset.kind, category: post.dataset.cat, type: post.dataset.type, published: post.dataset.published,
+      snippet: p ? p.textContent : "", image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
+  }
   function buildSavedPost(f) {
     var live = feed.querySelector('.post[data-id="' + CSS.escape(f.id) + '"]');
     if (live) { var c = live.cloneNode(true); c.hidden = false; return c; }
     // Nicht (mehr) im Feed: aus dem gespeicherten Stand aufbauen
     var tpl = posts[0].cloneNode(true);
     tpl.hidden = false;
-    Object.assign(tpl.dataset, { id: f.id, source: f.source, cat: f.category, published: f.published, topics: f.topics || "", domain: f.domain || "" });
+    Object.assign(tpl.dataset, { id: f.id, source: f.source, cat: f.category, kind: f.kind || "feed", published: f.published,
+      topics: f.topics || "", domain: f.domain || "", type: f.type || "" });
     var av = tpl.querySelector(".avatar"), favicon = av.querySelector("img");
     av.firstChild.textContent = f.source.slice(0, 2).toUpperCase();
     if (favicon) { if (f.domain) favicon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=128"; else favicon.remove(); }
     tpl.querySelector(".src").textContent = f.source;
     tpl.querySelector(".sub").textContent = f.category === "Abgelegt" ? "Selbst abgelegt" : fmt(f.published);
     var a = tpl.querySelector("h2 a"); a.textContent = f.title; a.href = f.link;
-    var p = tpl.querySelector(".post-body p"); if (p) { p.textContent = f.snippet || ""; p.hidden = !f.snippet; }
-    ["tags-wrap", "badge", "post-img"].forEach(function (cls) { var el = tpl.querySelector("." + cls); if (el) el.remove(); });
+    var p = tpl.querySelector(".post-body p:not(.also)"); if (p) { p.textContent = f.snippet || ""; p.hidden = !f.snippet; }
+    ["tags-wrap", "badge", "post-img", "also"].forEach(function (cls) { var el = tpl.querySelector("." + cls); if (el) el.remove(); });
     if (f.topics) {
       var wrap = document.createElement("div"), box = document.createElement("div");
       wrap.className = "post-body tags-wrap"; box.className = "tags";
@@ -924,98 +902,117 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     return tpl;
   }
 
+  // Vorschläge oben im Feed: «aufnehmen?» und «entfernen?»
+  function renderSuggestions(show) {
+    var box = $("suggest");
+    box.innerHTML = "";
+    box.hidden = !show || !server.suggestions.length;
+    server.suggestions.forEach(function (s) {
+      var card = document.createElement("div"), p = document.createElement("p"), row = document.createElement("div");
+      card.className = "card suggestion"; p.textContent = s.text; row.className = "row-actions";
+      [["accept", s.kind === "add" ? "Aufnehmen" : "Entfernen", "btn"], ["dismiss", "Nein, danke", "btn plain"]].forEach(function (o) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = o[2]; b.textContent = o[1];
+        b.addEventListener("click", function () {
+          api("suggestion", { key: s.key, action: o[0], name: s.name }).then(function (d) {
+            server.suggestions = server.suggestions.filter(function (x) { return x.key !== s.key; });
+            render(); toast(d.message + (d.rebuild ? " Radar baut neu." : ""));
+          }).catch(function (e) { toast(e.message); });
+        });
+        row.appendChild(b);
+      });
+      card.appendChild(p); card.appendChild(row); box.appendChild(card);
+    });
+  }
+
   function renderAdmin() {
+    $("me").textContent = server.online ? server.me : "offline";
     $$("#admin details[data-source]").forEach(function (row) {
-      var name = row.dataset.source, v = votes[name] || 0;
-      row.querySelectorAll(".vote").forEach(function (b) { b.setAttribute("aria-pressed", +b.dataset.vote === v ? "true" : "false"); });
-      row.classList.toggle("is-muted", v === MUTED);
-      row.querySelector(".muted-flag").hidden = v !== MUTED;
-      row.querySelector("[data-mute]").textContent = v === MUTED ? "Wieder anzeigen" : "Stummschalten";
-      row.querySelector(".c-saved").textContent = ["favs", "blog"].reduce(function (sum, l) {
-        return sum + Object.keys(lists[l]).filter(function (id) { return lists[l][id].source === name; }).length;
-      }, 0);
+      var name = row.dataset.source, up = 0, down = 0, clicks = 0;
+      posts.forEach(function (p) {
+        if (p.dataset.source !== name) return;
+        var c = counts(p.dataset.id); up += c.up; down += c.down; clicks += c.clicks;
+      });
+      row.querySelector(".f-votes").textContent = server.online ? "▲ " + up + "  ▼ " + down : "–";
+      row.querySelector(".f-clicks").textContent = server.online ? clicks : "–";
+      row.querySelector(".eng").textContent = up || down ? " · ▲ " + up + " ▼ " + down : "";
     });
   }
 
   function render() {
-    var tab = state.tab, saved = tab === "saved", shown = 0, admin = state.admin;
-    var filtered = !!(state.topic || state.source || state.q);
-    var nFavs = Object.keys(lists.favs).length, nBlog = Object.keys(lists.blog).length;
-    $("nFavs").textContent = nFavs; $("nBlog").textContent = nBlog;
-    $("nSavedSide").hidden = !(nFavs + nBlog);
-    $$("[data-tab]").forEach(function (b) {
-      var on = admin ? (b.dataset.tab === "settings" || !!b.dataset.profile) : b.dataset.tab === tab;
-      b.setAttribute("aria-selected", on ? "true" : "false");
-    });
-    $("seg").hidden = !(admin || saved);
-    $$("#seg button").forEach(function (b) {
-      b.setAttribute("aria-pressed", (admin ? b.dataset.list === "settings" : b.dataset.list === state.list) ? "true" : "false");
-    });
-    $("savedHint").textContent = state.list === "blog" ? "Themen für den eigenen Blog" : "Zum späteren Lesen";
-    var brief = tab === "briefing" && !admin;
+    var tab = state.tab, isSaved = tab === "saved", admin = tab === "sources", brief = tab === "briefing", shown = 0;
+    var filtered = !!(state.topic || state.type || state.team || state.source || state.q);
+    $("nSavedSide").hidden = !Object.keys(saved).length;
+    $$("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false"); });
     $("briefingView").hidden = !brief;
-    $("top").hidden = brief || admin || saved;
-    $$(".topic-nav [data-topic]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.topic === state.topic ? "true" : "false"); });
+    $("top").hidden = brief || admin || isSaved;
+    $$(".chipset").forEach(function (c) { c.hidden = c.dataset.for !== tab; });
+    $$("#chips [data-topic], #chips [data-type]").forEach(function (b) {
+      var on = b.id === "chipAll" ? !(state.topic || state.type || state.team) : b.dataset.topic ? b.dataset.topic === state.topic : b.dataset.type === state.type;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    var team = posts.filter(function (p) { return TABS.feed(p) && counts(p.dataset.id).team > 0; }).length;
+    $("teamChip").hidden = !team; $("nTeam").textContent = team || "";
+    $("teamChip").setAttribute("aria-pressed", state.team ? "true" : "false");
     $("admin").hidden = !admin;
-    $("chips").hidden = admin || saved;
-    var communityBrief = $("communityBrief");
-    if (communityBrief) communityBrief.hidden = admin || tab !== "community" || filtered;
-    $("savedHead").hidden = admin || !saved;
-    feed.hidden = admin || saved || brief;
-    listFeed.hidden = admin || !saved;
-    $("activeFilter").hidden = admin || saved || brief || !(state.topic || state.source);
+    $("savedHead").hidden = !isSaved;
+    feed.hidden = admin || isSaved || brief;
+    listFeed.hidden = !isSaved;
+    $("activeFilter").hidden = admin || isSaved || brief || !(state.topic || state.source);
     $("clearFilter").textContent = (state.source ? state.source : "#" + state.topic) + "  ✕";
+    renderSuggestions(tab === "feed" && !filtered);
 
-    if (admin || brief) {
-      if (admin) renderAdmin();
-    } else if (saved) {
+    if (admin) {
+      renderAdmin();
+    } else if (isSaved) {
       listFeed.innerHTML = "";
-      Object.keys(lists[state.list]).map(function (id) { return lists[state.list][id]; })
+      Object.keys(saved).map(function (id) { return saved[id]; })
         .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
         .forEach(function (f) { var p = buildSavedPost(f); paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++; });
-    } else {
+    } else if (!brief) {
+      var useNew = tab === "feed", scores = new Map();
+      posts.forEach(function (p) { scores.set(p, score(p)); });
       posts.sort(function (a, b) {
-        var na = isNew(a), nb = isNew(b);
-        return na !== nb ? (na ? -1 : 1) : score(b) - score(a);
+        var na = useNew && isNew(a), nb = useNew && isNew(b);
+        return na !== nb ? (na ? -1 : 1) : scores.get(b) - scores.get(a);
       });
       var lineAfter = null;
       posts.forEach(function (p) {
         decorate(p);
         var ok = matches(p);
         p.hidden = !ok;
-        if (ok) { shown++; if (isNew(p)) lineAfter = p; }
+        if (ok) { shown++; if (useNew && isNew(p)) lineAfter = p; }
         feed.appendChild(p);
       });
       var lastShown = posts.filter(function (p) { return !p.hidden; }).pop();
       if (lineAfter && !filtered && lineAfter !== lastShown) lineAfter.after(seenLine); else seenLine.remove();
     }
     $("empty").hidden = admin || brief || shown > 0;
-    $("empty").textContent = EMPTY[saved ? state.list : tab];
+    $("empty").textContent = EMPTY[tab] || "";
   }
 
-  // Direktlinks: #briefing, #studies, #community, #saved, #settings öffnen den jeweiligen Tab
-  var HASH_TABS = ["feed", "briefing", "studies", "community", "saved"];
+  // Direktlinks: #discover, #briefing, #saved, #sources öffnen den jeweiligen Tab
+  var HASH_TABS = ["feed", "discover", "briefing", "saved", "sources"];
   function syncHash() {
-    var h = state.admin ? "settings" : state.tab;
-    history.replaceState(null, "", h === "feed" ? location.pathname + location.search : "#" + h);
+    history.replaceState(null, "", state.tab === "feed" ? location.pathname + location.search : "#" + state.tab);
   }
   function go(changes) { Object.assign(state, changes); render(); syncHash(); window.scrollTo(0, 0); }
   function filterTab() { return TABS[state.tab] ? state.tab : "feed"; }
 
   $$("[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () {
-      if (b.dataset.tab === "settings") go({ admin: true }); else go({ tab: b.dataset.tab, admin: false });
+      var next = b.dataset.tab;
+      // Filter gehören zum Tab: Typen gibt es nur in Entdecken, Team-Tipps nur im Feed
+      go({ tab: next, type: next === "discover" ? state.type : "", team: next === "feed" ? state.team : "" });
     });
   });
   function setQuery(value) {
     $("q").value = value;
-    state.q = value; state.admin = false; state.tab = filterTab(); render();
+    state.q = value; state.tab = filterTab(); render();
   }
   $("q").addEventListener("input", function (e) { setQuery(e.target.value); });
-  // Lupe (Leiste links bzw. Kopf auf dem Handy) blendet das Suchfeld statt der Story-Kreise ein;
-  // Abbrechen oder Esc schliesst es und hebt die Suche auf, "/" öffnet es
   function openSearch() {
-    if (state.admin || state.tab === "saved") go({ admin: false, tab: "feed" });
+    if (!TABS[state.tab]) go({ tab: "feed" });
     $("top").classList.add("searching"); window.scrollTo(0, 0); $("q").focus();
   }
   function closeSearch() {
@@ -1044,7 +1041,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       openSearch();
     }
   });
-  // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
   // Chip-Reihe: beim Runterscrollen ausblenden, bei jeder Bewegung nach oben sofort zeigen
   var lastY = window.scrollY;
   window.addEventListener("scroll", function () {
@@ -1054,11 +1050,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     lastY = y;
   }, { passive: true });
   $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
-  $$("#seg button").forEach(function (b) {
-    b.addEventListener("click", function () {
-      if (b.dataset.list === "settings") go({ admin: true }); else go({ tab: "saved", list: b.dataset.list, admin: false });
-    });
-  });
 
   // Hinweis unten mit "Rückgängig"
   var toastTimer, undoFn;
@@ -1068,41 +1059,58 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   }
   $("toastUndo").addEventListener("click", function () { if (undoFn) undoFn(); $("toast").hidden = true; });
 
-  function closeMenus() { $$(".menu").forEach(function (m) { m.remove(); }); }
-  function openMenu(post, anchor) {
-    closeMenus();
-    var src = post.dataset.source, menu = document.createElement("div");
-    menu.className = "menu";
-    [[1, "Mehr von " + src, "Mehr von " + src + " – aufheben", src + " erscheint weiter oben"],
-     [-1, "Weniger von " + src, "Weniger von " + src + " – aufheben", src + " erscheint weiter unten"],
-     [MUTED, src + " stummschalten", null, src + " stummgeschaltet"]].forEach(function (opt) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.textContent = votes[src] === opt[0] && opt[2] ? opt[2] : opt[1];
-      b.addEventListener("click", function () {
-        var before = votes[src] || 0, next = before === opt[0] ? 0 : opt[0];
-        closeMenus(); setVote(src, next);
-        toast(next ? opt[3] : "Zurückgesetzt", function () { setVote(src, before); });
-      });
-      menu.appendChild(b);
-    });
-    anchor.parentNode.appendChild(menu);
+  // ---------- Aktionen ----------
+  function setVote(post, value) {
+    var a = ref(post), before = myVote(a.id), c = counts(a.id);
+    if (before === 1) c.up--; else if (before === -1) c.down--;
+    if (value === 1) c.up++; else if (value === -1) c.down++;
+    var votes = server.online ? server.votes : localVotes;
+    if (value) votes[a.id] = value; else delete votes[a.id];
+    if (server.online) {
+      api("vote", Object.assign({ value: value }, a)).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
+    } else {
+      store.set("psn-avotes", localVotes);
+    }
+    computeSourceAvg();
+    $$('.post[data-id="' + CSS.escape(a.id) + '"]').forEach(decorate);
   }
+  function setSaved(post, on) {
+    var item = on ? snapshot(post) : null, id = post.dataset.id;
+    if (on) saved[id] = item; else delete saved[id];
+    if (server.online) api("save", { id: id, item: item }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
+    else store.set("psn-favs", saved);
+  }
+  // Geöffnete Artikel zählen (einmal pro Artikel und Person)
+  function track(post) {
+    var a = ref(post);
+    if (!server.online || clicked[a.id]) return;
+    clicked[a.id] = true;
+    var body = JSON.stringify(a);
+    if (navigator.sendBeacon) navigator.sendBeacon("api/click", new Blob([body], { type: "application/json" }));
+    else fetch("api/click", { method: "POST", headers: { "content-type": "application/json" }, body: body, keepalive: true, credentials: "same-origin" });
+    counts(a.id).clicks++;
+  }
+  function onOpen(e) {
+    var link = e.target.closest(".post h2 a, .post .post-img");
+    if (link) track(link.closest(".post"));
+  }
+  document.addEventListener("click", onOpen, true);
+  document.addEventListener("auxclick", onOpen, true);
 
   document.addEventListener("click", function (e) {
-    if (!e.target.closest(".menu") && !e.target.closest("[data-act=menu]")) closeMenus();
-    var suggest = e.target.closest("[data-suggest]");
-    if (suggest) { $("addSource").open = true; $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
     var qBtn = e.target.closest("[data-q]");
-    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
+    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", type: "", team: false, source: "", tab: "feed" }); return; }
+    if (e.target.closest("#teamChip")) { go({ team: !state.team, topic: "", source: "" }); return; }
+    if (e.target.closest("#chipAll")) { go({ topic: "", type: "", team: false, source: "" }); return; }
+    var typeBtn = e.target.closest("#chips [data-type]");
+    if (typeBtn) { go({ type: typeBtn.dataset.type === state.type ? "" : typeBtn.dataset.type }); return; }
     var topicBtn = e.target.closest("[data-topic]");
-    if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: filterTab(), admin: false }); return; }
+    if (topicBtn) { go({ topic: topicBtn.dataset.topic, team: false, source: "", tab: filterTab() }); return; }
     var srcBtn = e.target.closest(".src");
     if (srcBtn) { go({ source: srcBtn.closest(".post").dataset.source, topic: "", tab: filterTab() }); return; }
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
     var post = btn.closest(".post"), act = btn.dataset.act;
-    if (act === "menu") { openMenu(post, btn); return; }
     if (act === "share") {
       var link = post.querySelector("h2 a");
       var data = { title: link.textContent, text: link.textContent + " (" + post.dataset.source + ")", url: link.href };
@@ -1111,17 +1119,18 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       return;
     }
     if (act === "up" || act === "down") {
-      var src = post.dataset.source, want = act === "up" ? 1 : -1, before = votes[src] || 0;
-      setVote(src, before === want ? 0 : want);
-      toast(votes[src] === 1 ? "Mehr von " + src : votes[src] === -1 ? "Weniger von " + src : src + ": zurückgesetzt",
-        function () { setVote(src, before); });
+      var want = act === "up" ? 1 : -1, before = myVote(post.dataset.id), next = before === want ? 0 : want;
+      setVote(post, next);
+      toast(next === 1 ? "Als gut markiert" : next === -1 ? "Als nicht relevant markiert" : "Bewertung entfernt",
+        function () { setVote(post, before); });
       return;
     }
-    var list = lists[act], id = post.dataset.id, adding = !list[id];
-    if (adding) list[id] = snapshot(post); else delete list[id];
-    store.set("psn-" + act, list);
-    render();
-    toast(adding ? (act === "favs" ? "Gemerkt" : "Als Blog-Idee gemerkt") : "Entfernt");
+    if (act === "save") {
+      var adding = !saved[post.dataset.id];
+      setSaved(post, adding);
+      render();
+      toast(adding ? "Gemerkt" : "Entfernt");
+    }
   });
 
   // Links von anderswo ablegen
@@ -1131,77 +1140,59 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     e.preventDefault();
     var url = $("addUrl").value.trim(), host;
     try { host = new URL(url).hostname.replace(/^www\./, ""); } catch (err) { return; }
-    var now = new Date().toISOString();
-    lists[state.list]["manual:" + url] = { id: "manual:" + url, link: url, source: host, domain: host, category: "Abgelegt",
+    var now = new Date().toISOString(), id = "manual:" + url;
+    saved[id] = { id: id, link: url, source: host, domain: host, category: "Abgelegt", kind: "feed",
       title: $("addTitle").value.trim() || url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 120),
       published: now, snippet: "", image: null, topics: $("addTopic").value, saved: now };
-    store.set("psn-" + state.list, lists[state.list]);
+    if (server.online) api("save", { id: id, item: saved[id] }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
+    else store.set("psn-favs", saved);
     $("addForm").reset(); $("addForm").hidden = true;
     render(); toast("Abgelegt");
   });
   $("copyList").addEventListener("click", function () {
-    var list = lists[state.list];
-    var text = Object.keys(list).map(function (id) { var f = list[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
+    var text = Object.keys(saved).map(function (id) { var f = saved[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
     if (!text) { toast("Liste ist leer"); return; }
     navigator.clipboard.writeText(text).then(function () { toast("Liste kopiert"); });
   });
 
-  // Änderungen an Quellen, Themen und Suchbegriffen: vorbereiteten Auftrag (Issue) auf GitHub öffnen;
-  // die Action settings.yml übernimmt ihn in sources.yaml und baut die Seite neu
-  function openIssue(title, body) {
-    if (!REPO) { toast("Repository unbekannt"); return; }
-    body += "\n\n(Wird automatisch von der Action «Einstellungen übernehmen» verarbeitet.)";
-    window.open("https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent(title) + "&body=" + encodeURIComponent(body), "_blank", "noopener");
-    toast("Auf GitHub «Create» klicken – nach etwa 3 Minuten ist es übernommen");
+  // ---------- Einstellungen ändern ----------
+  function change(body, done) {
+    if (!server.online) { toast("Ändern geht nur in der Online-Version"); return; }
+    api("config", body).then(function (d) {
+      toast(d.message + (d.rebuild ? " Radar baut neu, in ein paar Minuten sichtbar." : " Wirkt beim nächsten Abruf."));
+      if (done) done();
+    }).catch(function (e) { toast(e.message); });
   }
   $("sourceForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    var url = $("srcUrl").value.trim();
-    openIssue("Quelle: " + url, "url: " + url + "\nkategorie: " + $("srcCat").value + "\nname: " + $("srcName").value.trim());
-    $("sourceForm").reset();
+    change({ op: "source_add", url: $("srcUrl").value.trim(), kategorie: $("srcCat").value, name: $("srcName").value.trim() },
+      function () { $("sourceForm").reset(); });
   });
-  // Jedes Thema hat sein eigenes Formular; das leere Formular legt ein neues Thema an
   $$(".topic-form").forEach(function (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var name = form.dataset.name || form.elements.name.value.trim();
-      openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + form.elements.gewicht.value + "\nstichwoerter: " + form.elements.stichwoerter.value.trim());
+      change({ op: "topic_save", name: form.dataset.name || form.elements.name.value.trim(),
+        gewicht: form.elements.gewicht.value, stichwoerter: form.elements.stichwoerter.value });
     });
+  });
+  $("rulesForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    change({ op: "rules_save", min_woerter: $("ruleWords").value, mindest_gewicht: $("ruleWeight").value,
+      stellenanzeigen_ausblenden: $("ruleJobs").checked, ausschliessen: $("ruleExclude").value });
+  });
+  $("searchForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    change({ op: "search_add", term: $("searchTerm").value.trim() }, function () { $("searchForm").reset(); });
+  });
+  $("admin").addEventListener("click", function (e) {
+    var op = e.target.closest("[data-op]");
+    if (op && confirm(op.dataset.confirm)) change({ op: op.dataset.op, name: op.dataset.name, term: op.dataset.term });
   });
   // Textfelder wachsen mit dem Inhalt (Rückfall für Browser ohne field-sizing)
   function autosize(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
   $$("#admin textarea").forEach(function (t) { t.addEventListener("input", function () { autosize(t); }); });
   $$("#admin details").forEach(function (d) {
     d.addEventListener("toggle", function () { if (d.open) d.querySelectorAll("textarea").forEach(autosize); });
-  });
-  $("rulesForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    openIssue("Regeln: für alle Quellen", "min_woerter: " + $("ruleWords").value + "\nmindest_gewicht: " + $("ruleWeight").value
-      + "\nstellenanzeigen_ausblenden: " + ($("ruleJobs").checked ? "ja" : "nein") + "\nausschliessen: " + $("ruleExclude").value.trim());
-  });
-  $("searchForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var term = $("searchTerm").value.trim();
-    openIssue("Suchbegriff: " + term, "begriff: " + term);
-    $("searchForm").reset();
-  });
-  document.querySelector("#admin").addEventListener("click", function (e) {
-    var issue = e.target.closest("[data-issue]");
-    if (issue && confirm(issue.dataset.confirm)) openIssue(issue.dataset.issue, issue.dataset.body);
-    // Daumen in der Quellen-Zeile: ohne die Zeile auf- oder zuzuklappen
-    var vote = e.target.closest(".vote");
-    if (vote) {
-      e.preventDefault();
-      var src = vote.closest("[data-source]").dataset.source, v = +vote.dataset.vote;
-      setVote(src, votes[src] === v ? 0 : v);
-      toast(votes[src] === 1 ? src + ": mehr davon" : votes[src] === -1 ? src + ": weniger davon" : src + ": zurückgesetzt");
-    }
-    var mute = e.target.closest("[data-mute]");
-    if (mute) {
-      var name = mute.dataset.mute;
-      setVote(name, votes[name] === MUTED ? 0 : MUTED);
-      toast(votes[name] === MUTED ? name + " stummgeschaltet" : name + " wieder sichtbar");
-    }
   });
 
   // Nach unten ziehen zum Neuladen: nur in der App vom Home-Bildschirm (dort fehlt es); ?ptr=1 zum Testen
@@ -1215,7 +1206,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       ptr.style.opacity = Math.min(offset / TRIGGER, 1);
     }
     document.addEventListener("touchstart", function (e) {
-      startY = window.scrollY <= 0 && !root.classList.contains("locked") ? e.touches[0].clientY : null;
+      startY = window.scrollY <= 0 ? e.touches[0].clientY : null;
       pull = 0;
     }, { passive: true });
     document.addEventListener("touchmove", function (e) {
@@ -1242,10 +1233,25 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
   (function () {
     var h = location.hash.slice(1);
-    if (h === "settings") state.admin = true;
-    else if (HASH_TABS.indexOf(h) !== -1) state.tab = h;
+    if (h === "settings") h = "sources";
+    if (HASH_TABS.indexOf(h) !== -1) state.tab = h;
   })();
+  computeSourceAvg();
   render();
+
+  // Team-Daten laden; Gemerktes aus der Zeit vor der Datenbank einmal hochladen
+  api("state").then(function (d) {
+    var before = saved;
+    server = Object.assign(d, { online: true });
+    saved = {};
+    d.saved.forEach(function (f) { saved[f.id] = f; });
+    if (!d.saved.length && Object.keys(before).length && !store.get("psn-favs-migrated", false)) {
+      Object.keys(before).forEach(function (id) { saved[id] = before[id]; api("save", { id: id, item: before[id] }).catch(function () {}); });
+      store.set("psn-favs-migrated", true);
+    }
+    computeSourceAvg();
+    render();
+  }).catch(function () { /* offline: lokale Votes und Gemerkt */ });
 })();
 </script>
 </body>

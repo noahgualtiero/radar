@@ -1,0 +1,10 @@
+# Cloudflare Pages: Seite (Ordner site/), API (Ordner functions/) und Datenbank D1.
+# database_id nach «npx wrangler d1 create radar» hier eintragen (ist kein Geheimnis).
+name = "radar"
+pages_build_output_dir = "site"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "radar"
+database_id = "HIER-DIE-DATABASE-ID-EINTRAGEN"

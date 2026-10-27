@@ -2,275 +2,238 @@
 
 Newsradar für Paid Search. Logo: `static/logo.svg`.
 
-Ein Newsfeed im Stil von LinkedIn mit Neuigkeiten aus selbst festgelegten Paid-Search-Quellen.
-Läuft kostenlos über **GitHub Actions** (alle 3 Stunden) und **GitHub Pages**. Alle Quellen
-sind gratis: offene RSS-Feeds und Google News.
-
-## Was die Seite zeigt
-
-Oberfläche im Stil von Instagram (Schrift Inter):
-
-- **Desktop:** links die Seitenleiste mit Feed, Studien, Community, Gemerkt und unten
-  Einstellungen. Aufgeklappt mit Titeln, eingeklappt nur Icons; «Einklappen» bzw.
-  «Aufklappen» unten schaltet um, die Wahl wird gemerkt (Standard: ab 1200 px aufgeklappt).
-- **Oben:** eine Chip-Reihe mit **Suchen** ganz links, dann «Alle» und die Themen mit Anzahl.
-- **Beiträge** ohne Kartenrahmen, getrennt durch feine Linien; runde Profilbilder.
-- **Handy:** oben direkt die Chip-Reihe (sie gleitet beim Runterscrollen weg und ist bei jeder
-  Bewegung nach oben sofort wieder da), unten eine Leiste mit 5 Tabs und Titeln: Feed, Briefing,
-  Studien, Community, **Profil**. «Profil» fasst Gemerkt, Blog-Ideen und Einstellungen mit einem
-  Umschalter zusammen.
-- **Direktlinks:** `#briefing`, `#studies`, `#community`, `#saved`, `#settings` öffnen den Tab direkt.
-- **Suche:** Der Chip «Suchen» blendet das Suchfeld statt der Chips ein; «Abbrechen» oder Esc
-  schliesst es, die Taste «/» öffnet es.
-- Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
-
-| Tab | Inhalt |
-|---|---|
-| **Feed** (Start) | Beiträge der festen Quellen |
-| **Briefing** | Ein Briefing pro Tag, neueste zuerst, nach Monaten getrennt, rund 2 Monate zurück: Lauftext, «Das Wichtigste» (3 Beiträge mit Begründung), Studien und Community des Tages, Themen; oben die aktuellen Trend-Begriffe |
-| **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
-| **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
-| **Gemerkt** (Handy: Profil) | Umschalter «Gemerkt · Blog-Ideen · Einstellungen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
-| **Einstellungen** | Gruppierte Listen: Quellen (mit Daumen hoch/runter), Regeln, Themen, Suchbegriffe, Vorschläge, Darstellung, letzter Lauf |
-
-**Briefing:** Für jeden Tag entsteht ein Briefing aus den Beiträgen dieses Tages. In der GitHub
-Action wertet eine KI über [GitHub Models](https://github.com/marketplace/models) (gratis
-Kontingent, Modell `openai/gpt-4.1-mini`) Titel und Anriss aus: 3–4 Sätze Lauftext und die
-drei wichtigsten Beiträge mit je einem Satz, was sie für Google-Ads-, Microsoft-Ads- oder
-Shopping-Kampagnen bedeuten – nur aus den Beiträgen, ohne Erfindungen. Dazu kommen die
-Studien und die Community-Beiträge des Tages. Die KI schreibt jeweils den Vortag und holt pro
-Lauf zwei ältere Tage ohne KI-Text nach; ein KI-Text wird einmal erzeugt und dann behalten.
-Briefings bleiben rund 2 Monate gespeichert (`items.json`, Feld `briefings`), auch wenn die
-Beiträge nach 30 Tagen aus dem Feed fallen. Ohne KI stehen ein zusammengesetzter Text und
-die drei wichtigsten Beiträge mit ihrem Anriss da. Ob und warum die KI nicht lief, steht in
-den Einstellungen unter «Letzter Lauf».
-
-**Themen:** Ein Tipp auf einen Themen-Chip filtert den aktuellen Tab. Ein Tipp auf den
-Quellennamen in einem Beitrag zeigt nur diese Quelle.
-
-**Im Trend:** konkrete Begriffe (z.B. «Review Summaries»), die in den letzten 3 Tagen bei
-mindestens zwei Quellen auftauchen und mindestens doppelt so häufig sind wie im
-30-Tage-Schnitt; Einzelwörter brauchen drei Quellen. Ein Klick sucht danach.
-
-**Reihenfolge:** Was seit dem letzten Besuch neu ist, steht oben, danach die Linie
-«Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben
-(6 Stunden pro Gewichtsstufe), Quellen mit «Mehr von …» um 2 Tage.
-
-**Einstellungen:** Quellen aufnehmen und entfernen, Themen und Suchbegriffe pflegen, Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
-Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
-
-Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
-
-## Als App auf dem Handy
-
-**iPhone:** Seite in Safari öffnen → Teilen → «Zum Home-Bildschirm». **Android:** Chrome →
-Menü → «App installieren» bzw. «Zum Startbildschirm hinzufügen».
-
-Radar startet dann im Vollbild ohne Browser-Leisten: die Chips beginnen unter Statusleiste
-bzw. Dynamic Island, die Tab-Leiste endet über dem Home-Balken, Neuladen durch Ziehen nach
-unten. Die App hat ihren eigenen Speicher: Passwort, Gemerkt und Bewertungen müssen dort
-einmal neu gesetzt werden (sie werden nicht aus Safari übernommen).
-
-## Passwort
-
-Vor der Seite steht eine einfache Passwort-Sperre. Nach einmaliger Eingabe bleibt der Browser
-freigeschaltet. In `sources.yaml` unter `zugang:` steht nur der SHA-256-Hash des Passworts.
-Neues Passwort setzen:
-
-```bash
-printf '%s' 'NEUES-PASSWORT' | shasum -a 256
-```
-
-Den ausgegebenen Wert bei `passwort_sha256` eintragen, committen, pushen.
-
-Die Sperre ist ein Vorhang, kein Tresor: Das Repository und `items.json` sind öffentlich
-lesbar. Für die Inhalte (öffentliche News) reicht das; Gemerkt und Bewertungen liegen ohnehin
-nur im eigenen Browser.
-
-## Bedienung
-
-Unter jedem Beitrag, links:
-
-- **Daumen hoch / runter** – mehr bzw. weniger von dieser Quelle (2 Tage nach oben bzw. unten),
-  erneuter Klick hebt es auf.
-- **Teilen** – auf dem Handy das Teilen-Menü des Systems, auf dem Desktop wird der Link kopiert.
-
-Rechts:
-
-- **Merken** – legt den Beitrag unter «Gemerkt» ab.
-- **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
-- **⋯** – mehr, weniger oder «[Quelle] stummschalten» (ausgeblendet), jeweils mit «Rückgängig».
-
-Dieselbe Bewertung geht in den Einstellungen direkt in der Quellen-Zeile: Daumen hoch = mehr,
-Daumen runter = weniger; ein Tipp auf die Zeile zeigt Kennzahlen, «Stummschalten» und
-«Quelle entfernen».
-
-Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
-
-**Neu laden auf dem Handy:** oben nach unten ziehen. Im Browser macht das Safari bzw.
-Chrome selbst; in der App vom Home-Bildschirm übernimmt es Radar (Symbol oben, ab etwa
-7 cm Zug lädt die Seite neu). Neue Beiträge gibt es nach jedem Lauf der Action.
-
-Bewertungen, Gemerkt und Blog-Ideen werden **im Browser** gespeichert, also pro Gerät und
-Browser. Wer die Browserdaten löscht, verliert sie.
+Ein Feed im Stil von Instagram mit Neuigkeiten aus fest gewählten Paid-Search-Quellen. Dazu
+kommen Suchfunde, Studien und ein tägliches Briefing. Das Team arbeitet gemeinsam darin: Die
+Daumen und die geöffneten Artikel aller Personen bestimmen die Reihenfolge, und Radar schlägt
+Quellen zum Aufnehmen und Entfernen vor.
 
 ## Aufbau
 
-| Datei | Zweck |
-|---|---|
-| `sources.yaml` | Quellen, Themenkatalog, Suchbegriffe – **alles Inhaltliche wird hier gepflegt** |
-| `build.py` | Holt alle Feeds, entfernt Duplikate, ordnet Themen zu, berechnet Überblick und Trends, baut die Seite |
-| `find_feed.py` | Findet den Feed einer Seite und gibt den Eintrag für `sources.yaml` aus |
-| `apply_issue.py` | Übernimmt Änderungen aus den Einstellungen (Issues) in `sources.yaml` |
-| `.github/workflows/settings.yml` | Action dazu: «Einstellungen übernehmen» |
-| `templates/index.html.j2` | Vorlage der Webseite |
-| `.github/workflows/build.yml` | Automatischer Lauf und Veröffentlichung |
-
-## Über die Seite pflegen
-
-In den Einstellungen lassen sich ohne Code ändern:
-
-| Was | Wie |
-|---|---|
-| Quelle aufnehmen | Link eingeben, Kategorie wählen; der Feed wird automatisch gesucht |
-| Quelle entfernen | «Entfernen» in der Quellen-Tabelle; setzt `aktiv: false` (erneut aufnehmen macht sie wieder aktiv) |
-| Thema anlegen oder ändern | Name, Gewicht, Stichwörter; «Bearbeiten» füllt das Formular mit dem bestehenden Thema |
-| Thema entfernen | «Entfernen» in der Themen-Tabelle |
-| Regeln für alle Quellen | Mindestlänge, Themen-Schwelle, Stellenanzeigen, ausgeschlossene Begriffe |
-| Suchbegriff hinzufügen oder entfernen | Begriff eingeben; gesucht wird in den Ausgaben USA, UK, IE, DE, AT und CH |
-
-Jeder Knopf öffnet auf GitHub einen vorbereiteten Auftrag (Issue); dort auf «Create»
-klicken. Die Action `settings.yml` («Einstellungen übernehmen») schreibt die Änderung in
-`sources.yaml` (Kommentare bleiben erhalten), committet sie,
-baut die Seite neu und schreibt das Ergebnis als Kommentar ins Issue. Nach etwa 3 Minuten
-ist die Änderung sichtbar. Nur Issues des Repo-Inhabers werden verarbeitet. Das Skript
-dahinter ist `apply_issue.py`.
-
-## Quelle hinzufügen
-
-**Über die Seite:** siehe oben. Bei den «Vorschlägen für neue Quellen» füllt «Aufnehmen»
-das Formular vor.
-
-**Von Hand:**
-
-1. Feed finden:
-
-   ```bash
-   .venv/bin/python find_feed.py https://example.com/ein-artikel Studien
-   ```
-
-   Das Skript prüft die Feed-Links der Seite und übliche Pfade (`/feed/`, `/rss.xml` …) und
-   gibt den fertigen Eintrag aus. Findet es nichts: RSS.app verwenden oder eine Google-News-Suche
-   mit `site:domain` (Beispiel Search Engine Land in `sources.yaml`).
-2. Eintrag in `sources.yaml` unter `quellen:` einfügen. `kategorie` ist eine der Kategorien
-   oben in der Datei.
-3. Speichern und committen. Die Seite wird automatisch neu gebaut.
-
-Pro Quelle gibt es **keine Sonderregeln**. Ausser `aktiv: false` (Quelle vorübergehend
-ausblenden) hat eine Quelle nur Name, URL und Kategorie. Was erscheint, bestimmen die
-Regeln für alle Quellen und der Themenkatalog. Liefert eine Quelle damit nichts
-Brauchbares, wird sie entfernt.
-
-**Newsletter:** Mit [Kill the Newsletter](https://kill-the-newsletter.com) eine
-Newsletter-Adresse erzeugen, den Newsletter mit dieser Adresse abonnieren und den
-angezeigten Atom-Feed als Quelle aufnehmen. Jede Ausgabe erscheint dann als Beitrag.
-
-**LinkedIn:** Profile oder Seiten bei [RSS.app](https://rss.app) in einen Feed umwandeln und
-mit `kategorie: LinkedIn` eintragen.
-
-## Regeln für alle Quellen
-
-Unter `regeln:` in `sources.yaml`, in den Einstellungen änderbar. Sie gelten für jede
-Quelle gleich, auch für die Google-News-Suchen:
-
-| Regel | Standard | Wirkung |
+| Teil | Wo | Kosten |
 |---|---|---|
-| `min_woerter` | 5 | Beiträge mit kürzerem Titel fallen weg (z.B. Glossar-Einträge) |
-| `mindest_gewicht` | 1 | Nur Beiträge, die ein Thema treffen (0 = aus, 2 = ab «wichtig», 3 = nur «sehr wichtig») |
-| `stellenanzeigen_ausblenden` | ja | «Working Student», «Internship», «(m/w/d)», Links auf /careers/ … |
-| `ausschliessen` | – | Beiträge mit diesen Begriffen im Titel fallen weg |
+| Abruf, KI, Bau der Seite (`build.py`, `ai.py`) | GitHub Actions, alle 3 Stunden | gratis |
+| Bestand zwischen den Läufen (`items.json`) | Branch `data` im Repo | gratis |
+| Seite, API (`functions/api/`), Datenbank D1 | Cloudflare Pages | Gratis-Kontingent |
+| Anmeldung per E-Mail-Code | Cloudflare Access | gratis bis 50 Personen |
+| KI (Einordnung, Briefing, Websuche) | OpenAI-API | rund 1–2 USD pro Monat, Budget einstellbar |
 
-Geänderte Regeln wirken beim nächsten Lauf auch auf den gespeicherten Bestand. Weil die
-Themen-Regel am Katalog hängt, sind präzise Stichwörter entscheidend: ein zu breites
-Stichwort («ai», «strategy») lässt Fremdes durch, ein fehlendes lässt Passendes weg.
+Alle Quellen sind gratis: offene RSS-Feeds und Google News.
 
-## Themenkatalog
+## Die App
 
-Unter `themen:` in `sources.yaml`. Jedes Thema hat ein **Gewicht** (1 = normal,
-2 = wichtig, 3 = sehr wichtig) und **Stichwörter**. Ein Beitrag erhält jedes Thema, dessen
-Stichwort in Titel oder Anriss vorkommt.
+Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 
-```yaml
-  - name: YouTube
-    gewicht: 1
-    stichwoerter: [youtube, video ads, ctv]
-```
+| Tab | Inhalt |
+|---|---|
+| **Feed** | Die festen Quellen. Oben Themen-Chips und «Team-Tipps» (Artikel, die andere hochgevotet haben). Gelegentlich erscheint ein Vorschlag |
+| **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
+| **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
+| **Gemerkt** | Persönlich und auf allen Geräten gleich. «+ Link» legt fremde Artikel ab, «Kopieren» kopiert die Liste |
+| **Quellen** | Quellen mit Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
-Leerzeichen um ein Stichwort verhindern Teiltreffer: `" ki "` trifft nicht «Kiosk».
-Die Spalte «Themen» in der Quellen-Auswertung (Einstellungen) zeigt, welcher Anteil der Beiträge einer Quelle ein
-Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
+Bei jedem Beitrag gibt es vier Aktionen:
+- **Daumen hoch:** guter Artikel. Die Zahl daneben zählt alle Daumen im Team.
+- **Daumen runter:** nicht relevant.
+- **Teilen**
+- **Merken**
 
-## Entdecken und Vorschläge
+Melden mehrere Quellen dasselbe, steht der Beitrag nur einmal da, mit dem Vermerk «Auch bei …».
 
-Unter `suchen:` stehen Suchbegriffe für Google News; jeder Begriff wird in den Ausgaben
-USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz gesucht. Treffer von Seiten, die schon feste Quelle sind, werden
-ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern in den Einstellungen als
-«Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
-`suchen: ignorieren:` eintragen.
+Sichtbare Profile gibt es keine. Cloudflare Access weiss, wer angemeldet ist. Damit zählt jede
+Person pro Artikel nur einmal, und Gemerkt bleibt persönlich.
 
-## Icons und Vorschaubild
+Mit der Taste «/» oder dem Chip «Suchen» lässt sich suchen. Direktlinks wie `#discover`,
+`#briefing`, `#saved` oder `#sources` öffnen einen Tab direkt.
 
-`static/logo.svg` ist das Logo und Favicon. Daraus erzeugt `tools/make_icons.py` die PNGs:
-iOS-Icon (`apple-touch-icon.png`), App-Icons für das Web-Manifest, PNG-Favicon und das
-Vorschaubild für geteilte Links (`og.png`, 1200×630). Nur nötig, wenn sich das Logo ändert:
+## Wie Radar sortiert und vorschlägt
+
+**Reihenfolge in Feed und Entdecken:** Aktualität × (1 + Schub).
+- **Aktualität:** halbiert sich alle 36 Stunden.
+- **Schub:** setzt sich zusammen aus
+  - den Votes und Klicks am Artikel
+  - dem Schnitt der Quelle über ihre Beiträge der letzten 30 Tage
+  - dem Themen-Gewicht
+  - in Entdecken zusätzlich der KI-Relevanz
+- **Deckel:** Der Schub bleibt zwischen −0,3 und +0,5, damit nicht immer dieselben Quellen oben stehen.
+- **Neu seit dem letzten Besuch:** steht im Feed zusätzlich zuoberst.
+
+Alle Gewichte stehen unter `gewichtung` in `sources.yaml`.
+
+**Vorschläge oben im Feed** (Schwellen unter `vorschlaege`):
+
+- **Aufnehmen?** Das Team hat in 30 Tagen mindestens 3 Suchfunde derselben Website geöffnet
+  oder hochgevotet.
+- **Entfernen?** Eine Quelle hat in 30 Tagen mindestens 5 Votes mit negativem Saldo, oder
+  seit 60 Tagen hat sie niemand geöffnet.
+- **Antworten:**
+  - «Nein, danke» blendet den Vorschlag 90 Tage aus.
+  - «Aufnehmen» trägt die Website ein. Den Feed sucht der nächste Abruf. Ohne Feed dient eine
+    Google-News-Suche nach `site:Domain`.
+
+## KI
+
+Die KI läuft über die OpenAI-API (`ai.py`). Ihre Einstellungen stehen unter `ki` in `sources.yaml`.
+
+| Aufgabe | Wie oft | Modell (Standard) |
+|---|---|---|
+| Einordnen: Typ und Relevanz 1–5 | jeder neue Beitrag einmal, 50 pro Aufruf | `gpt-5.4-nano` |
+| Briefing | einmal pro Tag, aus den 25 relevantesten Beiträgen des Vortags | `gpt-5.4-mini` |
+| Websuche nach Studien, Kennzahlen, Best Practices | alle 7 Tage | `gpt-5.4-mini` mit Websuche |
+
+**Keine Erfindungen:** Die KI arbeitet nur mit dem, was in den Beiträgen steht.
+
+**Kostenkontrolle:**
+- Jeder Aufruf wird mit Tokens und Kosten protokolliert, im Feld `ai_log` in `items.json`. Die Summe steht im Tab Quellen.
+- Ist `budget_monat_usd` erreicht, läuft Radar bis Monatsende ohne KI weiter:
+  - Typ nach festen Mustern
+  - Relevanz aus dem Themen-Gewicht
+  - Briefing als zusammengesetzter Text
+- Die Preise unter `preise_usd_pro_mio_tokens` dienen nur dieser Kontrolle. Bei einem Modellwechsel nachführen.
+
+**Studien von Beratungen ohne eigenen Feed** (McKinsey, BCG, Gartner, Forrester, Think with
+Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Websuche.
+
+## Einstellungen
+
+**Wo die Einstellungen liegen:**
+- Grundeinstellung ist `sources.yaml`.
+- Sobald jemand im Tab Quellen etwas ändert, liegen die Einstellungen in der Datenbank und gelten
+  von dort. Neue Abschnitte aus `sources.yaml` werden dort ergänzt.
+
+**Wann eine Änderung wirkt:**
+- Ist `GITHUB_TOKEN` gesetzt (siehe unten), stösst jede Änderung sofort einen neuen Abruf an.
+- Sonst wirkt sie beim nächsten regulären Lauf.
+
+**Regeln:** Sie gelten für alle Quellen gleich:
+- Mindestlänge des Titels
+- Pflicht-Thema
+- Stellenanzeigen ausblenden
+- ausgeschlossene Begriffe
+
+Sonderregeln pro Quelle gibt es bewusst nicht. Liefert eine Quelle damit nichts Brauchbares,
+wird sie entfernt.
+
+## Online stellen (einmalig, rund 30 Minuten)
+
+Die Befehle laufen im Terminal im Repo-Ordner. Wrangler ist das Werkzeug von Cloudflare.
+
+**1. Cloudflare: Datenbank und Projekt anlegen**
 
 ```bash
-.venv/bin/python -m pip install Pillow
-.venv/bin/python tools/make_icons.py
+npx wrangler@4.149.0 login
 ```
 
-## Bilder
+```bash
+npx wrangler@4.149.0 d1 create radar
+```
 
-Profilbild eines Beitrags ist das Favicon der Quelle (über den Favicon-Dienst von Google),
-sonst die Initialen. Liefert ein Feed kein Bild, holt der Lauf das Titelbild (`og:image`) der
-Artikelseite, höchstens 40 pro Lauf und einmal pro Artikel.
+Die ausgegebene `database_id` in `wrangler.toml` eintragen. Sie ist kein Geheimnis und darf ins Repo. Danach:
 
-## GitHub Pages aktivieren (einmalig)
+```bash
+npx wrangler@4.149.0 d1 execute radar --remote --file schema.sql
+```
 
-1. Repository auf GitHub öffnen → **Settings** → **Pages**.
-2. Unter **Build and deployment** bei **Source** «**GitHub Actions**» wählen.
-3. Die Action einmal manuell starten (siehe unten). Nach wenigen Minuten steht die Adresse
-   unter Settings → Pages (`https://<konto>.github.io/<repo>/`).
+```bash
+npx wrangler@4.149.0 pages project create radar --production-branch main
+```
 
-GitHub Pages ist nur für **öffentliche** Repositories gratis. Die Seite ist dank `noindex`
-nicht in Suchmaschinen, aber für alle mit dem Link erreichbar.
+**2. Cloudflare: API-Token für GitHub anlegen**
+- Im Dashboard unter *My Profile → API Tokens → Create Token → Custom token*.
+- Rechte: *Account · Cloudflare Pages · Edit* und *Account · D1 · Edit*.
+- Die Account-ID steht im Dashboard rechts unten auf der Startseite des Kontos.
 
-## Action manuell starten
+**3. OpenAI vorbereiten**
+- Auf platform.openai.com einen API-Key anlegen.
+- Guthaben laden, mindestens 5 USD.
+- Unter *Limits* ein Monatslimit setzen, z.B. 10 USD, als zweite Bremse.
 
-In den Einstellungen führt «Jetzt aktualisieren» direkt dorthin.
+**4. GitHub: Secrets und Variablen** (Repo → *Settings → Secrets and variables → Actions*)
 
-1. Reiter **Actions** öffnen.
-2. Links **«Radar bauen und veröffentlichen»** wählen.
-3. **Run workflow** → Branch `main` → **Run workflow**.
+| Art | Name | Wert |
+|---|---|---|
+| Secret | `OPENAI_API_KEY` | Key aus Schritt 3 |
+| Secret | `CLOUDFLARE_API_TOKEN` | Token aus Schritt 2 |
+| Variable | `CLOUDFLARE_ACCOUNT_ID` | Account-ID |
+| Variable | `D1_DATABASE_ID` | `database_id` aus Schritt 1 |
 
-Sonst läuft sie alle 3 Stunden und nach jeder Änderung auf `main`. GitHub pausiert
-zeitgesteuerte Actions nach 60 Tagen ohne Aktivität im Repository; dann unter Actions
-«Enable workflow» klicken.
+**5. Anmeldung mit Cloudflare Access einrichten**
+- Dashboard → *Zero Trust → Access → Applications → Add an application → Self-hosted*.
+- Domains: `radar.pages.dev` und `*.radar.pages.dev`.
+- Policy *Allow*, Include *Emails ending in* `@standout.ch`.
+- Login-Methode *One-time PIN*, also ein Code per E-Mail.
+- Danach in der Application den *Application Audience (AUD) Tag* kopieren.
+
+**6. Variablen der Seite** (Dashboard → *Workers & Pages → radar → Settings → Variables and
+Secrets*, Umgebung Production)
+
+| Name | Wert |
+|---|---|
+| `ACCESS_TEAM_DOMAIN` | z.B. `standout.cloudflareaccess.com` (unter *Zero Trust → Settings*) |
+| `ACCESS_AUD` | AUD-Tag aus Schritt 5 |
+| `GITHUB_REPO` | optional: `noahgualtiero/radar` |
+| `GITHUB_TOKEN` (Secret) | optional: Fine-grained Token, nur für dieses Repo, mit *Actions: Read and write*. Damit stösst eine Änderung in Radar sofort einen Abruf an |
+
+Ohne gültige Anmeldung antwortet die API nicht. Sie prüft das Access-Token selbst.
+
+**7. Starten**
+- Auf GitHub unter *Actions → Radar abrufen und veröffentlichen → Run workflow* den ersten Lauf auslösen.
+- Danach `https://radar.pages.dev` öffnen und mit der E-Mail anmelden.
+- Auf dem iPhone über *Teilen → Zum Home-Bildschirm* als App ablegen.
+
+**8. Alte Seite abschalten**
+- GitHub → *Settings → Pages* → GitHub Pages deaktivieren.
+- Sonst bleibt die alte, öffentlich erreichbare Version stehen.
 
 ## Lokal testen
 
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python build.py
-open site/index.html
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
-## Bekannte Einschränkungen
+```bash
+.venv/bin/python build.py --out site
+```
 
-- **Search Engine Land** sperrt seinen Feed und läuft deshalb über eine
-  Google-News-Suche (ohne Bilder, Links über news.google.com).
-- **Bloofusion** hat keinen Feed; der Eintrag ist vorbereitet und deaktiviert.
-- **Reddit** drosselt anonyme Abrufe. Fällt ein Abruf aus, steht das im Footer, die
-  Beiträge des letzten Laufs bleiben erhalten.
-- Die **Themenzuordnung** läuft über Stichwörter und ist grob (z.B. «Siri AI» → KI-Thema).
+```bash
+printf 'DEV_USER=ich@lokal.test\n' > .dev.vars && npx wrangler@4.149.0 d1 execute radar --local --file schema.sql
+```
+
+```bash
+npx wrangler@4.149.0 pages dev site --port 8788
+```
+
+Dann `http://127.0.0.1:8788` öffnen.
+- `DEV_USER` ersetzt lokal die Anmeldung.
+- Ohne `OPENAI_API_KEY` läuft alles ohne KI.
+
+## Icons
+
+`static/logo.svg` ist das Logo und Favicon. Daraus erzeugt `tools/make_icons.py` die PNGs für
+iOS, das Web-Manifest und das Vorschaubild:
+
+```bash
+.venv/bin/python tools/make_icons.py
+```
+
+## Dateien
+
+| Datei | Zweck |
+|---|---|
+| `sources.yaml` | Grundeinstellung: Quellen, Regeln, Themen, KI, Gewichtung, Vorschläge, Suchen |
+| `build.py` | Abruf, Zusammenführen, Themen, Duplikate, Briefing, Seite |
+| `ai.py` | OpenAI: Einordnung, Briefing, Websuche, Kostenprotokoll |
+| `find_feed.py` | Sucht den Feed einer Website, auch einzeln: `python find_feed.py URL` |
+| `functions/api/[[path]].js` | API: Votes, Klicks, Gemerkt, Vorschläge, Einstellungen |
+| `schema.sql`, `wrangler.toml` | Datenbank und Cloudflare-Projekt |
+| `templates/index.html.j2` | Die App |
+| `static/`, `tools/make_icons.py` | Logo, App-Icons, Manifest |
+
+## Einschränkungen
+
+- **Reddit** begrenzt anonyme Abrufe. Fällt der Feed aus, steht das im Tab Quellen unter «Letzter Lauf».
+- **Search Engine Land** sperrt automatisierte Abrufe. Die Beiträge kommen deshalb über Google News, ohne Bilder.
+- **Vorschläge brauchen Daten.** Solange wenige Personen Radar nutzen, erscheinen sie selten. Das ist
+  gewollt, damit nicht ein einzelner Klick über eine Quelle entscheidet.
+- **Rechtliches:** Radar zeigt Titel, kurze Anrisse und Vorschaubilder der Quellen und verlinkt auf sie.
+  - Für die interne Nutzung hinter der Anmeldung ist das unkritisch.
+  - Öffentlich oder mit Werbung wäre es neu zu prüfen.

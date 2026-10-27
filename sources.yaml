@@ -13,11 +13,8 @@
 #
 # Alle Quellen sind gratis: offene RSS-Feeds und Google News.
 
-# Zugang: einfache Passwort-Sperre vor der Seite. Gespeichert ist nur der SHA-256-Hash.
-# Neues Passwort setzen:  printf '%s' 'NEUES-PASSWORT' | shasum -a 256
-# Achtung: Das ist ein Vorhang, kein Tresor. Repo und items.json sind öffentlich lesbar.
-zugang:
-  passwort_sha256: aa60c8150f45ec991c70d83d16f063d4601243a9d0597d6fe8e93a4d53a075b5
+# Diese Datei ist die Grundeinstellung. Sobald in Radar (Tab «Quellen») etwas geändert wird,
+# gelten die Einstellungen aus der Datenbank; neue Abschnitte von hier werden dort ergänzt.
 
 kategorien:
   - Offiziell
@@ -25,8 +22,8 @@ kategorien:
   - Studien
   - DACH
   - LinkedIn
-  - Community   # Foren wie Reddit – eigener Tab
-  - Entdecken   # Treffer der Suchbegriffe unten – eigener Tab
+  - Community   # Foren wie Reddit – erscheint im Tab «Entdecken» als Diskussion
+  - Entdecken   # Treffer der Suchbegriffe und der KI-Websuche – Tab «Entdecken»
 
 # Regeln für alle Quellen (auch für die Google-News-Suchen). In den Einstellungen änderbar.
 #   min_woerter:                Beiträge mit kürzerem Titel weglassen (z.B. Glossar-Einträge)
@@ -74,6 +71,52 @@ themen:
     gewicht: 1
     stichwoerter: [ppc agency, paid search agency, sea-agentur, in-house, inhouse, account audit, kontoaudit, client reporting]
 
+# KI über die OpenAI-API (Schlüssel als Secret OPENAI_API_KEY). Ohne Schlüssel läuft Radar ohne KI.
+#   einordnen: jeder neue Beitrag einmal (Typ und Relevanz 1–5), viele Beiträge pro Aufruf
+#   briefing:  einmal pro Tag aus den relevantesten Beiträgen des Vortags
+#   websuche:  alle websuche_alle_tage Tage eine Websuche nach Studien, Kennzahlen, Best Practices
+# Preise in USD pro 1 Mio. Tokens [Eingabe, Ausgabe], laut openai.com/api/pricing – bei Modellwechsel
+# nachführen; sie dienen nur der Kostenkontrolle. Ist budget_monat_usd erreicht, pausiert die KI bis
+# zum Monatsende.
+ki:
+  budget_monat_usd: 5
+  modelle:
+    einordnung: gpt-5.4-nano
+    briefing: gpt-5.4-mini
+    websuche: gpt-5.4-mini
+  denkaufwand:          # low hält Antwortzeit und Kosten tief
+    einordnung: low
+    briefing: low
+    websuche: low
+  preise_usd_pro_mio_tokens:
+    gpt-5.4-nano: [0.20, 1.25]
+    gpt-5.4-mini: [0.75, 4.50]
+  websuche_usd_pro_aufruf: 0.01
+  websuche_alle_tage: 7
+  einordnung_max_pro_lauf: 300
+  briefing_artikel: 25            # so viele relevanteste Beiträge bekommt die KI fürs Briefing
+  entdecken_mindest_relevanz: 3   # Suchfunde darunter erscheinen nicht in «Entdecken»
+
+# Reihenfolge in Feed und Entdecken: Aktualität mal (1 + Schub). Der Schub kommt aus Votes und
+# Klicks des Teams (pro Artikel und im 30-Tage-Schnitt der Quelle), dem Themen-Gewicht und bei
+# Suchfunden der KI-Relevanz. Er ist gedeckelt, damit nicht immer dieselben Quellen oben stehen.
+gewichtung:
+  halbwertszeit_stunden: 36   # nach so vielen Stunden zählt ein Beitrag noch halb so viel
+  vote: 2                     # ein Daumen zählt so viel wie …
+  klick: 0.5                  # … vier Klicks
+  artikel: 0.2                # Anteil der Votes/Klicks am Artikel selbst
+  quelle: 0.25                # Anteil des 30-Tage-Schnitts der Quelle
+  thema: 0.08                 # pro Gewichtsstufe des Themas
+  relevanz: 0.1               # pro Relevanzstufe über 3 (nur Entdecken)
+  schub_min: -0.3
+  schub_max: 0.5
+
+# Vorschläge oben im Feed
+vorschlaege:
+  aufnehmen_ab_artikeln: 3        # Suchfunde einer Website, die das Team in 30 Tagen geöffnet oder hochgevotet hat
+  entfernen_ab_votes: 5           # Quelle mit so vielen Votes in 30 Tagen und negativem Saldo
+  entfernen_ohne_klick_tage: 60   # Quelle, die so lange niemand geöffnet hat
+
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
 # Unten auf der Seite listet "Unbekannte Quellen" die Domains, die dabei auftauchen.
@@ -93,6 +136,9 @@ suchen:
     - '"ChatGPT ads" OR "ChatGPT advertising"'
     - '"paid search" OR "PPC campaign" OR "PPC advertising"'
     - 'Suchmaschinenwerbung OR SEA-Kampagne'
+    # Studien und Kennzahlen, auch von Beratungen ohne eigenen Feed
+    - '("Google Ads" OR PPC OR "paid search" OR "retail media") (study OR benchmark OR survey OR report)'
+    - '(site:mckinsey.com OR site:bcg.com OR site:gartner.com OR site:forrester.com OR site:thinkwithgoogle.com) (advertising OR "paid search" OR "retail media" OR "digital marketing")'
   ignorieren:   # Domains, deren Treffer nie angezeigt werden (Rauschen)
     - google.com
     - microsoft.com        # Konzern-News, Werbe-Themen kommen über den Ads-Blog

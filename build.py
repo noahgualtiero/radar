@@ -1,9 +1,9 @@
 """Baut Radar, den Paid-Search-Newsfeed.
 
-Holt alle Feeds aus sources.yaml, führt sie mit dem bisherigen Bestand zusammen
-(items.json der live Seite oder einer lokalen Datei), entfernt Duplikate,
-behält die letzten 30 Tage, ordnet Themen zu, erkennt Studien, Vortages-Themen
-und Trends und schreibt site/index.html + site/items.json.
+Holt alle Quellen und Suchen (Einstellungen aus der Datenbank oder sources.yaml), führt sie mit
+dem bisherigen Bestand zusammen, behält die letzten 30 Tage, fasst dieselbe Meldung mehrerer
+Quellen zusammen, ordnet Themen zu, lässt die KI Typ und Relevanz bestimmen, schreibt das
+Briefing und legt site/index.html, site/items.json und site/config.json an.
 
 Aufruf:
     python build.py [--previous URL_ODER_PFAD] [--out site]
@@ -32,6 +32,8 @@ import feedparser
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from ai import AI, TYPES
+
 ROOT = Path(__file__).parent
 MAX_AGE_DAYS = 30
 SNIPPET_CHARS = 240
@@ -42,6 +44,7 @@ TZ = ZoneInfo("Europe/Zurich")
 DISCOVER = "Entdecken"
 COMMUNITY = "Community"
 STUDIES = "Studien"
+AI_SEARCH = "KI-Websuche"
 TREND_DAYS = 3
 # Stellenanzeigen sind keine Artikel: Titel- und Link-Muster, die für alle Quellen gelten
 JOB_TITLE = re.compile(
@@ -253,6 +256,8 @@ def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str], rules
         old = by_id.get(item["id"])
         if old:
             item["first_seen"] = old.get("first_seen", item["first_seen"])
+            if old.get("ai"):
+                item["ai"] = old["ai"]  # einmal eingeordnet, nie neu (spart KI-Kosten)
             if not item["image"]:
                 item["image"] = old.get("image")
                 item["image_checked"] = old.get("image_checked", False)
@@ -299,27 +304,6 @@ def filter_discoveries(items: list[dict], ignored: set[str]) -> list[dict]:
     return kept
 
 
-def unknown_sources(items: list[dict]) -> list[dict]:
-    """Domains aus den Suchtreffern, die noch nicht als feste Quelle geführt sind."""
-    groups: dict[str, list[dict]] = {}
-    for item in items:
-        if item["category"] == DISCOVER:
-            groups.setdefault(item["domain"], []).append(item)
-    rows = []
-    for domain, hits in groups.items():
-        rows.append({
-            "domain": domain,
-            "name": Counter(h["source"] for h in hits).most_common(1)[0][0],
-            "count": len(hits),
-            "latest": max(h["published"] for h in hits),
-            "searches": sorted({h["search"] for h in hits if h.get("search")}),
-            "articles": [{"title": h["title"], "link": h["link"], "published": h["published"]}
-                         for h in sorted(hits, key=lambda h: h["published"], reverse=True)[:5]],
-        })
-    rows.sort(key=lambda r: (-r["count"], r["domain"]))
-    return rows
-
-
 def add_cover_images(items: list[dict]) -> None:
     """Holt für Beiträge ohne Bild das Titelbild (og:image) der Artikelseite, einmal pro Beitrag."""
     todo = [i for i in items if not i.get("image") and not i.get("image_checked")
@@ -338,12 +322,67 @@ def add_cover_images(items: list[dict]) -> None:
             item["image"] = url
 
 
-def mark_studies(items: list[dict]) -> None:
+METRICS_PATTERN = re.compile(r"\d+(?:[.,]\d+)?\s?%|\bbenchmarks?\b|\bkennzahl|\bby the numbers\b|\bcpcs? (?:rose|fell|up|down)", re.I)
+HOWTO_PATTERN = re.compile(
+    r"\bhow to\b|\bguide\b|\btips?\b|best practices?|checklist|step[- ]by[- ]step|\bmistakes\b|"
+    r"\banleitung\b|\bleitfaden\b|\btipps?\b|\bso geht\b|\bso nutzen\b|\bfehler\b", re.I)
+
+
+def rule_type(item: dict) -> str:
+    """Typ ohne KI, nach festen Mustern für alle Quellen gleich."""
+    text = f"{item['title']} {item['snippet']}".lower()
+    if item["category"] == COMMUNITY:
+        return "Diskussion"
+    if item["category"] == STUDIES and not HOWTO_PATTERN.search(text) or STUDY_PATTERN.search(text):
+        return "Studie"
+    if METRICS_PATTERN.search(text):
+        return "Kennzahlen"
+    if HOWTO_PATTERN.search(text):
+        return "Best Practice"
+    return "News"
+
+
+def assign_types(items: list[dict]) -> None:
+    """Typ und Relevanz (1–5): von der KI, wenn sie den Beitrag eingeordnet hat, sonst nach Regeln
+    (Typ aus Mustern, Relevanz aus dem Themen-Gewicht)."""
     for item in items:
-        text = f"{item['title']} {item['snippet']}".lower()
-        item["study"] = item["category"] == STUDIES or (
-            item["category"] not in (DISCOVER, COMMUNITY) and bool(STUDY_PATTERN.search(text))
-        )
+        ai = item.get("ai") or {}
+        item["type"] = ai.get("typ") or rule_type(item)
+        item["rel"] = ai.get("rel") or min(5, 2 + item.get("weight", 0))
+        item["study"] = item["type"] == "Studie"
+
+
+def collapse_duplicates(items: list[dict]) -> list[dict]:
+    """Dieselbe Meldung von mehreren Quellen nur einmal zeigen: Titel mit grosser Wortüberschneidung,
+    höchstens 4 Tage auseinander. Es bleibt der Beitrag der festen Quelle (offizielle zuerst, dann der
+    früheste); die anderen erscheinen darunter als «Auch bei …». Suchfunde weichen festen Quellen."""
+    def rank(i: dict):
+        return (i["category"] == DISCOVER, i["category"] == COMMUNITY, i["category"] != "Offiziell", i["published"])
+
+    ordered = sorted(items, key=rank)
+    tokens = {id(i): title_tokens(i["title"]) for i in ordered}
+    kept: list[dict] = []
+    for item in ordered:
+        mine = tokens[id(item)]
+        when = datetime.fromisoformat(item["published"])
+        twin = None
+        if len(mine) >= 3 and item["category"] != COMMUNITY:
+            for other in kept:
+                if other["category"] == COMMUNITY:
+                    continue
+                theirs = tokens[id(other)]
+                shared = mine & theirs
+                if len(shared) >= 3 and len(shared) / len(mine | theirs) >= 0.5 \
+                        and abs((datetime.fromisoformat(other["published"]) - when).days) <= 4:
+                    twin = other
+                    break
+        if twin is None:
+            item["also"] = []
+            kept.append(item)
+        elif item["source"] != twin["source"] and all(a["source"] != item["source"] for a in twin["also"]):
+            twin["also"].append({"source": item["source"], "link": item["link"], "domain": item["domain"]})
+    kept.sort(key=lambda i: i["published"], reverse=True)
+    return kept
 
 
 def local_date(item: dict):
@@ -492,8 +531,6 @@ def trending_terms(items: list[dict], limit: int = 6) -> list[dict]:
 
 WEEKDAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
 MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
-MODELS_URL = "https://models.github.ai/inference/chat/completions"
-MODEL = "openai/gpt-4.1-mini"
 
 
 def german_date(day) -> str:
@@ -516,72 +553,20 @@ def fallback_summary(day, pool: list[dict], topics: list[dict]) -> str:
     return text
 
 
-def ai_briefing(day, pool: list[dict]) -> tuple[dict | None, str]:
-    """Briefing über GitHub Models (gratis in GitHub Actions): Lauftext plus die drei wichtigsten
-    Beiträge mit je einem Satz, warum sie relevant sind. Gibt (Ergebnis, Hinweis) zurück; der Hinweis
-    erklärt, warum es kein KI-Ergebnis gab."""
-    token = os.environ.get("GITHUB_TOKEN")
-    if not token:
-        return None, "kein GITHUB_TOKEN (lokaler Lauf)"
-    if not pool:
-        return None, "keine Beiträge am Vortag"
-    candidates = pool[:40]
-    lines = [f"[{n}] {i['title']} — {i['snippet'][:220]} ({i['source']}; {i['category']})"
-             for n, i in enumerate(candidates, 1)]
-    payload = {
-        "model": MODEL,
-        "temperature": 0.2,
-        "response_format": {"type": "json_object"},
-        "messages": [
-            {"role": "system", "content": (
-                "Du schreibst das Morgen-Briefing für Paid-Search-Spezialisten in einer Schweizer Agentur. "
-                "Schreibe Schweizer Hochdeutsch (ss statt ß), sachlich, konkret, ohne Floskeln. "
-                "Verwende nur, was in den Beiträgen steht; erfinde nichts und nenne keine Zahlen, die dort nicht stehen. "
-                "Antworte als JSON: {\"text\": \"3 bis 4 Sätze Fliesstext: was ist passiert, wichtigste Entwicklung zuerst\", "
-                "\"punkte\": [{\"nr\": Nummer des Beitrags, \"warum\": \"ein Satz, was das für Google-Ads-, "
-                "Microsoft-Ads- oder Shopping-Kampagnen bedeutet oder worauf man achten sollte\"}]}. "
-                "Wähle genau 3 Punkte, bevorzugt offizielle Ankündigungen und neue Funktionen oder Änderungen.")},
-            {"role": "user", "content": f"Beiträge vom {german_date(day)}:\n" + "\n".join(lines)},
-        ],
-    }
-    req = urllib.request.Request(MODELS_URL, data=json.dumps(payload).encode(), method="POST", headers={
-        "Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json",
-    })
-    raw = b""
+def ai_briefing(ai: AI, day, pool: list[dict]) -> tuple[dict | None, str]:
+    """Briefing über die KI aus den relevantesten Beiträgen des Tages. Gibt (Ergebnis, Hinweis) zurück;
+    der Hinweis erklärt, warum es kein KI-Ergebnis gab."""
+    reason = ai.unavailable()
+    if reason:
+        return None, reason
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            raw = resp.read()
-        content = json.loads(raw)["choices"][0]["message"]["content"] or ""
-        answer = parse_json_answer(content)
-        points = []
-        for point in answer.get("punkte") or []:
-            nr = int(point.get("nr", 0))
-            if 1 <= nr <= len(candidates):
-                points.append({**article_ref(candidates[nr - 1]), "why": str(point.get("warum", "")).replace("ß", "ss")})
-        text = str(answer.get("text", "")).replace("ß", "ss").strip()
-        if text:
-            return {"text": text, "points": points[:3]}, ""
-        reason = "leere Antwort"
-    except urllib.error.HTTPError as exc:
-        reason = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'ignore')[:300]}"
+        result = ai.briefing(german_date(day), pool[: int(ai.cfg.get("briefing_artikel", 25))])
     except Exception as exc:
-        snippet = raw.decode("utf-8", "ignore")[:200].replace("\n", " ")
-        reason = f"{type(exc).__name__}: {str(exc)[:150]} | Antwort: {snippet or '(leer)'}"
-    print(f"Hinweis: KI-Briefing nicht verfügbar ({reason})", file=sys.stderr)
-    return None, reason
-
-
-def parse_json_answer(content: str) -> dict:
-    """Liest das JSON aus der Modellantwort, auch wenn es in einem Code-Block oder Text steht."""
-    content = content.strip()
-    fence = re.search(r"```(?:json)?\s*(\{.*\})\s*```", content, re.S)
-    if fence:
-        content = fence.group(1)
-    elif not content.startswith("{"):
-        start, end = content.find("{"), content.rfind("}")
-        if start != -1 and end > start:
-            content = content[start:end + 1]
-    return json.loads(content)
+        print(f"Hinweis: KI-Briefing nicht verfügbar ({exc})", file=sys.stderr)
+        return None, str(exc)[:300]
+    if not result["text"]:
+        return None, "leere Antwort"
+    return {"text": result["text"], "points": [{**article_ref(i), "why": why} for i, why in result["points"]]}, ""
 
 
 def article_ref(item: dict) -> dict:
@@ -607,20 +592,21 @@ def brief_refs(items: list[dict], n: int) -> list[dict]:
     return [{**article_ref(i), "why": ""} for i in items[:n]]
 
 
-def build_day(day, items: list[dict], weights: dict[str, int], use_ai: bool) -> tuple[dict | None, str]:
-    """Briefing eines Tages aus den Beiträgen dieses Tages; None, wenn es keine gibt."""
+def build_day(day, items: list[dict], weights: dict[str, int], ai: AI | None) -> tuple[dict | None, str]:
+    """Briefing eines Tages aus den Beiträgen dieses Tages; None, wenn es keine gibt. Die KI bekommt nur
+    die relevantesten Beiträge (Einstellung ki.briefing_artikel)."""
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
     if not pool:
         return None, ""
-    pool.sort(key=lambda i: (i.get("weight", 0), i["category"] == "Offiziell", i["published"]), reverse=True)
+    pool.sort(key=lambda i: (i.get("rel", 0), i.get("weight", 0), i["category"] == "Offiziell", i["published"]), reverse=True)
     topics = day_topics(items, weights, day)["topics"]
-    result, note = ai_briefing(day, pool) if use_ai else (None, "")
+    result, note = ai_briefing(ai, day, pool) if ai else (None, "")
     by = "ki" if result else "auto"
     result = result or {"text": fallback_summary(day, pool, topics), "points": fallback_points(pool)}
     shown = {pt["link"] for pt in result["points"]}
     studies = [i for i in pool if i.get("study") and i["link"] not in shown]
     community = sorted((i for i in items if i["category"] == COMMUNITY and local_date(i) == day),
-                       key=lambda i: (i.get("weight", 0), i["published"]), reverse=True)
+                       key=lambda i: (i.get("rel", 0), i.get("weight", 0), i["published"]), reverse=True)
     return {
         "date": day.isoformat(), "text": result["text"], "points": result["points"], "by": by,
         "total": len(pool), "topics": [{"topic": t["topic"], "count": t["count"]} for t in topics],
@@ -628,7 +614,7 @@ def build_day(day, items: list[dict], weights: dict[str, int], use_ai: bool) -> 
     }, note
 
 
-def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) -> tuple[list[dict], str]:
+def build_briefings(items: list[dict], weights: dict[str, int], previous: dict, ai: AI) -> tuple[list[dict], str]:
     """Ein Briefing pro Tag, neueste zuerst. Gespeicherte Briefings bleiben BRIEFING_DAYS Tage erhalten,
     auch wenn ihre Beiträge schon aus dem 30-Tage-Fenster gefallen sind. Die KI schreibt den Vortag und
     holt pro Lauf AI_BACKFILL ältere Tage nach; ein KI-Text wird nie neu erzeugt."""
@@ -637,7 +623,6 @@ def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) 
     legacy = previous.get("briefing") or {}
     if legacy.get("date") and legacy["date"] not in stored and legacy.get("by") == "ki":
         stored[legacy["date"]] = legacy
-    has_token = bool(os.environ.get("GITHUB_TOKEN"))
     backfill, note = AI_BACKFILL, ""
     result = {}
     for offset in range(1, MAX_AGE_DAYS + 1):
@@ -647,8 +632,10 @@ def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) 
         if old and old.get("by") == "ki":
             result[key] = old
             continue
-        use_ai = has_token and (offset == 1 or backfill > 0)
-        entry, reason = build_day(day, items, weights, use_ai)
+        use_ai = not ai.unavailable() and (offset == 1 or backfill > 0)
+        entry, reason = build_day(day, items, weights, ai if use_ai else None)
+        if offset == 1 and not use_ai:
+            reason = ai.unavailable()
         if offset == 1:
             note = reason
         if use_ai and offset > 1:
@@ -672,14 +659,6 @@ def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) 
     return briefings, note
 
 
-def community_topics(items: list[dict]) -> list[tuple[str, int]]:
-    cutoff = now_utc() - timedelta(days=7)
-    return Counter(
-        t for i in items if i["category"] == COMMUNITY and datetime.fromisoformat(i["published"]) >= cutoff
-        for t in i["topics"]
-    ).most_common(6)
-
-
 def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
     rows = []
     for source in sources:
@@ -689,8 +668,9 @@ def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
             "topic_share": round(100 * sum(1 for i in hits if i["topics"]) / len(hits)) if hits else None,
             "studies": sum(1 for i in hits if i.get("study")),
             "latest": max((i["published"] for i in hits), default=None),
-            "host": domain_of(source["url"]),
+            "host": domain_of(source.get("feed") or source["url"]),
             "domain": Counter(i["domain"] for i in hits).most_common(1)[0][0] if hits else domain_of(source["url"]),
+            "rel": round(sum(i["rel"] for i in hits) / len(hits), 1) if hits else None,
         })
     return rows
 
@@ -707,17 +687,92 @@ def repo_slug() -> str:
     return match.group(1) if match else ""
 
 
+def load_config() -> tuple[dict, str]:
+    """Einstellungen: aus der Datenbank (D1), sobald jemand in Radar etwas geändert hat, sonst aus
+    sources.yaml. Gibt (Einstellungen, Herkunft) zurück."""
+    local = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
+    account, database, token = (os.environ.get(k) for k in ("CLOUDFLARE_ACCOUNT_ID", "D1_DATABASE_ID", "CLOUDFLARE_API_TOKEN"))
+    if not (account and database and token):
+        return local, "sources.yaml"
+    req = urllib.request.Request(
+        f"https://api.cloudflare.com/client/v4/accounts/{account}/d1/database/{database}/query",
+        data=json.dumps({"sql": "SELECT value FROM config WHERE key = 'main'"}).encode(), method="POST",
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            rows = json.loads(resp.read())["result"][0]["results"]
+    except Exception as exc:  # Datenbank nicht erreichbar: lieber mit der Grundeinstellung weiterlaufen
+        print(f"Hinweis: Einstellungen aus D1 nicht geladen ({exc}), nehme sources.yaml", file=sys.stderr)
+        return local, "sources.yaml (D1 nicht erreichbar)"
+    if not rows:
+        return local, "sources.yaml"
+    config = json.loads(rows[0]["value"])
+    # Neue Abschnitte aus sources.yaml ergänzen, die es beim Speichern in Radar noch nicht gab
+    for key, value in local.items():
+        config.setdefault(key, value)
+    return config, "Radar"
+
+
+def resolve_feeds(sources: list[dict], cache: dict) -> None:
+    """In Radar aufgenommene Quellen tragen oft nur die Adresse der Website. Dafür den Feed suchen
+    (einmal, das Ergebnis bleibt im Bestand); ohne Feed dient die Google-News-Suche site:Domain."""
+    from find_feed import discover  # erst hier: find_feed importiert seinerseits build
+
+    for source in sources:
+        url = source["url"]
+        if url not in cache:
+            found = discover(url)
+            cache[url] = found[0] if found else NEWS_SEARCH.format(
+                q=quote_plus(f"site:{domain_of(url)}"), days=MAX_AGE_DAYS, locale=LOCALES["US"])
+            print(f"Feed für {source['name']}: {cache[url]}")
+        source["feed"] = cache[url]
+
+
+def websearch_items(ai: AI, items: list[dict], sources: list[dict], topics: list[dict], seen_at: str, rules: dict) -> str:
+    """Wöchentliche KI-Websuche: Funde kommen als Suchfunde in «Entdecken»."""
+    if ai.unavailable() or not ai.websearch_due():
+        return ""
+    known = {i["domain"] for i in items if i["category"] != DISCOVER} | {domain_of(s["url"]) for s in sources}
+    known.discard("news.google.com")
+    try:
+        found = ai.websearch(known, [t["name"] for t in topics])
+    except Exception as exc:
+        print(f"Hinweis: KI-Websuche fehlgeschlagen ({exc})", file=sys.stderr)
+        return f"Websuche fehlgeschlagen: {str(exc)[:200]}"
+    added = 0
+    ids = {i["id"] for i in items}
+    for f in found:
+        if not f["title"] or not passes_rules(rules, f["title"], f["url"]) or normalize_url(f["url"]) in ids:
+            continue
+        try:
+            published = datetime.fromisoformat(f["date"]).replace(hour=12, tzinfo=timezone.utc).isoformat()
+        except ValueError:
+            published = seen_at
+        items.append({
+            "id": normalize_url(f["url"]), "title": f["title"], "link": f["url"], "feed": AI_SEARCH,
+            "source": f["source"] or domain_of(f["url"]), "domain": domain_of(f["url"]), "search": AI_SEARCH,
+            "category": DISCOVER, "published": published, "first_seen": seen_at, "image": None,
+            "snippet": f["snippet"], "ai": {"typ": f["typ"], "rel": f["rel"]},
+        })
+        added += 1
+    print(f"KI-Websuche: {len(found)} Funde, {added} neu")
+    return ""
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--previous", help="URL oder Pfad zur bisherigen items.json")
     parser.add_argument("--out", default="site")
     args = parser.parse_args()
 
-    config = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
+    config, config_origin = load_config()
+    previous = load_previous(args.previous)
+    feed_cache = previous.get("feeds") or {}
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
+    resolve_feeds(sources, feed_cache)
     searches = config.get("suchen") or {}
     rules = config.get("regeln") or {}
-    feeds = sources + search_sources(searches)
+    feeds = [{**s, "url": s["feed"]} for s in sources] + search_sources(searches)
 
     seen_at = now_utc().isoformat()
     fresh, errors = [], []
@@ -735,8 +790,9 @@ def main() -> int:
             errors.append({"source": source["name"], "error": str(exc)[:160]})
             print(f"FEHLER {source['name']}: {exc}", file=sys.stderr)
 
-    previous = load_previous(args.previous)
-    items = merge(previous.get("items", []), fresh, {f["name"] for f in feeds}, rules)
+    ai = AI(config.get("ki") or {}, previous.get("ai_state") or {})
+    items = merge(previous.get("items", []), fresh, {f["name"] for f in feeds} | {AI_SEARCH}, rules)
+    websearch_note = websearch_items(ai, items, sources, config.get("themen") or [], seen_at, rules)
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
     tag_topics(items, topics)
@@ -745,52 +801,64 @@ def main() -> int:
         item["weight"] = max((weights.get(t, 1) for t in item["topics"]), default=0)
     # Themen-Regel für alle Quellen: nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
     items = [i for i in items if i["weight"] >= int(rules.get("mindest_gewicht") or 0)]
-    mark_studies(items)
+    items = collapse_duplicates(items)
+    classify_note = ai.classify(items) if not ai.unavailable() else ai.unavailable()
+    assign_types(items)
     add_cover_images(items)
 
-    briefings, briefing_note = build_briefings(items, weights, previous)
+    briefings, briefing_note = build_briefings(items, weights, previous, ai)
+    ai_log = (ai.log + (previous.get("ai_log") or []))[:60]
+    notes = {k: v for k, v in (("Einordnung", classify_note), ("Briefing", briefing_note), ("Websuche", websearch_note)) if v}
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
-        json.dumps({"generated": generated, "briefing_note": briefing_note,
+        json.dumps({"generated": generated, "briefing_note": briefing_note, "ai_state": ai.state, "ai_log": ai_log,
+                    "feeds": feed_cache,
                     "briefings": [{k: v for k, v in b.items() if k not in ("label", "month", "weekday", "daymonth", "relative")} for b in briefings],
                     "items": items},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
+    # Die geltenden Einstellungen: Grundlage, wenn in Radar zum ersten Mal etwas geändert wird
+    (out / "config.json").write_text(json.dumps(config, ensure_ascii=False, indent=1), encoding="utf-8")
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
     shutil.copytree(ROOT / "static", out, dirs_exist_ok=True)
 
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape())
-    shown = [i for i in items if i["category"] != DISCOVER]  # Entdecken erscheint nur als Vorschlagsliste
+    min_rel = int((config.get("ki") or {}).get("entdecken_mindest_relevanz", 3))
+    # Entdecken zeigt Suchfunde ab der Mindest-Relevanz und die Community; der Feed die festen Quellen
+    shown = [i for i in items if i["category"] != DISCOVER or i["rel"] >= min_rel]
     repo = repo_slug()
+    month_log = [e for e in ai_log if e["at"][:7] == ai.state["month"]]
     page = env.get_template("index.html.j2").render(
         items=shown,
-        unknown=unknown_sources(items),
         topics=[t["name"] for t in topics],
         topic_defs=topics,
         search_defs=searches.get("begriffe") or [],
         weights=weights,
         briefings=briefings,
-        briefing_note=briefing_note,
         stories=story_clusters(items, weights),
         trends=trending_terms(items),
-        community=community_topics(items),
         stats=source_stats(sources, items),
-        topic_counts=Counter(t for i in shown for t in i["topics"]),
+        topic_counts=Counter(t for i in shown if i["category"] not in (DISCOVER, COMMUNITY) for t in i["topics"]),
+        type_counts=Counter(i["type"] for i in shown if i["category"] in (DISCOVER, COMMUNITY)),
+        types=TYPES,
         errors=errors,
+        notes=notes,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,
         repo=repo,
-        site_url=f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/" if "/" in repo else "",
-        categories=[c for c in config.get("kategorien", []) if c != DISCOVER],
+        categories=[c for c in config.get("kategorien", []) if c not in (DISCOVER, COMMUNITY)],
         rules=rules,
-        password_hash=(config.get("zugang") or {}).get("passwort_sha256", ""),
+        ranking=config.get("gewichtung") or {},
+        config_origin=config_origin,
+        ai_cost={"month": ai.state["month"], "spent": ai.state["spent_usd"], "budget": ai.budget,
+                 "calls": len(month_log), "last_websearch": ai.state.get("last_websearch")},
     )
     (out / "index.html").write_text(page, encoding="utf-8")
-    print(f"{len(items)} Artikel, {len(errors)} fehlerhafte Quellen → {out / 'index.html'}")
+    print(f"{len(items)} Artikel, {len(errors)} fehlerhafte Quellen, KI {ai.state['spent_usd']:.4f} USD diesen Monat → {out / 'index.html'}")
     return 0
 
 

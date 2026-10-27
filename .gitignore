@@ -2,3 +2,8 @@
 site/
 __pycache__/
 .DS_Store
+.wrangler/
+.dev.vars
+node_modules/
+previous.json
+.claude/
