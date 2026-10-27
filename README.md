@@ -8,32 +8,36 @@ sind gratis: offene RSS-Feeds und Google News.
 
 ## Was die Seite zeigt
 
-Moderne Oberfläche im Stil von Facebook (Meta), Schrift Inter:
+Ruhige, moderne Oberfläche (Schrift Inter):
 
-- **Desktop:** links Bereiche und Themen (rotes # = sehr wichtig, oranges # = wichtig),
-  in der Mitte der Feed, rechts das Briefing. Bis 1250 px steht das Briefing über dem Feed.
-- **Handy:** unten eine Tab-Leiste, oben Themen-Chips als Filter.
-- Oben die Suche in der Mitte und rechts das **Zahnrad** für die Einstellungen.
+- **Desktop:** links eine schlanke Navigation mit Bereichen, Themen (Punkt rot = sehr wichtig,
+  orange = wichtig) und Einstellungen; rechts der Inhalt mit grossem Titel und Suche. Der Kopf
+  wird beim Scrollen kompakt und durchscheinend.
+- **Handy:** grosser Titel mit Suche und Zahnrad, Themen-Chips, unten eine durchscheinende
+  Tab-Leiste.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
 |---|---|
-| **Feed** | Beiträge der festen Quellen, oben das **Briefing** |
+| **Heute** (Start) | Briefing zum Vortag: kurzer Lauftext, Themen als Chips, Trend-Begriffe, wichtigste Beiträge, mehrfach berichtete Geschichten |
+| **Feed** | Beiträge der festen Quellen |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 
+**Briefing-Text:** In der GitHub Action schreibt eine KI über
+[GitHub Models](https://github.com/marketplace/models) (gratis Kontingent, Modell
+`openai/gpt-4.1-mini`) 3–4 Sätze aus den Schlagzeilen des Vortages – nur aus den
+Schlagzeilen, ohne Erfindungen. Der Text entsteht einmal pro Tag und wird danach
+wiederverwendet. Ist die KI nicht erreichbar (oder lokal), steht ein automatisch
+zusammengesetzter Text da. Unter dem Text steht, welche Variante es ist.
+
 **Themen:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
 
-**Briefing** (einklappbar):
-- *Gestern wichtig:* die 3 wichtigsten Themen des Vortages, je mit dem wichtigsten Artikel
-  und einem Link auf die weiteren. Rangfolge nach *(Beiträge + Quellen) × Gewicht des Themas*.
-- *Im Trend:* konkrete Begriffe (z.B. «Review Summaries»), die in den letzten 3 Tagen bei
-  mindestens zwei Quellen auftauchen und mindestens doppelt so häufig sind wie im
-  30-Tage-Schnitt. Einzelwörter brauchen drei Quellen. Ein Klick sucht danach. Erscheint
-  nur, wenn es solche Begriffe gibt.
-- *Mehrfach berichtet:* Geschichten, über die mehrere Quellen schreiben.
+**Im Trend:** konkrete Begriffe (z.B. «Review Summaries»), die in den letzten 3 Tagen bei
+mindestens zwei Quellen auftauchen und mindestens doppelt so häufig sind wie im
+30-Tage-Schnitt; Einzelwörter brauchen drei Quellen. Ein Klick sucht danach.
 
 **Reihenfolge:** Was seit dem letzten Besuch neu ist, steht oben, danach die Linie
 «Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben

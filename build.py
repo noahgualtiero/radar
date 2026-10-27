@@ -216,22 +216,22 @@ def parse_source(source: dict, seen_at: str, rules: dict) -> list[dict]:
     return items
 
 
-def load_previous(location: str | None) -> list[dict]:
+def load_previous(location: str | None) -> dict:
+    """Bisheriger Stand (items.json): Beiträge und das zuletzt geschriebene Briefing."""
     if not location:
-        return []
+        return {}
     try:
         if re.match(r"^https?://", location):
             raw = fetch(location)
         else:
             path = Path(location)
             if not path.exists():
-                return []
+                return {}
             raw = path.read_bytes()
-        data = json.loads(raw)
-        return data.get("items", [])
+        return json.loads(raw)
     except Exception as exc:  # erster Lauf oder Seite noch nicht online
         print(f"Hinweis: bisheriger Bestand nicht geladen ({exc})", file=sys.stderr)
-        return []
+        return {}
 
 
 def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str], rules: dict) -> list[dict]:
@@ -443,6 +443,8 @@ def trending_terms(items: list[dict], limit: int = 6) -> list[dict]:
                 low = [w.lower().strip("’'") for w in gram]
                 if low[0] in STOPWORDS | GENERIC or low[-1] in STOPWORDS | GENERIC:
                     continue
+                if any(w.isdigit() for w in low):  # lose Zahlen ("GPT-6 1 Terra") ergeben keinen Begriff
+                    continue
                 key = " ".join(low)
                 if key in seen:
                     continue
@@ -478,6 +480,82 @@ def trending_terms(items: list[dict], limit: int = 6) -> list[dict]:
         if len(picked) == limit:
             break
     return picked
+
+
+WEEKDAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+MODELS_URL = "https://models.github.ai/inference/chat/completions"
+MODEL = "openai/gpt-4.1-mini"
+
+
+def german_date(day) -> str:
+    return f"{WEEKDAYS[day.weekday()]}, {day.day}. {MONTHS[day.month - 1]}"
+
+
+def fallback_summary(day, pool: list[dict], topics: list[dict]) -> str:
+    """Zusammengesetzter Text, wenn keine KI verfügbar ist."""
+    if not pool:
+        return f"Am {german_date(day)} sind in deinen Quellen keine passenden Beiträge erschienen."
+    sources = len({i["source"] for i in pool})
+    text = f"Am {german_date(day)} erschienen {len(pool)} Beiträge aus {sources} Quellen."
+    if topics:
+        lead = topics[0]
+        top = lead["articles"][0]
+        text += f" Am meisten Thema war {lead['topic']} ({lead['count']} Beiträge), etwa «{top['title']}» ({top['source']})."
+        rest = [f"{t['topic']} ({t['count']})" for t in topics[1:4]]
+        if rest:
+            text += " Ausserdem: " + ", ".join(rest[:-1]) + (" und " if len(rest) > 1 else "") + rest[-1] + "."
+    return text
+
+
+def ai_summary(day, pool: list[dict]) -> str | None:
+    """Kurzes Briefing über GitHub Models (gratis in GitHub Actions). None, wenn nicht verfügbar."""
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token or not pool:
+        return None
+    lines = [f"- {i['title']} ({i['source']}; Themen: {', '.join(i['topics']) or '–'})" for i in pool[:40]]
+    payload = {
+        "model": MODEL,
+        "temperature": 0.2,
+        "messages": [
+            {"role": "system", "content": (
+                "Du schreibst ein kurzes Morgen-Briefing für Paid-Search-Spezialisten in der Schweiz. "
+                "Schreibe Schweizer Hochdeutsch (ss statt ß), sachlich, ohne Wertungen und ohne Floskeln. "
+                "3 bis 4 Sätze Fliesstext, keine Aufzählung, keine Überschrift. Fasse zusammen, was passiert ist, "
+                "und nenne die wichtigsten Entwicklungen zuerst. Verwende nur, was in den Schlagzeilen steht; "
+                "erfinde nichts dazu und nenne keine Zahlen, die nicht in den Schlagzeilen stehen.")},
+            {"role": "user", "content": f"Schlagzeilen vom {german_date(day)}:\n" + "\n".join(lines)},
+        ],
+    }
+    req = urllib.request.Request(MODELS_URL, data=json.dumps(payload).encode(), method="POST", headers={
+        "Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            text = json.loads(resp.read())["choices"][0]["message"]["content"].strip()
+        return text.replace("ß", "ss") or None
+    except Exception as exc:
+        print(f"Hinweis: KI-Briefing nicht verfügbar ({exc})", file=sys.stderr)
+        return None
+
+
+def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | None) -> dict:
+    """Briefing für den Vortag: Lauftext, Themen, wichtigste Beiträge. Der KI-Text wird pro Tag
+    nur einmal erzeugt und danach aus dem bisherigen Stand übernommen."""
+    data = yesterday_topics(items, weights)
+    day = datetime.fromisoformat(data["date"]).date()
+    pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
+    pool.sort(key=lambda i: (i.get("weight", 0), i["published"]), reverse=True)
+    old = previous or {}
+    if old.get("date") == data["date"] and old.get("by") == "ki":
+        text, by = old["text"], "ki"
+    else:
+        text = ai_summary(day, pool)
+        by = "ki" if text else "auto"
+        text = text or fallback_summary(day, pool, data["topics"])
+    top = pick_articles(pool, n=5)
+    return {"date": data["date"], "label": german_date(day), "text": text, "by": by,
+            "total": len(pool), "topics": data["topics"], "top": top}
 
 
 def community_topics(items: list[dict]) -> list[tuple[str, int]]:
@@ -542,7 +620,8 @@ def main() -> int:
             errors.append({"source": source["name"], "error": str(exc)[:160]})
             print(f"FEHLER {source['name']}: {exc}", file=sys.stderr)
 
-    items = merge(load_previous(args.previous), fresh, {f["name"] for f in feeds}, rules)
+    previous = load_previous(args.previous)
+    items = merge(previous.get("items", []), fresh, {f["name"] for f in feeds}, rules)
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
     tag_topics(items, topics)
@@ -554,11 +633,14 @@ def main() -> int:
     mark_studies(items)
     add_cover_images(items)
 
+    briefing = build_briefing(items, weights, previous.get("briefing"))
+
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
-        json.dumps({"generated": generated, "items": items}, ensure_ascii=False, indent=1),
+        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "by")}, "items": items},
+                   ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
@@ -574,7 +656,7 @@ def main() -> int:
         topic_defs=topics,
         search_defs=searches.get("begriffe") or [],
         weights=weights,
-        yesterday=yesterday_topics(items, weights),
+        briefing=briefing,
         stories=story_clusters(items, weights),
         trends=trending_terms(items),
         community=community_topics(items),

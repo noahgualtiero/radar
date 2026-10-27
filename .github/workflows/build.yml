@@ -11,6 +11,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  models: read        # GitHub Models für den Briefing-Text (gratis Kontingent)
 
 concurrency:
   group: pages
@@ -35,6 +36,8 @@ jobs:
       # Bisherigen Bestand von der live Seite übernehmen, damit Artikel 30 Tage
       # sichtbar bleiben, auch wenn sie aus dem Feed einer Quelle herausfallen.
       - name: Feed bauen
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python build.py --previous "${{ steps.pages.outputs.base_url }}/items.json" --out site
 
       - uses: actions/upload-pages-artifact@v3
