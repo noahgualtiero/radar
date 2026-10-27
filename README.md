@@ -10,13 +10,14 @@ sind gratis: offene RSS-Feeds und Google News.
 
 Oberfläche im Stil von Instagram (Schrift Inter):
 
-- **Desktop:** links eine schmale Icon-Leiste (Feed, Studien, Community, Gemerkt, Suche,
-  unten Einstellungen; Beschriftung als Tooltip). Oben die Themen als **Story-Kreise** mit dem
-  Bild des neuesten Beitrags; farbiger Ring = Neues in den letzten 24 Stunden. Darunter das
-  Briefing und die Beiträge ohne Kartenrahmen, getrennt durch feine Linien.
-- **Handy:** oben Logo und Lupe, darunter die Story-Kreise, unten eine Icon-Leiste.
-- **Suche:** Lupe (Leiste links bzw. oben rechts auf dem Handy) blendet das Suchfeld statt der
-  Story-Kreise ein; «Abbrechen» oder Esc schliesst es, die Taste «/» öffnet es.
+- **Desktop:** links die Seitenleiste mit Feed, Studien, Community, Gemerkt und unten
+  Einstellungen. Aufgeklappt mit Titeln, eingeklappt nur Icons; «Einklappen» bzw.
+  «Aufklappen» unten schaltet um, die Wahl wird gemerkt (Standard: ab 1200 px aufgeklappt).
+- **Oben:** eine Chip-Reihe mit **Suchen** ganz links, dann «Alle» und die Themen mit Anzahl.
+- **Beiträge** ohne Kartenrahmen, getrennt durch feine Linien; runde Profilbilder.
+- **Handy:** oben das Logo und die Chip-Reihe, unten eine Icon-Leiste.
+- **Suche:** Der Chip «Suchen» blendet das Suchfeld statt der Chips ein; «Abbrechen» oder Esc
+  schliesst es, die Taste «/» öffnet es.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
@@ -36,7 +37,7 @@ Das Ergebnis entsteht einmal pro Tag. Ohne KI (lokal oder bei einem Fehler) steh
 zusammengesetzter Text und die drei wichtigsten Beiträge (offizielle zuerst) mit ihrem Anriss
 da. Ob die KI lief und warum nicht, steht in den Einstellungen unter «Letzter Lauf».
 
-**Themen:** Ein Tipp auf einen Story-Kreis filtert den aktuellen Tab. Ein Tipp auf den
+**Themen:** Ein Tipp auf einen Themen-Chip filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
 
 **Im Trend:** konkrete Begriffe (z.B. «Review Summaries»), die in den letzten 3 Tagen bei
