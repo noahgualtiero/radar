@@ -82,25 +82,19 @@ svg { flex: none; }
 .topic-nav .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--label3); margin: 0 3px; flex: none; }
 .topic-nav .dot.w2 { background: var(--orange); } .topic-nav .dot.w3 { background: var(--red); }
 .rail-foot { margin-top: auto; padding-top: 16px; }
+.hero { margin-top: 4px; }
 
 .content { width: 100%; max-width: 700px; margin: 0 auto; padding: 0 24px 60px; min-width: 0; }
-.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: flex-end; gap: 16px; margin: 0 -24px; padding: 28px 24px 14px;
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; margin: 0 -24px 6px; padding: 20px 24px 12px;
   background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid transparent; transition: border-color .2s, padding .2s; }
-.top.scrolled { border-bottom-color: var(--sep); padding-top: 14px; }
-.top .titles { flex: 1; min-width: 0; }
+.top.scrolled { border-bottom-color: var(--sep); }
 .eyebrow { font-size: .76rem; font-weight: 600; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 0; }
-.page-title { font-size: 2rem; font-weight: 800; letter-spacing: -.035em; line-height: 1.1; margin: 2px 0 0; transition: font-size .2s; }
-.top.scrolled .page-title { font-size: 1.35rem; }
-.top.scrolled .eyebrow { display: none; }
-.search { position: relative; width: 260px; }
+.search { position: relative; width: 100%; }
 .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--label2); }
-.search input { width: 100%; height: 38px; background: var(--fill); border: 0; border-radius: 12px; padding: 0 12px 0 36px; font-size: 16px; }
+.search input { width: 100%; height: 42px; background: var(--fill); border: 0; border-radius: 12px; padding: 0 12px 0 36px; font-size: 16px; }
 .search input::placeholder { color: var(--label2); }
 .search input:focus { outline: 2px solid var(--accent-soft); background: var(--card); }
-.icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--fill); display: none; place-items: center; cursor: pointer; flex: none; }
-.icon-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
-.icon-btn svg { width: 20px; height: 20px; }
 
 /* Themen-Chips (schmale Bildschirme) */
 .chips { display: none; gap: 8px; overflow-x: auto; margin: 4px -24px 14px; padding: 2px 24px 4px; scrollbar-width: none; }
@@ -122,16 +116,8 @@ svg { flex: none; }
 .hero .eyebrow { color: var(--accent); }
 .brief-text { font-size: 1.12rem; line-height: 1.6; letter-spacing: -.005em; margin: 10px 0 12px; }
 .brief-by { font-size: .8rem; color: var(--label2); margin: 0 0 16px; }
-.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.section-title { font-size: .76rem; font-weight: 600; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 24px 4px 8px; }
-.list { padding: 4px 18px; }
-.mini { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--sep); text-decoration: none; color: var(--text); }
-.mini:first-child { border-top: 0; }
-.mini img, .mini .ph { width: 28px; height: 28px; border-radius: 7px; flex: none; background: var(--fill); object-fit: cover; margin-top: 2px; }
-.mini b { display: block; font-weight: 600; font-size: .95rem; line-height: 1.35; }
-.mini span { font-size: .8rem; color: var(--label2); }
-.mini:hover b { text-decoration: underline; }
-.more-feed { display: flex; justify-content: center; margin: 18px 0 0; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.hero .chip { font-size: .82rem; padding: 5px 11px; }
 
 /* Beiträge */
 .post { overflow: hidden; }
@@ -248,12 +234,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .app { grid-template-columns: minmax(0, 1fr); }
   .rail { display: none; }
   .content { padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
-  .top { margin: 0 -16px; padding: calc(14px + env(safe-area-inset-top)) 16px 10px; flex-wrap: wrap; align-items: center; }
-  .top.scrolled { padding-top: calc(10px + env(safe-area-inset-top)); }
-  .search { order: 3; width: 100%; }
-  .top.scrolled .search { display: none; }
-  .icon-btn { display: grid; }
-  .page-title { font-size: 1.75rem; }
+  .top { margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
   .chips { display: flex; margin: 4px -16px 14px; padding: 2px 16px 4px; }
   .tabbar { display: block; }
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
@@ -270,9 +251,8 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 {% set ico_studies %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg>{% endset %}
 {% set ico_community %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>{% endset %}
 {% set ico_saved %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg>{% endset %}
-{% set ico_today %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 12 18 6"/></svg>{% endset %}
 {% set ico_gear %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>{% endset %}
-{% set tabs = [("today", "Heute", ico_today), ("feed", "Feed", ico_feed), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
+{% set tabs = [("feed", "Feed", ico_feed), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
 
 {% if password_hash %}
 <div class="gate">
@@ -321,19 +301,14 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       <button type="button" data-topic="{{ t }}" aria-pressed="false" title="{{ ['', 'normal', 'wichtig', 'sehr wichtig'][weights[t]] }}"><span class="dot w{{ weights[t] }}"></span>{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
       {% endfor %}
     </nav>
-    <div class="rail-foot"><button class="rail-btn admin-btn" type="button" aria-pressed="false">{{ ico_gear }}Einstellungen</button></div>
+    <div class="rail-foot nav"><button type="button" data-tab="settings" aria-selected="false">{{ ico_gear }}Einstellungen</button></div>
   </aside>
 
   <div class="content">
     <header class="top" id="top">
-      <div class="titles">
-        <p class="eyebrow"><time class="today"></time></p>
-        <h1 class="page-title" id="pageTitle">Heute</h1>
-      </div>
-      <button class="icon-btn admin-btn" type="button" aria-pressed="false" aria-label="Einstellungen">{{ ico_gear }}</button>
       <label class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="q" placeholder="Suchen" aria-label="Suche">
+        <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche">
       </label>
     </header>
 
@@ -344,49 +319,17 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       {% endfor %}
     </div>
 
-    {# ---------- Heute: Briefing ---------- #}
-    <section id="todayView">
-      <div class="card hero">
-        <p class="eyebrow">Briefing · {{ briefing.label }}</p>
-        <p class="brief-text">{{ briefing.text }}</p>
-        <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Schlagzeilen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
-        {% if briefing.topics %}
-        <div class="chip-row">
-          {% for row in briefing.topics %}<button class="chip" type="button" data-topic="{{ row.topic }}">{{ row.topic }}<span class="n">{{ row.count }}</span></button>{% endfor %}
-        </div>
-        {% endif %}
-      </div>
-
-      {% if trends %}
-      <h3 class="section-title">Im Trend</h3>
-      <div class="chip-row">{% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="{{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}</div>
-      {% endif %}
-
-      {% if briefing.top %}
-      <h3 class="section-title">Wichtigste Beiträge</h3>
-      <div class="card list">
-        {% for a in briefing.top %}
-        <a class="mini" href="{{ a.link }}" target="_blank" rel="noopener nofollow external">
-          <img src="https://www.google.com/s2/favicons?domain={{ a.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-          <div><b>{{ a.title }}</b><span>{{ a.source }}</span></div>
-        </a>
-        {% endfor %}
+    {# ---------- Briefing oben im Feed ---------- #}
+    <section class="card hero" id="briefing">
+      <p class="eyebrow">Briefing · {{ briefing.label }}</p>
+      <p class="brief-text">{{ briefing.text }}</p>
+      <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Schlagzeilen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
+      {% if briefing.topics or trends %}
+      <div class="chip-row">
+        {% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="Im Trend: {{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}
+        {% for row in briefing.topics %}<button class="chip" type="button" data-topic="{{ row.topic }}">{{ row.topic }}<span class="n">{{ row.count }}</span></button>{% endfor %}
       </div>
       {% endif %}
-
-      {% if stories %}
-      <h3 class="section-title">Mehrfach berichtet</h3>
-      <div class="card list">
-        {% for c in stories[:3] %}
-        <a class="mini" href="{{ c.articles[0].link }}" target="_blank" rel="noopener nofollow external">
-          <img src="https://www.google.com/s2/favicons?domain={{ c.articles[0].domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-          <div><b>{{ c.title }}</b><span>{{ c.sources }} Quellen</span></div>
-        </a>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <div class="more-feed"><button class="btn plain" type="button" data-tab="feed">Zum ganzen Feed</button></div>
     </section>
 
     {% if community %}
@@ -613,6 +556,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     {% for key, label, icon in tabs %}
     <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}{{ label }}</button>
     {% endfor %}
+    <button type="button" data-tab="settings" aria-selected="false">{{ ico_gear }}Einstellungen</button>
   </div>
 </nav>
 
@@ -629,7 +573,6 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   var $ = function (id) { return document.getElementById(id); };
   var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   var DAY = 864e5, BOOST = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
-  var TITLES = { today: "Heute", feed: "Feed", studies: "Studien", community: "Community", saved: "Gemerkt", admin: "Einstellungen" };
 
   // Farbschema
   var root = document.documentElement, theme = store.get("psn-theme", "");
@@ -654,7 +597,6 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   }
   $$(".post time").forEach(function (t) { t.textContent = fmt(t.dateTime); });
   $$("time.day").forEach(function (t) { t.textContent = dayFmt.format(new Date(t.dateTime + "T12:00:00")); });
-  $$("time.today").forEach(function (t) { t.textContent = dayFmt.format(new Date()); });
   $("generated").textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date($("generated").dateTime));
 
   function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
@@ -682,7 +624,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
   }
 
-  var state = { tab: "today", list: "favs", admin: false, topic: "", source: "", q: "" };
+  var state = { tab: "feed", list: "favs", admin: false, topic: "", source: "", q: "" };
   var TABS = {
     feed: function (p) { return p.dataset.cat !== "Community"; },
     studies: function (p) { return p.dataset.study === "1"; },
@@ -762,24 +704,23 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var nFavs = Object.keys(lists.favs).length, nBlog = Object.keys(lists.blog).length;
     $("nFavs").textContent = nFavs; $("nBlog").textContent = nBlog;
     $("nSavedSide").textContent = nFavs + nBlog || "";
-    $("pageTitle").textContent = TITLES[admin ? "admin" : tab];
-    var today = tab === "today" && !admin;
-    $$(".admin-btn").forEach(function (b) { b.setAttribute("aria-pressed", admin ? "true" : "false"); });
-    $("todayView").hidden = !today;
-    $$("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", !admin && b.dataset.tab === tab ? "true" : "false"); });
+    $$("[data-tab]").forEach(function (b) {
+      b.setAttribute("aria-selected", (admin ? b.dataset.tab === "settings" : b.dataset.tab === tab) ? "true" : "false");
+    });
+    $("briefing").hidden = admin || tab !== "feed" || filtered;
     $$(".topic-nav [data-topic]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.topic === state.topic ? "true" : "false"); });
     $("admin").hidden = !admin;
-    $("chips").hidden = admin || saved || today;
+    $("chips").hidden = admin || saved;
     var communityBrief = $("communityBrief");
     if (communityBrief) communityBrief.hidden = admin || tab !== "community" || filtered;
     $("savedHead").hidden = admin || !saved;
-    feed.hidden = admin || saved || today;
+    feed.hidden = admin || saved;
     listFeed.hidden = admin || !saved;
     $("activeFilter").hidden = admin || saved || !(state.topic || state.source);
     $("clearFilter").textContent = (state.source ? state.source : "#" + state.topic) + "  ✕";
 
-    if (admin || today) {
-      if (admin) renderAdmin();
+    if (admin) {
+      renderAdmin();
     } else if (saved) {
       listFeed.innerHTML = "";
       Object.keys(lists[state.list]).map(function (id) { return lists[state.list][id]; })
@@ -801,15 +742,18 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       var lastShown = posts.filter(function (p) { return !p.hidden; }).pop();
       if (lineAfter && !filtered && lineAfter !== lastShown) lineAfter.after(seenLine); else seenLine.remove();
     }
-    $("empty").hidden = admin || today || shown > 0;
+    $("empty").hidden = admin || shown > 0;
     $("empty").textContent = EMPTY[saved ? state.list : tab];
   }
 
   function go(changes) { Object.assign(state, changes); render(); window.scrollTo(0, 0); }
   function filterTab() { return TABS[state.tab] ? state.tab : "feed"; }
 
-  $$("[data-tab]").forEach(function (b) { b.addEventListener("click", function () { go({ tab: b.dataset.tab, admin: false }); }); });
-  $$(".admin-btn").forEach(function (b) { b.addEventListener("click", function () { go({ admin: !state.admin }); }); });
+  $$("[data-tab]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.tab === "settings") go({ admin: true }); else go({ tab: b.dataset.tab, admin: false });
+    });
+  });
   $("q").addEventListener("input", function (e) { state.q = e.target.value; state.admin = false; state.tab = filterTab(); render(); });
   // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
   var top = $("top");

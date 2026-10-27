@@ -11,19 +11,19 @@ sind gratis: offene RSS-Feeds und Google News.
 Ruhige, moderne Oberfläche (Schrift Inter):
 
 - **Desktop:** links eine schlanke Navigation mit Bereichen, Themen (Punkt rot = sehr wichtig,
-  orange = wichtig) und Einstellungen; rechts der Inhalt mit grossem Titel und Suche. Der Kopf
-  wird beim Scrollen kompakt und durchscheinend.
-- **Handy:** grosser Titel mit Suche und Zahnrad, Themen-Chips, unten eine durchscheinende
-  Tab-Leiste.
+  orange = wichtig) und unten den Einstellungen; rechts der Inhalt mit der Suche oben, die
+  beim Scrollen durchscheinend stehen bleibt.
+- **Handy:** oben die Suche und die Themen-Chips, unten eine durchscheinende Tab-Leiste mit
+  Feed, Studien, Community, Gemerkt und Einstellungen.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
 |---|---|
-| **Heute** (Start) | Briefing zum Vortag: kurzer Lauftext, Themen als Chips, Trend-Begriffe, wichtigste Beiträge, mehrfach berichtete Geschichten |
-| **Feed** | Beiträge der festen Quellen |
+| **Feed** (Start) | Oben die Briefing-Karte zum Vortag (Lauftext, Trend-Begriffe und Themen als Chips), darunter die Beiträge der festen Quellen |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
+| **Einstellungen** | Quellen, Regeln, Themen, Suchbegriffe, Darstellung, letzter Lauf |
 
 **Briefing-Text:** In der GitHub Action schreibt eine KI über
 [GitHub Models](https://github.com/marketplace/models) (gratis Kontingent, Modell
@@ -43,7 +43,7 @@ mindestens zwei Quellen auftauchen und mindestens doppelt so häufig sind wie im
 «Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben
 (6 Stunden pro Gewichtsstufe), Quellen mit «Mehr von …» um 2 Tage.
 
-**Zahnrad** (Einstellungen): Quellen aufnehmen und entfernen, Themen und Suchbegriffe pflegen, Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
+**Einstellungen:** Quellen aufnehmen und entfernen, Themen und Suchbegriffe pflegen, Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
 Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
@@ -71,7 +71,7 @@ Unter jedem Beitrag:
 - **Merken** – legt den Beitrag unter «Gemerkt» ab.
 - **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
 - **⋯** – «Mehr von [Quelle]» rückt deren Beiträge nach oben; «[Quelle] stummschalten»
-  blendet sie aus (mit «Rückgängig»; zurückholen unter dem Zahnrad).
+  blendet sie aus (mit «Rückgängig»; zurückholen in den Einstellungen).
 
 Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
 
@@ -96,7 +96,7 @@ Browser. Wer die Browserdaten löscht, verliert sie.
 
 ## Über die Seite pflegen
 
-In den Einstellungen (Zahnrad) lassen sich ohne Code ändern:
+In den Einstellungen lassen sich ohne Code ändern:
 
 | Was | Wie |
 |---|---|
@@ -175,14 +175,14 @@ Stichwort in Titel oder Anriss vorkommt.
 ```
 
 Leerzeichen um ein Stichwort verhindern Teiltreffer: `" ki "` trifft nicht «Kiosk».
-Die Spalte «Themen» in der Quellen-Auswertung (Zahnrad) zeigt, welcher Anteil der Beiträge einer Quelle ein
+Die Spalte «Themen» in der Quellen-Auswertung (Einstellungen) zeigt, welcher Anteil der Beiträge einer Quelle ein
 Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
 
 ## Entdecken und Vorschläge
 
 Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe,
 `sprache: de` = Schweizer Ausgabe). Treffer von Seiten, die schon feste Quelle sind, werden
-ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern unter dem Zahnrad als
+ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern in den Einstellungen als
 «Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
 `suchen: ignorieren:` eintragen.
 
