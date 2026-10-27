@@ -15,7 +15,9 @@ Oberfläche im Stil von Instagram (Schrift Inter):
   «Aufklappen» unten schaltet um, die Wahl wird gemerkt (Standard: ab 1200 px aufgeklappt).
 - **Oben:** eine Chip-Reihe mit **Suchen** ganz links, dann «Alle» und die Themen mit Anzahl.
 - **Beiträge** ohne Kartenrahmen, getrennt durch feine Linien; runde Profilbilder.
-- **Handy:** oben das Logo und die Chip-Reihe, unten eine Icon-Leiste.
+- **Handy:** oben direkt die Chip-Reihe (sie gleitet beim Runterscrollen weg und ist bei jeder
+  Bewegung nach oben sofort wieder da), unten eine Icon-Leiste.
+- **Direktlinks:** `#briefing`, `#studies`, `#community`, `#saved`, `#settings` öffnen den Tab direkt.
 - **Suche:** Der Chip «Suchen» blendet das Suchfeld statt der Chips ein; «Abbrechen» oder Esc
   schliesst es, die Taste «/» öffnet es.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.

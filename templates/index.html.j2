@@ -349,7 +349,6 @@ html.rail-collapsed .rail .nav button { width: 48px; padding: 0; justify-content
 html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 .content { max-width: 630px; padding: 18px 20px 60px; }
-.mhead { display: none; }
 
 /* Chip-Reihe oben: Suchen, Alle, Themen */
 .top { position: static; display: flex; min-height: 0; margin: 0 0 16px; padding: 0; background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -398,17 +397,15 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 @media (max-width: 900px) {
   .app, html.rail-collapsed .app { grid-template-columns: minmax(0, 1fr); }
   .content { padding: 0 0 calc(80px + env(safe-area-inset-bottom)); max-width: none; }
-  .mhead { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
-    padding: calc(8px + env(safe-area-inset-top)) 16px 8px; background: var(--bg); border-bottom: 1px solid transparent; }
-  .mhead.scrolled { border-bottom-color: var(--sep); }
-  .mbrand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
-  .mbrand img { width: 28px; height: 28px; border-radius: 7px; }
-  .mbrand b { font-weight: 800; font-size: 1.35rem; letter-spacing: -.03em; }
-  .top { display: flex; margin: 0 0 8px; padding: 4px 0 10px; border-bottom: 1px solid var(--sep); }
+  /* Chip-Reihe ganz oben; gleitet beim Runterscrollen weg und ist beim Hochscrollen sofort wieder da */
+  .top { display: flex; position: sticky; top: 0; z-index: 20; margin: 0 0 8px; padding: calc(10px + env(safe-area-inset-top)) 0 10px;
+    background: var(--bg); border-bottom: 1px solid var(--sep); transition: transform .22s ease; }
+  .top.away { transform: translateY(-100%); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
   .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month { margin-left: 12px; margin-right: 12px; }
   .trend-now { margin-top: 8px; }
+  #briefingView, #admin { padding-top: calc(14px + env(safe-area-inset-top)); }
   .hero { margin-top: 10px; }
   .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
   .hero { margin-bottom: 28px; }
@@ -474,11 +471,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   </aside>
 
   <div class="content">
-    {# Kopf auf dem Handy: Logo #}
-    <header class="mhead">
-      <a class="mbrand" href="./"><img src="logo.svg" alt=""><b>Radar</b></a>
-    </header>
-
     {# Such-Chip und Themen als Chips; im Suchmodus ersetzt das Suchfeld die Chips #}
     <div class="top" id="top">
       <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
@@ -966,7 +958,13 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     $("empty").textContent = EMPTY[saved ? state.list : tab];
   }
 
-  function go(changes) { Object.assign(state, changes); render(); window.scrollTo(0, 0); }
+  // Direktlinks: #briefing, #studies, #community, #saved, #settings öffnen den jeweiligen Tab
+  var HASH_TABS = ["feed", "briefing", "studies", "community", "saved"];
+  function syncHash() {
+    var h = state.admin ? "settings" : state.tab;
+    history.replaceState(null, "", h === "feed" ? location.pathname + location.search : "#" + h);
+  }
+  function go(changes) { Object.assign(state, changes); render(); syncHash(); window.scrollTo(0, 0); }
   function filterTab() { return TABS[state.tab] ? state.tab : "feed"; }
 
   $$("[data-tab]").forEach(function (b) {
@@ -1012,8 +1010,14 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     }
   });
   // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
-  var mhead = document.querySelector(".mhead");
-  window.addEventListener("scroll", function () { mhead.classList.toggle("scrolled", window.scrollY > 8); }, { passive: true });
+  // Chip-Reihe: beim Runterscrollen ausblenden, bei jeder Bewegung nach oben sofort zeigen
+  var lastY = window.scrollY;
+  window.addEventListener("scroll", function () {
+    var y = window.scrollY, top = $("top");
+    if (y < lastY || y < 60 || top.classList.contains("searching")) top.classList.remove("away");
+    else if (y > lastY + 4) top.classList.add("away");
+    lastY = y;
+  }, { passive: true });
   $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
   $$("#seg button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1202,6 +1206,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     });
   })();
 
+  (function () {
+    var h = location.hash.slice(1);
+    if (h === "settings") state.admin = true;
+    else if (HASH_TABS.indexOf(h) !== -1) state.tab = h;
+  })();
   render();
 })();
 </script>
