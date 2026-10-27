@@ -1,4 +1,6 @@
-# Paid Search Radar
+# N Radar
+
+Newsradar für Paid Search. Logo: `static/logo.svg`.
 
 Ein Newsfeed im Stil von LinkedIn mit Neuigkeiten aus selbst festgelegten Paid-Search-Quellen.
 Läuft kostenlos über **GitHub Actions** (alle 3 Stunden) und **GitHub Pages**. Alle Quellen
@@ -6,7 +8,12 @@ sind gratis: offene RSS-Feeds und Google News.
 
 ## Was die Seite zeigt
 
-Eine Spalte wie bei LinkedIn, oben vier Tabs und eine Zeile mit Themen.
+Gestaltet nach den Apple Human Interface Guidelines (iOS-Systemfarben, durchscheinende
+Leisten, grosse Titel), Schrift Inter. Aufbau wie bei Facebook bzw. Apple News:
+
+- **Desktop:** links eine Seitenleiste mit den vier Bereichen und den Themen (Punkt-Farbe =
+  Gewicht: rot sehr wichtig, orange wichtig, grau normal), rechts der Feed.
+- **Handy:** unten eine Tab-Leiste mit den vier Bereichen, oben Themen-Chips als Filter.
 
 | Tab | Inhalt |
 |---|---|
@@ -15,7 +22,7 @@ Eine Spalte wie bei LinkedIn, oben vier Tabs und eine Zeile mit Themen.
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 
-**Themen-Zeile:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
+**Themen:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
 
 **Briefing** (einklappbar):
@@ -30,7 +37,7 @@ Quellennamen in einem Beitrag zeigt nur diese Quelle.
 «Bis hier gelesen». Innerhalb davon neueste zuerst; wichtige Themen rücken leicht nach oben
 (6 Stunden pro Gewichtsstufe), Quellen mit «Mehr von …» um 2 Tage.
 
-**Zahnrad ⚙** (Pflege): Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
+**Regler-Symbol oben rechts** (Pflege): Quellen-Auswertung, stummgeschaltete Quellen, Vorschläge für neue
 Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
@@ -42,7 +49,7 @@ Unter jedem Beitrag:
 - **Merken** – legt den Beitrag unter «Gemerkt» ab.
 - **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
 - **⋯** – «Mehr von [Quelle]» rückt deren Beiträge nach oben; «[Quelle] stummschalten»
-  blendet sie aus (mit «Rückgängig»; zurückholen unter ⚙).
+  blendet sie aus (mit «Rückgängig»; zurückholen unter dem Regler-Symbol).
 
 Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
 
@@ -99,14 +106,14 @@ Stichwort in Titel oder Anriss vorkommt.
 ```
 
 Leerzeichen um ein Stichwort verhindern Teiltreffer: `" ki "` trifft nicht «Kiosk».
-Die Spalte «Themen» in der Quellen-Auswertung (⚙) zeigt, welcher Anteil der Beiträge einer Quelle ein
+Die Spalte «Themen» in der Quellen-Auswertung (Regler-Symbol) zeigt, welcher Anteil der Beiträge einer Quelle ein
 Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
 
 ## Entdecken und Vorschläge
 
 Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe,
 `sprache: de` = Schweizer Ausgabe). Treffer von Seiten, die schon feste Quelle sind, werden
-ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern unter ⚙ als
+ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern unter dem Regler-Symbol als
 «Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
 `suchen: ignorieren:` eintragen.
 

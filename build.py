@@ -15,6 +15,7 @@ import argparse
 import html
 import json
 import re
+import shutil
 import sys
 import time
 import urllib.request
@@ -487,6 +488,7 @@ def main() -> int:
         encoding="utf-8",
     )
     (out / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")
+    shutil.copytree(ROOT / "static", out, dirs_exist_ok=True)
 
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape())
     shown = [i for i in items if i["category"] != DISCOVER]  # Entdecken erscheint nur als Vorschlagsliste
