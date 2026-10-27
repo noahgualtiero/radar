@@ -1,4 +1,4 @@
-name: Newsfeed bauen und veröffentlichen
+name: Radar bauen und veröffentlichen
 
 on:
   schedule:

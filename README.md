@@ -1,4 +1,4 @@
-# N Radar
+# Radar
 
 Newsradar für Paid Search. Logo: `static/logo.svg`.
 
@@ -136,7 +136,7 @@ nicht in Suchmaschinen, aber für alle mit dem Link erreichbar.
 ## Action manuell starten
 
 1. Reiter **Actions** öffnen.
-2. Links **«Newsfeed bauen und veröffentlichen»** wählen.
+2. Links **«Radar bauen und veröffentlichen»** wählen.
 3. **Run workflow** → Branch `main` → **Run workflow**.
 
 Sonst läuft sie alle 3 Stunden und nach jeder Änderung auf `main`. GitHub pausiert

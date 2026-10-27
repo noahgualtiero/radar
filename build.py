@@ -1,4 +1,4 @@
-"""Baut den Paid Search Newsfeed.
+"""Baut Radar, den Paid-Search-Newsfeed.
 
 Holt alle Feeds aus sources.yaml, führt sie mit dem bisherigen Bestand zusammen
 (items.json der live Seite oder einer lokalen Datei), entfernt Duplikate,
