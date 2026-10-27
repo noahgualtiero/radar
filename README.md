@@ -50,6 +50,29 @@ bei [RSS.app](https://rss.app) in einen Feed umwandeln, dann die RSS.app-URL mit
 **Nur bestimmte Themen einer Quelle:** Mit `nur_kategorien: [PPC]` werden nur Artikel
 übernommen, die im Feed diese Kategorie tragen.
 
+## Suchbegriffe und unbekannte Quellen
+
+Neben den festen Quellen fragt der Lauf für jeden Suchbegriff unter `suchen:` in
+`sources.yaml` Google News ab (Zeitraum: letzte 7 Tage). Treffer von Seiten, die schon als
+feste Quelle geführt sind, werden ausgeblendet. Der Rest erscheint in der Kategorie
+**Entdecken**, mit dem Suchbegriff auf der Karte.
+
+Unten auf der Seite listet **Unbekannte Quellen** alle Domains aus diesen Treffern, häufigste
+zuerst, mit Anzahl, letztem Treffer und den Suchbegriffen. «Treffer zeigen» filtert die
+Karten auf diese Domain. Danach:
+
+- Passende Seite → Feed-URL suchen und unter `quellen:` aufnehmen.
+- Rauschen → Domain unter `suchen: ignorieren:` eintragen.
+
+Suchbegriff ergänzen:
+
+```yaml
+    - { begriff: '"Consent Mode" Google Ads', sprache: en }
+```
+
+`sprache: en` fragt die US-Ausgabe von Google News ab, `sprache: de` die Schweizer Ausgabe.
+Anführungszeichen erzwingen die exakte Phrase, `OR` verbindet Alternativen.
+
 ## GitHub Pages aktivieren (einmalig)
 
 1. Repository auf GitHub öffnen → **Settings** → **Pages**.

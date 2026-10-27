@@ -71,6 +71,21 @@ select { flex: 0 1 260px; }
 .more { margin-top: auto; font-size: .88rem; color: var(--accent); text-decoration: none; font-weight: 600; }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 
+.via { font-style: italic; }
+.unknown { border-top: 1px solid var(--line); padding: 16px 0; }
+.unknown summary { cursor: pointer; font-weight: 600; }
+.unknown .n { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.hint { color: var(--muted); font-size: .85rem; margin: 8px 0 12px; }
+.table { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: .8rem; }
+td a { color: var(--accent); }
+.num { text-align: right; padding-right: 16px; }
+.muted { color: var(--muted); }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; white-space: nowrap; }
+.active-domain { display: inline-flex; gap: 8px; align-items: center; }
+
 footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; padding: 18px 0 32px; }
 footer details { margin-top: 6px; }
 footer summary { cursor: pointer; }
@@ -110,15 +125,23 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
         <option value="">Alle Quellen</option>
         {% for s in sources %}<option>{{ s }}</option>{% endfor %}
       </select>
+      {% if searches %}
+      <select id="search" aria-label="Suchbegriff">
+        <option value="">Alle Suchbegriffe</option>
+        {% for s in searches %}<option>{{ s }}</option>{% endfor %}
+      </select>
+      {% endif %}
       <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue</label>
     </div>
   </div>
 
-  <p class="count" id="count"></p>
+  <p class="count"><span id="count"></span>
+    <span class="active-domain" id="domainInfo" hidden> · Quelle: <strong id="domainName"></strong>
+      <button class="link" type="button" id="domainClear">× aufheben</button></span></p>
 
   <main class="grid" id="grid">
     {% for item in items %}
-    <article class="card" data-cat="{{ item.category }}" data-source="{{ item.source }}" data-seen="{{ item.first_seen }}"
+    <article class="card" data-cat="{{ item.category }}" data-source="{{ item.source }}" data-search="{{ item.search or '' }}" data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}"
              data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source)|lower }}">
       {% if item.image %}
       <a class="thumb" href="{{ item.link }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
@@ -131,6 +154,7 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
           <span class="cat">{{ item.category }}</span>
           <span>{{ item.source }}</span>
           <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>
+          {% if item.search %}<span class="via">Suche: {{ item.search }}</span>{% endif %}
         </div>
         <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
         {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
@@ -140,6 +164,33 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
     {% endfor %}
   </main>
   <p class="empty" id="empty" hidden>Keine Artikel für diese Auswahl.</p>
+
+  {% if unknown %}
+  <section class="unknown" id="unbekannt">
+    <details>
+      <summary>Unbekannte Quellen <span class="n">{{ unknown|length }}</span></summary>
+      <p class="hint">Domains aus den Suchtreffern der letzten {{ max_age_days }} Tage, die noch nicht als feste Quelle
+        in <code>sources.yaml</code> stehen – häufigste zuerst. Passende Seiten als Quelle aufnehmen, Rauschen unter
+        <code>suchen → ignorieren</code> eintragen.</p>
+      <div class="table">
+        <table>
+          <thead><tr><th>Quelle</th><th>Treffer</th><th>Zuletzt</th><th>Gefunden über</th><th></th></tr></thead>
+          <tbody>
+          {% for u in unknown %}
+            <tr>
+              <td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>{% if u.name != u.domain and not u.name.startswith("http") %}<br><span class="muted">{{ u.name }}</span>{% endif %}</td>
+              <td class="num">{{ u.count }}</td>
+              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.{{ u.latest[0:4] }}</time></td>
+              <td class="muted">{{ u.searches|join(", ") }}</td>
+              <td><button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+  {% endif %}
 
   <footer>
     Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
@@ -193,13 +244,15 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
   store.set("psn-last-visit", new Date().toISOString());
 
   // Filter
-  var state = { cat: "", source: "", q: "", onlyNew: false };
+  var state = { cat: "", source: "", search: "", domain: "", q: "", onlyNew: false };
   var chips = document.querySelectorAll(".chip"), count = document.getElementById("count"), empty = document.getElementById("empty");
   function render() {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
     cards.forEach(function (c) {
       var ok = (!state.cat || c.dataset.cat === state.cat)
         && (!state.source || c.dataset.source === state.source)
+        && (!state.search || c.dataset.search === state.search)
+        && (!state.domain || c.dataset.domain === state.domain)
         && (!state.onlyNew || c.classList.contains("is-new"))
         && terms.every(function (t) { return c.dataset.text.indexOf(t) !== -1; });
       c.hidden = !ok;
@@ -208,6 +261,8 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
     count.textContent = shown + " von " + cards.length + " Artikeln"
       + (lastVisit ? " · " + newCount + " neu seit letztem Besuch" : "");
     empty.hidden = shown > 0;
+    document.getElementById("domainInfo").hidden = !state.domain;
+    document.getElementById("domainName").textContent = state.domain;
   }
   chips.forEach(function (chip) {
     chip.addEventListener("click", function () {
@@ -217,6 +272,13 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
     });
   });
   document.getElementById("source").addEventListener("change", function (e) { state.source = e.target.value; render(); });
+  var searchSel = document.getElementById("search");
+  if (searchSel) searchSel.addEventListener("change", function (e) { state.search = e.target.value; render(); });
+  document.querySelectorAll("[data-domain].link").forEach(function (b) {
+    b.addEventListener("click", function () { state.domain = b.dataset.domain; render(); window.scrollTo(0, 0); });
+  });
+  document.getElementById("domainClear").addEventListener("click", function () { state.domain = ""; render(); });
+  document.querySelectorAll(".unknown time").forEach(function (t) { t.textContent = dateFmt.format(new Date(t.dateTime)); });
   document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value; render(); });
   document.getElementById("onlyNew").addEventListener("change", function (e) { state.onlyNew = e.target.checked; render(); });
   render();

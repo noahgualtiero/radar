@@ -15,6 +15,35 @@ kategorien:
   - Studien
   - DACH
   - LinkedIn
+  - Entdecken   # Treffer der Suchbegriffe unten
+
+# Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
+# schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
+# Unten auf der Seite listet "Unbekannte Quellen" die Domains, die dabei auftauchen.
+#   begriff:  Suchanfrage wie bei Google; "…" für exakte Phrase, OR für Alternativen
+#   sprache:  en (US-Ausgabe) oder de (Schweizer Ausgabe)
+suchen:
+  zeitraum_tage: 7
+  begriffe:
+    - { begriff: '"Google Ads"', sprache: en }
+    - { begriff: '"Performance Max"', sprache: en }
+    - { begriff: '"Demand Gen" Google', sprache: en }
+    - { begriff: '"AI Max" Google', sprache: en }
+    - { begriff: '"Smart Bidding"', sprache: en }
+    - { begriff: '"Merchant Center"', sprache: en }
+    - { begriff: '"Microsoft Advertising"', sprache: en }
+    - { begriff: '"ChatGPT ads" OR "ChatGPT advertising"', sprache: en }
+    - { begriff: '"paid search" OR "PPC campaign" OR "PPC advertising"', sprache: en }
+    - { begriff: '"Google Ads"', sprache: de }
+    - { begriff: '"Performance Max"', sprache: de }
+    - { begriff: 'Suchmaschinenwerbung OR SEA-Kampagne', sprache: de }
+  # Domains, deren Treffer nie angezeigt werden (Rauschen)
+  ignorieren:
+    - google.com
+    - microsoft.com        # Konzern-News, Werbe-Themen kommen über den Ads-Blog
+    - guinnessworldrecords.com
+    - sylt1.tv
+    - tradingview.com      # Börsenmeldungen (Ticker "PPC")
 
 quellen:
   # --- Offiziell ---

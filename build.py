@@ -18,7 +18,8 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from collections import Counter
+from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
 
 import feedparser
 import yaml
@@ -30,6 +31,12 @@ SNIPPET_CHARS = 240
 TIMEOUT = 25
 USER_AGENT = "paid-search-newsfeed/1.0 (+https://github.com)"
 TRACKING_PARAMS = re.compile(r"^(utm_|fbclid$|gclid$|mc_|ref$|source$)")
+DISCOVER = "Entdecken"
+NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
+LOCALES = {
+    "en": "hl=en-US&gl=US&ceid=US:en",
+    "de": "hl=de&gl=CH&ceid=CH:de",
+}
 
 
 def now_utc() -> datetime:
@@ -48,6 +55,10 @@ def normalize_url(url: str) -> str:
     host = parts.netloc.lower().removeprefix("www.")
     path = parts.path.rstrip("/") or "/"
     return urlunsplit(("https", host, path, urlencode(query), ""))
+
+
+def domain_of(url: str) -> str:
+    return urlsplit(url).netloc.lower().removeprefix("www.")
 
 
 def normalize_title(title: str) -> str:
@@ -107,6 +118,21 @@ def entry_tags(entry) -> set[str]:
     return {(t.get("term") or "").strip().lower() for t in entry.get("tags", [])}
 
 
+def search_sources(config: dict) -> list[dict]:
+    """Macht aus jedem Suchbegriff eine Google-News-Suche, die wie eine Quelle abgerufen wird."""
+    days = int(config.get("zeitraum_tage", 7))
+    sources = []
+    for entry in config.get("begriffe") or []:
+        lang = entry.get("sprache", "en")
+        sources.append({
+            "name": f"Suche: {entry['begriff']} ({lang})",
+            "url": NEWS_SEARCH.format(q=quote_plus(entry["begriff"]), days=days, locale=LOCALES[lang]),
+            "kategorie": DISCOVER,
+            "suche": entry["begriff"],
+        })
+    return sources
+
+
 def parse_source(source: dict, seen_at: str) -> list[dict]:
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
@@ -122,10 +148,12 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
             continue
         if wanted and not (wanted & entry_tags(entry)):
             continue
-        # Aggregatoren (z.B. Google News) hängen " - Quellname" an den Titel
-        origin = (entry.get("source") or {}).get("title")
-        if origin and title.endswith(f" - {origin}"):
-            title = title[: -len(origin) - 3]
+        # Aggregatoren (z.B. Google News) nennen den Publisher separat und hängen
+        # " - Quellname" an den Titel
+        origin = entry.get("source") or {}
+        publisher = origin.get("title")
+        if publisher and title.endswith(f" - {publisher}"):
+            title = title[: -len(publisher) - 3]
         teaser = snippet(entry.get("summary") or (entry.get("content") or [{}])[0].get("value", ""))
         if normalize_title(teaser).startswith(normalize_title(title)):
             teaser = ""
@@ -134,7 +162,10 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
             "id": normalize_url(link),
             "title": title,
             "link": link,
-            "source": source["name"],
+            "feed": source["name"],
+            "source": publisher if source.get("suche") and publisher else source["name"],
+            "domain": domain_of(origin.get("href") or link),
+            "search": source.get("suche"),
             "category": source["kategorie"],
             # Ohne Datum gilt der erste Abruf; merge() hält diesen Wert über Läufe hinweg fest
             "published": published.isoformat() if published else None,
@@ -163,10 +194,10 @@ def load_previous(location: str | None) -> list[dict]:
         return []
 
 
-def merge(previous: list[dict], fresh: list[dict], active_sources: set[str]) -> list[dict]:
+def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str]) -> list[dict]:
     by_id: dict[str, dict] = {}
     for item in previous:
-        if item.get("source") in active_sources:
+        if item.get("feed", item.get("source")) in active_feeds:
             by_id[item["id"]] = item
     for item in fresh:
         old = by_id.get(item["id"])
@@ -190,6 +221,43 @@ def merge(previous: list[dict], fresh: list[dict], active_sources: set[str]) -> 
     return unique
 
 
+def filter_discoveries(items: list[dict], ignored: set[str]) -> list[dict]:
+    """Suchtreffer nur behalten, wenn sie nicht schon über eine feste Quelle kommen."""
+    fixed = [i for i in items if i["category"] != DISCOVER]
+    known_domains = {i.get("domain") for i in fixed}
+    known_titles = {normalize_title(i["title"]) for i in fixed}
+    kept, seen_titles = [], set()
+    for item in items:
+        if item["category"] == DISCOVER:
+            domain, title = item.get("domain", ""), normalize_title(item["title"])
+            if domain in known_domains or title in known_titles or title in seen_titles:
+                continue
+            if any(domain == d or domain.endswith("." + d) for d in ignored):
+                continue
+            seen_titles.add(title)
+        kept.append(item)
+    return kept
+
+
+def unknown_sources(items: list[dict]) -> list[dict]:
+    """Domains aus den Suchtreffern, die noch nicht als feste Quelle geführt sind."""
+    groups: dict[str, list[dict]] = {}
+    for item in items:
+        if item["category"] == DISCOVER:
+            groups.setdefault(item["domain"], []).append(item)
+    rows = []
+    for domain, hits in groups.items():
+        rows.append({
+            "domain": domain,
+            "name": Counter(h["source"] for h in hits).most_common(1)[0][0],
+            "count": len(hits),
+            "latest": max(h["published"] for h in hits),
+            "searches": sorted({h["search"] for h in hits if h.get("search")}),
+        })
+    rows.sort(key=lambda r: (-r["count"], r["domain"]))
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--previous", help="URL oder Pfad zur bisherigen items.json")
@@ -199,10 +267,12 @@ def main() -> int:
     config = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
     categories = config.get("kategorien", [])
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
+    searches = config.get("suchen") or {}
+    feeds = sources + search_sources(searches)
 
     seen_at = now_utc().isoformat()
     fresh, errors = [], []
-    for source in sources:
+    for source in feeds:
         try:
             items = parse_source(source, seen_at)
             fresh.extend(items)
@@ -211,7 +281,8 @@ def main() -> int:
             errors.append({"source": source["name"], "error": str(exc)[:160]})
             print(f"FEHLER {source['name']}: {exc}", file=sys.stderr)
 
-    items = merge(load_previous(args.previous), fresh, {s["name"] for s in sources})
+    items = merge(load_previous(args.previous), fresh, {f["name"] for f in feeds})
+    items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -227,6 +298,8 @@ def main() -> int:
         items=items,
         categories=categories,
         sources=sorted({s["name"] for s in sources}),
+        searches=sorted({f["suche"] for f in feeds if f.get("suche")}),
+        unknown=unknown_sources(items),
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,
