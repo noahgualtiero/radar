@@ -193,6 +193,12 @@ svg { flex: none; }
 .btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 9px 18px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
 .btn.plain { background: var(--fill); color: var(--text); }
 
+/* Profil-Umschalter */
+.profile-seg { display: flex; margin: 0 0 16px; }
+#admin .group-title:first-child { margin-top: 0; }
+.profile-seg button { flex: 1; text-align: center; white-space: nowrap; padding: 7px 6px; font-size: .86rem; }
+#savedHint { font-size: .85rem; }
+
 /* Briefing-Feed */
 .month { font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em; margin: 30px 4px 12px; }
 #briefingView .month:first-of-type { margin-top: 6px; }
@@ -389,8 +395,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 /* Tab-Leiste unten: nur Icons */
 .tabbar { background: var(--bg); border-top: 1px solid var(--sep); -webkit-backdrop-filter: none; backdrop-filter: none; }
-.tabbar button { font-size: 0; gap: 0; padding: 12px 0 10px; color: var(--text); }
-.tabbar button svg { width: 26px; height: 26px; }
+.tabbar button { font-size: .66rem; font-weight: 600; gap: 3px; padding: 8px 0 6px; color: var(--label2); }
+.tabbar button svg { width: 25px; height: 25px; color: var(--text); }
+.tabbar button[aria-selected="true"] span { color: var(--text); font-weight: 750; }
 .tabbar button[aria-selected="true"] { color: var(--text); }
 .tabbar button[aria-selected="true"] svg { stroke-width: 2.6; }
 
@@ -403,9 +410,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .top.away { transform: translateY(-100%); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
-  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month { margin-left: 12px; margin-right: 12px; }
+  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month, .profile-seg { margin-left: 12px; margin-right: 12px; }
   .trend-now { margin-top: 8px; }
-  #briefingView, #admin { padding-top: calc(14px + env(safe-area-inset-top)); }
+  #briefingView, .profile-seg { margin-top: calc(14px + env(safe-area-inset-top)); }
   .hero { margin-top: 10px; }
   .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
   .hero { margin-bottom: 28px; }
@@ -542,12 +549,15 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
 
     {# ---------- Gemerkt ---------- #}
+    {# Profil: Gemerkt, Blog-Ideen und Einstellungen in einem Bereich #}
+    <div class="seg profile-seg" id="seg" hidden>
+      <button type="button" data-list="favs" aria-pressed="true">Gemerkt <span class="n" id="nFavs">0</span></button>
+      <button type="button" data-list="blog" aria-pressed="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
+      <button type="button" data-list="settings" aria-pressed="false">Einstellungen</button>
+    </div>
     <section id="savedHead" hidden>
       <div class="list-head">
-        <div class="seg" id="seg">
-          <button type="button" data-list="favs" aria-pressed="true">Gemerkt <span class="n" id="nFavs">0</span></button>
-          <button type="button" data-list="blog" aria-pressed="false">Blog-Ideen <span class="n" id="nBlog">0</span></button>
-        </div>
+        <div class="n" id="savedHint"></div>
         <div>
           <button class="btn plain" type="button" id="copyList">Kopieren</button>
           <button class="btn" type="button" id="addBtn">+ Link</button>
@@ -758,10 +768,10 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 <nav class="tabbar" aria-label="Bereiche">
   <div class="in">
-    {% for key, label, icon in tabs %}
-    <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}{{ label }}</button>
+    {% for key, label, icon in tabs if key != "saved" %}
+    <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}<span>{{ label }}</span></button>
     {% endfor %}
-    <button type="button" data-tab="settings" aria-selected="false">{{ ico_gear }}Einstellungen</button>
+    <button type="button" data-tab="saved" data-profile="1" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg><span>Profil</span></button>
   </div>
 </nav>
 
@@ -915,11 +925,17 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     $("nFavs").textContent = nFavs; $("nBlog").textContent = nBlog;
     $("nSavedSide").hidden = !(nFavs + nBlog);
     $$("[data-tab]").forEach(function (b) {
-      b.setAttribute("aria-selected", (admin ? b.dataset.tab === "settings" : b.dataset.tab === tab) ? "true" : "false");
+      var on = admin ? (b.dataset.tab === "settings" || !!b.dataset.profile) : b.dataset.tab === tab;
+      b.setAttribute("aria-selected", on ? "true" : "false");
     });
+    $("seg").hidden = !(admin || saved);
+    $$("#seg button").forEach(function (b) {
+      b.setAttribute("aria-pressed", (admin ? b.dataset.list === "settings" : b.dataset.list === state.list) ? "true" : "false");
+    });
+    $("savedHint").textContent = state.list === "blog" ? "Themen für den eigenen Blog" : "Zum späteren Lesen";
     var brief = tab === "briefing" && !admin;
     $("briefingView").hidden = !brief;
-    $("top").hidden = brief || admin;
+    $("top").hidden = brief || admin || saved;
     $$(".topic-nav [data-topic]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.topic === state.topic ? "true" : "false"); });
     $("admin").hidden = !admin;
     $("chips").hidden = admin || saved;
@@ -1021,8 +1037,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
   $$("#seg button").forEach(function (b) {
     b.addEventListener("click", function () {
-      $$("#seg button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-      go({ list: b.dataset.list });
+      if (b.dataset.list === "settings") go({ admin: true }); else go({ tab: "saved", list: b.dataset.list, admin: false });
     });
   });
 

@@ -16,7 +16,9 @@ Oberfläche im Stil von Instagram (Schrift Inter):
 - **Oben:** eine Chip-Reihe mit **Suchen** ganz links, dann «Alle» und die Themen mit Anzahl.
 - **Beiträge** ohne Kartenrahmen, getrennt durch feine Linien; runde Profilbilder.
 - **Handy:** oben direkt die Chip-Reihe (sie gleitet beim Runterscrollen weg und ist bei jeder
-  Bewegung nach oben sofort wieder da), unten eine Icon-Leiste.
+  Bewegung nach oben sofort wieder da), unten eine Leiste mit 5 Tabs und Titeln: Feed, Briefing,
+  Studien, Community, **Profil**. «Profil» fasst Gemerkt, Blog-Ideen und Einstellungen mit einem
+  Umschalter zusammen.
 - **Direktlinks:** `#briefing`, `#studies`, `#community`, `#saved`, `#settings` öffnen den Tab direkt.
 - **Suche:** Der Chip «Suchen» blendet das Suchfeld statt der Chips ein; «Abbrechen» oder Esc
   schliesst es, die Taste «/» öffnet es.
@@ -28,7 +30,7 @@ Oberfläche im Stil von Instagram (Schrift Inter):
 | **Briefing** | Ein Briefing pro Tag, neueste zuerst, nach Monaten getrennt, rund 2 Monate zurück: Lauftext, «Das Wichtigste» (3 Beiträge mit Begründung), Studien und Community des Tages, Themen; oben die aktuellen Trend-Begriffe |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
-| **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
+| **Gemerkt** (Handy: Profil) | Umschalter «Gemerkt · Blog-Ideen · Einstellungen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 | **Einstellungen** | Gruppierte Listen: Quellen (mit Daumen hoch/runter), Regeln, Themen, Suchbegriffe, Vorschläge, Darstellung, letzter Lauf |
 
 **Briefing:** Für jeden Tag entsteht ein Briefing aus den Beiträgen dieses Tages. In der GitHub
