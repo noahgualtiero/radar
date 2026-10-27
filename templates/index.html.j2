@@ -355,11 +355,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 
 /* Briefing: ruhige Fläche statt Karte */
 .card { border-radius: 14px; border: 1px solid var(--sep); box-shadow: none; }
-.hero { background: var(--panel); border-color: var(--sep-soft); margin-bottom: 18px; }
+.hero { background: var(--panel); border-color: var(--sep-soft); margin-bottom: 36px; }
 
 /* Beiträge wie Posts */
-.post.card { background: none; border: 0; border-bottom: 1px solid var(--sep); border-radius: 0; margin: 0 0 18px; padding-bottom: 6px; }
-.post-head { padding: 0 0 10px; }
+.post.card { background: none; border: 0; border-bottom: 1px solid var(--sep); border-radius: 0; margin: 0 0 28px; padding: 6px 0 18px; }
+.post-head { padding: 0 0 12px; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--sep); }
 .who .src { font-weight: 650; font-size: .92rem; }
 .post-body { padding: 0 0 8px; }
@@ -367,8 +367,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 .tags-wrap { padding-bottom: 10px; }
 .post-img { margin: 0 0 6px; border-radius: 6px; border: 1px solid var(--sep-soft); }
 .post-img img { max-height: none; aspect-ratio: 1.91 / 1; }
-.actions { justify-content: flex-start; gap: 4px; padding: 2px 0 6px; margin-left: -10px; }
-.actions > button.more { margin-left: auto; margin-right: -10px; }
+.actions { justify-content: flex-start; gap: 2px; padding: 4px 0 0; margin: 0 -10px; }
+.actions .spacer { flex: 1; }
+.act-up[aria-pressed="true"] { color: var(--green); }
+.act-down[aria-pressed="true"] { color: var(--orange); }
+.act-up[aria-pressed="true"] svg path, .act-down[aria-pressed="true"] svg path { fill: currentColor; }
 .actions svg { width: 24px; height: 24px; }
 .actions > button { color: var(--text); }
 .actions .lbl { display: none; }
@@ -398,11 +401,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .top .chips { padding: 0 14px 2px; }
   .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line { margin-left: 12px; margin-right: 12px; }
   .hero { margin-top: 10px; }
-  .post.card { margin: 0 0 12px; padding: 0 0 4px; }
+  .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
+  .hero { margin-bottom: 28px; }
   .post-head, .post-body, .tags-wrap { padding-left: 14px; padding-right: 14px; }
   .post-img { margin: 0 0 4px; border-radius: 0; border-left: 0; border-right: 0; }
-  .actions { padding: 0 14px 4px; margin-left: 0; }
-  .actions > button.more { margin-right: 0; }
+  .actions { padding: 4px 4px 0; margin: 0; }
 }
 </style>
 </head>
@@ -560,6 +563,10 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       </a>
       {% endif %}
       <div class="actions">
+        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle" aria-label="Mehr von dieser Quelle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg></button>
+        <button class="act-down" type="button" data-act="down" title="Weniger von dieser Quelle" aria-label="Weniger von dieser Quelle" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg></button>
+        <button class="act-share" type="button" data-act="share" title="Teilen" aria-label="Teilen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5 10 14"/><path d="m21.5 2.5-7 19-4.5-7.5L2.5 9.5l19-7z"/></svg></button>
+        <span class="spacer"></span>
         <button class="act-favs" type="button" data-act="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg><span class="lbl">Merken</span></button>
         <button class="act-blog" type="button" data-act="blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog-Idee</span></button>
         <button class="more" type="button" data-act="menu" aria-label="Weitere Aktionen"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
@@ -831,6 +838,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; });
   }
   function decorate(p) {
+    var v = votes[p.dataset.source] || 0;
+    p.querySelector(".act-up").setAttribute("aria-pressed", v === 1 ? "true" : "false");
+    p.querySelector(".act-down").setAttribute("aria-pressed", v === -1 ? "true" : "false");
     p.classList.toggle("is-fav", !!lists.favs[p.dataset.id]);
     p.classList.toggle("is-blog", !!lists.blog[p.dataset.id]);
   }
@@ -1021,6 +1031,20 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     if (!btn) return;
     var post = btn.closest(".post"), act = btn.dataset.act;
     if (act === "menu") { openMenu(post, btn); return; }
+    if (act === "share") {
+      var link = post.querySelector("h2 a");
+      var data = { title: link.textContent, text: link.textContent + " (" + post.dataset.source + ")", url: link.href };
+      if (navigator.share) { navigator.share(data).catch(function () {}); }
+      else { navigator.clipboard.writeText(data.title + "\n" + data.url).then(function () { toast("Link kopiert"); }); }
+      return;
+    }
+    if (act === "up" || act === "down") {
+      var src = post.dataset.source, want = act === "up" ? 1 : -1, before = votes[src] || 0;
+      setVote(src, before === want ? 0 : want);
+      toast(votes[src] === 1 ? "Mehr von " + src : votes[src] === -1 ? "Weniger von " + src : src + ": zurückgesetzt",
+        function () { setVote(src, before); });
+      return;
+    }
     var list = lists[act], id = post.dataset.id, adding = !list[id];
     if (adding) list[id] = snapshot(post); else delete list[id];
     store.set("psn-" + act, list);

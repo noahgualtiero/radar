@@ -71,12 +71,17 @@ nur im eigenen Browser.
 
 ## Bedienung
 
-Unter jedem Beitrag:
+Unter jedem Beitrag, links:
+
+- **Daumen hoch / runter** – mehr bzw. weniger von dieser Quelle (2 Tage nach oben bzw. unten),
+  erneuter Klick hebt es auf.
+- **Teilen** – auf dem Handy das Teilen-Menü des Systems, auf dem Desktop wird der Link kopiert.
+
+Rechts:
 
 - **Merken** – legt den Beitrag unter «Gemerkt» ab.
 - **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
-- **⋯** – «Mehr von [Quelle]» (2 Tage nach oben), «Weniger von [Quelle]» (2 Tage nach unten)
-  oder «[Quelle] stummschalten» (ausgeblendet), jeweils mit «Rückgängig».
+- **⋯** – mehr, weniger oder «[Quelle] stummschalten» (ausgeblendet), jeweils mit «Rückgängig».
 
 Dieselbe Bewertung geht in den Einstellungen direkt in der Quellen-Zeile: Daumen hoch = mehr,
 Daumen runter = weniger; ein Tipp auf die Zeile zeigt Kennzahlen, «Stummschalten» und
