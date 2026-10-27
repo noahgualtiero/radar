@@ -8,14 +8,15 @@ sind gratis: offene RSS-Feeds und Google News.
 
 ## Was die Seite zeigt
 
-Ruhige, moderne Oberfläche (Schrift Inter):
+Oberfläche im Stil von Instagram (Schrift Inter):
 
-- **Desktop:** links eine schlanke Navigation mit Bereichen, Themen (Punkt rot = sehr wichtig,
-  orange = wichtig) und unten den Einstellungen; rechts der Inhalt.
-- **Handy:** oben die Themen-Chips, unten eine durchscheinende Tab-Leiste mit Feed, Studien,
-  Community, Gemerkt und Einstellungen.
-- **Suche:** auf dem Desktop als Feld oben in der Navigation (Taste «/» springt hinein, Esc
-  setzt zurück); auf dem Handy als Lupe vor den Themen-Chips, die das Suchfeld aufklappt.
+- **Desktop:** links eine schmale Icon-Leiste (Feed, Studien, Community, Gemerkt, Suche,
+  unten Einstellungen; Beschriftung als Tooltip). Oben die Themen als **Story-Kreise** mit dem
+  Bild des neuesten Beitrags; farbiger Ring = Neues in den letzten 24 Stunden. Darunter das
+  Briefing und die Beiträge ohne Kartenrahmen, getrennt durch feine Linien.
+- **Handy:** oben Logo und Lupe, darunter die Story-Kreise, unten eine Icon-Leiste.
+- **Suche:** Lupe (Leiste links bzw. oben rechts auf dem Handy) blendet das Suchfeld statt der
+  Story-Kreise ein; «Abbrechen» oder Esc schliesst es, die Taste «/» öffnet es.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
@@ -35,7 +36,7 @@ Das Ergebnis entsteht einmal pro Tag. Ohne KI (lokal oder bei einem Fehler) steh
 zusammengesetzter Text und die drei wichtigsten Beiträge (offizielle zuerst) mit ihrem Anriss
 da. Ob die KI lief und warum nicht, steht in den Einstellungen unter «Letzter Lauf».
 
-**Themen:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
+**Themen:** Ein Tipp auf einen Story-Kreis filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
 
 **Im Trend:** konkrete Begriffe (z.B. «Review Summaries»), die in den letzten 3 Tagen bei

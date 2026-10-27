@@ -603,6 +603,20 @@ def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | 
             "by": by, "note": note, "total": len(pool), "topics": data["topics"]}
 
 
+def topic_meta(items: list[dict], topics: list[dict]) -> dict[str, dict]:
+    """Für die Story-Kreise: Bild des neuesten Beitrags mit Bild und ob es in den letzten 24 h Neues gab."""
+    cutoff = now_utc() - timedelta(hours=24)
+    meta = {}
+    for topic in topics:
+        hits = sorted((i for i in items if topic["name"] in i["topics"] and i["category"] != DISCOVER),
+                      key=lambda i: i["published"], reverse=True)
+        meta[topic["name"]] = {
+            "image": next((i["image"] for i in hits if i.get("image")), None),
+            "fresh": any(datetime.fromisoformat(i["published"]) >= cutoff for i in hits),
+        }
+    return meta
+
+
 def community_topics(items: list[dict]) -> list[tuple[str, int]]:
     cutoff = now_utc() - timedelta(days=7)
     return Counter(
@@ -708,6 +722,7 @@ def main() -> int:
         community=community_topics(items),
         stats=source_stats(sources, items),
         topic_counts=Counter(t for i in shown for t in i["topics"]),
+        topic_meta=topic_meta(shown, topics),
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,

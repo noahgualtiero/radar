@@ -304,6 +304,102 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .card { border-radius: 16px; }
   .brief-text { font-size: 1.05rem; }
 }
+
+/* ===== Instagram-Stil: weisser Grund, schmale Icon-Leiste, Story-Kreise, Beiträge ohne Karten ===== */
+:root { --bg: #ffffff; --panel: #fafafa; --sep: #dbdbdb; --sep-soft: #efefef; --ig: linear-gradient(45deg, #f9ce34, #ee2a7b 55%, #6228d7); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #000000; --panel: #121212; --sep: #262626; --sep-soft: #1c1c1c; } }
+:root[data-theme="dark"] { --bg: #000000; --panel: #121212; --sep: #262626; --sep-soft: #1c1c1c; }
+:root[data-theme="light"] { --bg: #ffffff; --panel: #fafafa; --sep: #dbdbdb; --sep-soft: #efefef; }
+
+.app { grid-template-columns: 76px minmax(0, 1fr); }
+.rail { width: 76px; padding: 26px 0 22px; border-right: 1px solid var(--sep); align-items: center; gap: 8px; }
+.rail .brand { padding: 0 0 22px; }
+.rail .brand img { width: 30px; height: 30px; border-radius: 8px; }
+.rail .nav { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rail .nav button { position: relative; width: 48px; height: 48px; padding: 0; justify-content: center; border-radius: 12px; }
+.rail .nav button svg { width: 26px; height: 26px; }
+.rail .nav button[aria-selected="true"] { background: none; color: var(--text); }
+.rail .nav button[aria-selected="true"] svg { stroke-width: 2.6; }
+.rail .nav button:hover { background: var(--hover); }
+.badge-dot { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+.rail-foot { margin-top: auto; }
+
+.content { max-width: 630px; padding: 18px 20px 60px; }
+.mhead { display: none; }
+
+/* Story-Kreise */
+.top { position: static; display: flex; min-height: 0; margin: 0 0 18px; padding: 0; background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.top.searching { padding: 4px 0; }
+.stories { display: flex; flex: 1; min-width: 0; gap: 14px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; }
+.stories::-webkit-scrollbar { display: none; }
+.story { flex: none; width: 74px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; }
+.story .ring { width: 70px; height: 70px; border-radius: 50%; padding: 3px; background: var(--sep); display: grid; }
+.story.fresh .ring { background: var(--ig); }
+.story .pic { position: relative; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: var(--fill); border: 3px solid var(--bg); }
+.story .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.story:first-child .pic img { inset: 12px; width: auto; height: auto; border-radius: 10px; }
+.story .pic i { font-style: normal; font-weight: 800; font-size: 1.3rem; color: var(--label2); }
+.story .lbl { width: 100%; font-size: .74rem; color: var(--text); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.story[aria-pressed="true"] .ring { background: var(--text); }
+.story[aria-pressed="true"] .lbl { font-weight: 700; }
+.top.searching .stories { display: none !important; }
+
+/* Briefing: ruhige Fläche statt Karte */
+.card { border-radius: 14px; border: 1px solid var(--sep); box-shadow: none; }
+.hero { background: var(--panel); border-color: var(--sep-soft); margin-bottom: 18px; }
+
+/* Beiträge wie Posts */
+.post.card { background: none; border: 0; border-bottom: 1px solid var(--sep); border-radius: 0; margin: 0 0 18px; padding-bottom: 6px; }
+.post-head { padding: 0 0 10px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--sep); }
+.who .src { font-weight: 650; font-size: .92rem; }
+.post-body { padding: 0 0 8px; }
+.post-body h2 { font-size: 1.05rem; }
+.tags-wrap { padding-bottom: 10px; }
+.post-img { margin: 0 0 6px; border-radius: 6px; border: 1px solid var(--sep-soft); }
+.post-img img { max-height: none; aspect-ratio: 1.91 / 1; }
+.actions { justify-content: flex-start; gap: 4px; padding: 2px 0 6px; margin-left: -10px; }
+.actions > button.more { margin-left: auto; margin-right: -10px; }
+.actions svg { width: 24px; height: 24px; }
+.actions > button { color: var(--text); }
+.actions .lbl { display: none; }
+.seen-line { margin: 4px 0 22px; }
+
+/* Einstellungen-Gruppen und Formulare auf weissem Grund */
+.group { background: var(--panel); border-color: var(--sep-soft); }
+
+/* Tab-Leiste unten: nur Icons */
+.tabbar { background: var(--bg); border-top: 1px solid var(--sep); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.tabbar button { font-size: 0; gap: 0; padding: 12px 0 10px; color: var(--text); }
+.tabbar button svg { width: 26px; height: 26px; }
+.tabbar button[aria-selected="true"] { color: var(--text); }
+.tabbar button[aria-selected="true"] svg { stroke-width: 2.6; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .content { padding: 0 0 calc(80px + env(safe-area-inset-bottom)); max-width: none; }
+  .mhead { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+    padding: calc(8px + env(safe-area-inset-top)) 16px 8px; background: var(--bg); border-bottom: 1px solid transparent; }
+  .mhead.scrolled { border-bottom-color: var(--sep); }
+  .mbrand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .mbrand img { width: 28px; height: 28px; border-radius: 7px; }
+  .mbrand b { font-weight: 800; font-size: 1.35rem; letter-spacing: -.03em; }
+  .mhead-btn { width: 40px; height: 40px; border: 0; background: none; color: var(--text); display: grid; place-items: center; cursor: pointer; margin-right: -8px; }
+  .mhead-btn svg { width: 26px; height: 26px; }
+  .top { display: flex; margin: 0 0 8px; padding: 6px 0 10px; border-bottom: 1px solid var(--sep); }
+  .top.searching { padding: 8px 16px 10px; }
+  .stories { padding: 2px 14px 2px; gap: 12px; margin: 0; }
+  .story { width: 68px; }
+  .story .ring { width: 64px; height: 64px; }
+  .chips { display: none; }
+  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line { margin-left: 12px; margin-right: 12px; }
+  .hero { margin-top: 10px; }
+  .post.card { margin: 0 0 12px; padding: 0 0 4px; }
+  .post-head, .post-body, .tags-wrap { padding-left: 14px; padding-right: 14px; }
+  .post-img { margin: 0 0 4px; border-radius: 0; border-left: 0; border-right: 0; }
+  .actions { padding: 0 14px 4px; margin-left: 0; }
+  .actions > button.more { margin-right: 0; }
+}
 </style>
 </head>
 <body>
@@ -348,44 +444,43 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 <div class="app">
   {# ---------- Navigation links (Desktop) ---------- #}
   <aside class="rail">
-    <a class="brand" href="./" aria-label="Radar"><img src="logo.svg" alt=""><b>Radar</b></a>
-    <label class="side-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" id="qSide" placeholder="Suchen" aria-label="Suche" title="Suchen (/)">
-    </label>
+    <a class="brand" href="./" aria-label="Radar" title="Radar"><img src="logo.svg" alt=""></a>
     <nav class="nav" aria-label="Bereiche">
       {% for key, label, icon in tabs %}
-      <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}{{ label }}{% if key == "saved" %}<span class="n" id="nSavedSide"></span>{% endif %}</button>
+      <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}" title="{{ label }}" aria-label="{{ label }}">{{ icon }}{% if key == "saved" %}<span class="badge-dot" id="nSavedSide"></span>{% endif %}</button>
       {% endfor %}
+      <button type="button" class="open-search" title="Suchen (/)" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg></button>
     </nav>
-    <p class="nav-title">Themen</p>
-    <nav class="nav topic-nav" aria-label="Themen">
-      <button type="button" data-topic="" aria-pressed="true"><span class="dot"></span>Alle Themen</button>
-      {% for t in topics if topic_counts[t] %}
-      <button type="button" data-topic="{{ t }}" aria-pressed="false" title="{{ ['', 'normal', 'wichtig', 'sehr wichtig'][weights[t]] }}"><span class="dot w{{ weights[t] }}"></span>{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
-      {% endfor %}
-    </nav>
-    <div class="rail-foot nav"><button type="button" data-tab="settings" aria-selected="false">{{ ico_gear }}Einstellungen</button></div>
+    <div class="rail-foot nav"><button type="button" data-tab="settings" aria-selected="false" title="Einstellungen" aria-label="Einstellungen">{{ ico_gear }}</button></div>
   </aside>
 
   <div class="content">
-    {# Kopf: Lupe vorne, dann Themen-Chips (Handy); die Lupe klappt das Suchfeld auf #}
-    <header class="top" id="top">
-      <button class="search-btn" type="button" id="searchBtn" aria-label="Suchen" title="Suchen (/)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      </button>
-      <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
-        <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
+    {# Kopf auf dem Handy: Logo und Lupe #}
+    <header class="mhead">
+      <a class="mbrand" href="./"><img src="logo.svg" alt=""><b>Radar</b></a>
+      <button class="mhead-btn open-search" type="button" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg></button>
+    </header>
+
+    {# Themen als Story-Kreise; im Suchmodus ersetzt das Suchfeld die Kreise #}
+    <div class="top" id="top">
+      <div class="stories topic-nav" id="chips" role="group" aria-label="Themen">
+        <button class="story" type="button" data-topic="" aria-pressed="true">
+          <span class="ring"><span class="pic"><img src="logo.svg" alt=""></span></span><span class="lbl">Alle</span>
+        </button>
         {% for t in topics if topic_counts[t] %}
-        <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
+        {% set meta = topic_meta[t] %}
+        <button class="story{% if meta.fresh %} fresh{% endif %}" type="button" data-topic="{{ t }}" aria-pressed="false" title="{{ t }} · {{ topic_counts[t] }} Beiträge">
+          <span class="ring"><span class="pic">{% if meta.image %}<img src="{{ meta.image }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}<i>#</i></span></span>
+          <span class="lbl">{{ t }}</span>
+        </button>
         {% endfor %}
       </div>
       <label class="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg>
         <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche" enterkeyhint="search">
       </label>
       <button class="link search-cancel" type="button" id="searchCancel">Abbrechen</button>
-    </header>
+    </div>
 
     {# ---------- Briefing oben im Feed ---------- #}
     <section class="card hero" id="briefing">
@@ -403,10 +498,9 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       </div>
       {% endif %}
       <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Beiträgen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
-      {% if briefing.topics or trends %}
+      {% if trends %}
       <div class="chip-row">
         {% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="Im Trend: {{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}
-        {% for row in briefing.topics %}<button class="chip" type="button" data-topic="{{ row.topic }}">{{ row.topic }}<span class="n">{{ row.count }}</span></button>{% endfor %}
       </div>
       {% endif %}
     </section>
@@ -785,7 +879,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var filtered = !!(state.topic || state.source || state.q);
     var nFavs = Object.keys(lists.favs).length, nBlog = Object.keys(lists.blog).length;
     $("nFavs").textContent = nFavs; $("nBlog").textContent = nBlog;
-    $("nSavedSide").textContent = nFavs + nBlog || "";
+    $("nSavedSide").hidden = !(nFavs + nBlog);
     $$("[data-tab]").forEach(function (b) {
       b.setAttribute("aria-selected", (admin ? b.dataset.tab === "settings" : b.dataset.tab === tab) ? "true" : "false");
     });
@@ -836,31 +930,33 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       if (b.dataset.tab === "settings") go({ admin: true }); else go({ tab: b.dataset.tab, admin: false });
     });
   });
-  // Zwei Suchfelder (Handy oben, Desktop in der Seitenleiste) mit demselben Zustand
   function setQuery(value) {
-    $("q").value = $("qSide").value = value;
+    $("q").value = value;
     state.q = value; state.admin = false; state.tab = filterTab(); render();
   }
-  ["q", "qSide"].forEach(function (id) { $(id).addEventListener("input", function (e) { setQuery(e.target.value); }); });
-  $("qSide").addEventListener("keydown", function (e) { if (e.key === "Escape") { setQuery(""); e.target.blur(); } });
-  // Lupe klappt das Suchfeld auf; Abbrechen oder Esc schliesst es und hebt die Suche auf, "/" öffnet es
-  function openSearch() { $("top").classList.add("searching"); $("q").focus(); }
+  $("q").addEventListener("input", function (e) { setQuery(e.target.value); });
+  // Lupe (Leiste links bzw. Kopf auf dem Handy) blendet das Suchfeld statt der Story-Kreise ein;
+  // Abbrechen oder Esc schliesst es und hebt die Suche auf, "/" öffnet es
+  function openSearch() {
+    if (state.admin || state.tab === "saved") go({ admin: false, tab: "feed" });
+    $("top").classList.add("searching"); window.scrollTo(0, 0); $("q").focus();
+  }
   function closeSearch() {
     $("top").classList.remove("searching");
     if (state.q) setQuery("");
   }
-  $("searchBtn").addEventListener("click", openSearch);
+  $$(".open-search").forEach(function (b) { b.addEventListener("click", openSearch); });
   $("searchCancel").addEventListener("click", closeSearch);
   $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") closeSearch(); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
       e.preventDefault();
-      if (window.matchMedia("(max-width: 900px)").matches) openSearch(); else $("qSide").focus();
+      openSearch();
     }
   });
   // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
-  var top = $("top");
-  window.addEventListener("scroll", function () { top.classList.toggle("scrolled", window.scrollY > 8); }, { passive: true });
+  var mhead = document.querySelector(".mhead");
+  window.addEventListener("scroll", function () { mhead.classList.toggle("scrolled", window.scrollY > 8); }, { passive: true });
   $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
   $$("#seg button").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -903,7 +999,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var suggest = e.target.closest("[data-suggest]");
     if (suggest) { $("addSource").open = true; $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
     var qBtn = e.target.closest("[data-q]");
-    if (qBtn) { $("q").value = $("qSide").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
+    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
     var topicBtn = e.target.closest("[data-topic]");
     if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: filterTab(), admin: false }); return; }
     var srcBtn = e.target.closest(".src");
