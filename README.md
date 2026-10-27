@@ -1,4 +1,4 @@
-# Paid Search Newsfeed
+# Paid Search Radar
 
 Ein Newsfeed im Stil von LinkedIn mit Neuigkeiten aus selbst festgelegten Paid-Search-Quellen.
 Läuft kostenlos über **GitHub Actions** (alle 3 Stunden) und **GitHub Pages**. Alle Quellen

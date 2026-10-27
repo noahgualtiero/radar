@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Paid Search Newsfeed</title>
+<title>Paid Search Radar</title>
 <style>
 :root {
   --bg: #f3f2ef; --card: #ffffff; --text: #191919; --muted: #666a73;
@@ -40,7 +40,7 @@ a { color: var(--accent); }
 .topbar { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); }
 .bar { display: flex; gap: 10px; align-items: center; padding: 8px 0; }
 .logo { font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-.logo span { color: var(--accent); }
+.logo span:last-child { color: var(--accent); }
 .bar input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; }
 .bar input:focus { outline: none; border-color: var(--accent); }
 .icon { background: none; border: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
@@ -153,6 +153,11 @@ footer { color: var(--muted); font-size: .8rem; padding: 4px 0 24px; }
   .wrap { padding: 0 12px; }
   main .card { margin-left: -12px; margin-right: -12px; border-radius: 0; }
   .actions .lbl { display: none; }
+  .logo .full { display: none; }
+  /* Touch: grössere Ziele, 16px im Suchfeld verhindert das Auto-Zoom von iOS */
+  .bar input, .add-form input, .add-form select { font-size: 16px; }
+  .chip { padding: 7px 14px; }
+  .actions > button { padding: 13px 4px; }
 }
 </style>
 </head>
@@ -161,7 +166,7 @@ footer { color: var(--muted); font-size: .8rem; padding: 4px 0 24px; }
 <div class="topbar">
   <div class="wrap">
     <div class="bar">
-      <div class="logo">PPC <span>Feed</span></div>
+      <div class="logo"><span class="full">Paid Search </span><span>Radar</span></div>
       <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
       <button class="icon" id="adminBtn" type="button" aria-pressed="false" title="Quellen und Einstellungen" aria-label="Quellen und Einstellungen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
