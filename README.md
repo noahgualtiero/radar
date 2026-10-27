@@ -101,7 +101,7 @@ In den Einstellungen (Zahnrad) lassen sich ohne Code ändern:
 
 Jeder Knopf öffnet auf GitHub einen vorbereiteten Auftrag (Issue); dort auf «Create»
 klicken. Die Action `settings.yml` («Einstellungen übernehmen») schreibt die Änderung in
-`sources.yaml` – Kommentare und Verweise wie `*paid` bleiben erhalten –, committet sie,
+`sources.yaml` (Kommentare bleiben erhalten), committet sie,
 baut die Seite neu und schreibt das Ergebnis als Kommentar ins Issue. Nach etwa 3 Minuten
 ist die Änderung sichtbar. Nur Issues des Repo-Inhabers werden verarbeitet. Das Skript
 dahinter ist `apply_issue.py`.
