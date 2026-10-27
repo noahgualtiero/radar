@@ -106,7 +106,7 @@ In den Einstellungen lassen sich ohne Code ändern:
 | Thema anlegen oder ändern | Name, Gewicht, Stichwörter; «Bearbeiten» füllt das Formular mit dem bestehenden Thema |
 | Thema entfernen | «Entfernen» in der Themen-Tabelle |
 | Regeln für alle Quellen | Mindestlänge, Themen-Schwelle, Stellenanzeigen, ausgeschlossene Begriffe |
-| Suchbegriff hinzufügen oder entfernen | Begriff und Ausgabe (USA oder Schweiz) |
+| Suchbegriff hinzufügen oder entfernen | Begriff eingeben; gesucht wird in den Ausgaben USA, UK, IE, DE, AT und CH |
 
 Jeder Knopf öffnet auf GitHub einen vorbereiteten Auftrag (Issue); dort auf «Create»
 klicken. Die Action `settings.yml` («Einstellungen übernehmen») schreibt die Änderung in
@@ -181,8 +181,8 @@ Thema trifft – ein guter Hinweis darauf, ob eine Quelle passt.
 
 ## Entdecken und Vorschläge
 
-Unter `suchen:` stehen Suchbegriffe für Google News (`sprache: en` = US-Ausgabe,
-`sprache: de` = Schweizer Ausgabe). Treffer von Seiten, die schon feste Quelle sind, werden
+Unter `suchen:` stehen Suchbegriffe für Google News; jeder Begriff wird in den Ausgaben
+USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz gesucht. Treffer von Seiten, die schon feste Quelle sind, werden
 ausgeblendet. Die übrigen Seiten erscheinen nicht im Feed, sondern in den Einstellungen als
 «Vorschläge für neue Quellen», häufigste zuerst, mit ihren Artikeln. Rauschen unter
 `suchen: ignorieren:` eintragen.

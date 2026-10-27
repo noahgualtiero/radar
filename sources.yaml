@@ -77,25 +77,23 @@ themen:
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
 # Unten auf der Seite listet "Unbekannte Quellen" die Domains, die dabei auftauchen.
-#   begriff:  Suchanfrage wie bei Google; "…" für exakte Phrase, OR für Alternativen
-#   sprache:  en (US-Ausgabe) oder de (Schweizer Ausgabe)
+# Suchanfrage wie bei Google: "…" für exakte Phrase, OR für Alternativen. Jeder Begriff wird
+# in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz von
+# Google News gesucht.
 suchen:
   zeitraum_tage: 7
   begriffe:
-    - {begriff: '"Google Ads"', sprache: en}
-    - {begriff: '"Performance Max"', sprache: en}
-    - {begriff: '"Demand Gen" Google', sprache: en}
-    - {begriff: '"AI Max" Google', sprache: en}
-    - {begriff: '"Smart Bidding"', sprache: en}
-    - {begriff: '"Merchant Center"', sprache: en}
-    - {begriff: '"Microsoft Advertising"', sprache: en}
-    - {begriff: '"ChatGPT ads" OR "ChatGPT advertising"', sprache: en}
-    - {begriff: '"paid search" OR "PPC campaign" OR "PPC advertising"', sprache: en}
-    - {begriff: '"Google Ads"', sprache: de}
-    - {begriff: '"Performance Max"', sprache: de}
-    - {begriff: 'Suchmaschinenwerbung OR SEA-Kampagne', sprache: de}
-  # Domains, deren Treffer nie angezeigt werden (Rauschen)
-  ignorieren:
+    - '"Google Ads"'
+    - '"Performance Max"'
+    - '"Demand Gen" Google'
+    - '"AI Max" Google'
+    - '"Smart Bidding"'
+    - '"Merchant Center"'
+    - '"Microsoft Advertising"'
+    - '"ChatGPT ads" OR "ChatGPT advertising"'
+    - '"paid search" OR "PPC campaign" OR "PPC advertising"'
+    - 'Suchmaschinenwerbung OR SEA-Kampagne'
+  ignorieren:   # Domains, deren Treffer nie angezeigt werden (Rauschen)
     - google.com
     - microsoft.com        # Konzern-News, Werbe-Themen kommen über den Ads-Blog
     - guinnessworldrecords.com

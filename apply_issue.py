@@ -6,7 +6,7 @@ Die Formulare in den Einstellungen der Seite öffnen ein Issue, dessen Titel die
     Quelle: <URL>              url, kategorie, name        Feed suchen und aufnehmen
     Quelle entfernen: <Name>   name                        Quelle deaktivieren (aktiv: false)
     Thema: <Name>              name, gewicht, stichwoerter, entfernen
-    Suchbegriff: <Begriff>     begriff, sprache, entfernen
+    Suchbegriff: <Begriff>     begriff, entfernen
     Regeln: für alle Quellen   min_woerter, mindest_gewicht, stellenanzeigen_ausblenden, ausschliessen
 
 Die Action settings.yml ruft das Skript mit ISSUE_TITLE und ISSUE_BODY auf. Kommentare und
@@ -28,7 +28,7 @@ import yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from build import LOCALES, domain_of
+from build import domain_of
 from find_feed import discover
 
 SOURCES = Path(__file__).parent / "sources.yaml"
@@ -112,22 +112,16 @@ def edit_search(data, body: str, title_value: str) -> None:
     term = field(body, "begriff") or title_value
     if not term:
         raise Result("fehler", "Kein Suchbegriff angegeben.")
-    lang = field(body, "sprache") or "en"
-    if lang not in LOCALES:
-        lang = "en"
     terms = data["suchen"]["begriffe"]
-    existing = next((t for t in terms if t["begriff"] == term and t.get("sprache", "en") == lang), None)
     if flag(body, "entfernen"):
-        if not existing:
-            raise Result("fehler", f"Suchbegriff {term!r} ({lang}) gibt es nicht.")
-        terms.remove(existing)
-        raise Result("ok", f"Suchbegriff {term} ({lang}) entfernt.", f"Suchbegriff entfernt: {term}")
-    if existing:
-        raise Result("vorhanden", f"Suchbegriff {term} ({lang}) gibt es schon.")
-    entry = CommentedMap(begriff=term, sprache=lang)
-    entry.fa.set_flow_style()
-    terms.append(entry)
-    raise Result("ok", f"Suchbegriff {term} ({lang}) hinzugefügt.", f"Suchbegriff hinzugefügt: {term}")
+        if term not in terms:
+            raise Result("fehler", f"Suchbegriff {term!r} gibt es nicht.")
+        terms.remove(term)
+        raise Result("ok", f"Suchbegriff {term} entfernt.", f"Suchbegriff entfernt: {term}")
+    if term in terms:
+        raise Result("vorhanden", f"Suchbegriff {term} gibt es schon.")
+    terms.append(term)
+    raise Result("ok", f"Suchbegriff {term} hinzugefügt.", f"Suchbegriff hinzugefügt: {term}")
 
 
 def edit_rules(data, body: str, title_value: str) -> None:

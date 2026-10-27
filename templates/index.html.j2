@@ -173,8 +173,9 @@ svg { flex: none; }
 .seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 650; }
 .list-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 4px 0 14px; flex-wrap: wrap; }
 .form { padding: 18px; display: grid; gap: 10px; }
-.form input, .form select { width: 100%; background: var(--fill); border: 0; border-radius: 10px; padding: 10px 12px; font-size: 16px; }
-.form input:focus, .form select:focus { outline: 2px solid var(--accent-soft); background: var(--card); }
+.form input, .form select, .form textarea { width: 100%; background: var(--fill); border: 0; border-radius: 10px; padding: 10px 12px; font-size: 16px; }
+.form textarea { font: inherit; font-size: 16px; line-height: 1.45; resize: vertical; min-height: 44px; field-sizing: content; }
+.form input:focus, .form select:focus, .form textarea:focus { outline: 2px solid var(--accent-soft); background: var(--card); }
 .form .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .form .row > * { flex: 1 1 160px; }
 .form label { font-size: .84rem; color: var(--label2); font-weight: 500; }
@@ -467,7 +468,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
             </select></label>
           </div>
           <label class="check"><input type="checkbox" id="ruleJobs"{% if rules.stellenanzeigen_ausblenden is not sameas false %} checked{% endif %}> Stellenanzeigen ausblenden</label>
-          <input type="text" id="ruleExclude" value="{{ (rules.ausschliessen or [])|join(', ') }}" placeholder="Begriffe im Titel ausschliessen, mit Komma getrennt (z.B. webinar, podcast)">
+          <textarea id="ruleExclude" rows="1" placeholder="Begriffe im Titel ausschliessen, mit Komma getrennt (z.B. webinar, podcast)">{{ (rules.ausschliessen or [])|join(', ') }}</textarea>
           <div><button class="btn" type="submit">Regeln auf GitHub speichern</button></div>
         </form>
       </div>
@@ -497,7 +498,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
             <input type="text" id="topicName" placeholder="Thema, z.B. YouTube" required>
             <select id="topicWeight" aria-label="Gewicht"><option value="1">normal</option><option value="2">wichtig</option><option value="3">sehr wichtig</option></select>
           </div>
-          <input type="text" id="topicWords" placeholder="Stichwörter mit Komma getrennt, z.B. youtube, video ads, ctv">
+          <textarea id="topicWords" rows="2" placeholder="Stichwörter mit Komma getrennt, z.B. youtube, video ads, ctv"></textarea>
           <div><button class="btn" type="submit">Thema auf GitHub speichern</button> <span class="n">Neu oder bestehendes ändern (gleicher Name)</span></div>
         </form>
       </div>
@@ -505,18 +506,16 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       <div class="card admin">
         <h2>Suchbegriffe für Vorschläge</h2>
         <p class="lead">Mit diesen Begriffen sucht Radar in Google News nach Seiten, die noch keine Quelle sind
-          (Liste «Vorschläge für neue Quellen»). «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
+          (Liste «Vorschläge für neue Quellen»), jeweils in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz.
+          «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
         <ul class="plain">
           {% for b in search_defs %}
-          <li><span>{{ b.begriff }} <span class="n">· {{ "Schweiz (de)" if b.sprache == "de" else "USA (en)" }}</span></span>
-            <button class="link danger" type="button" data-issue="Suchbegriff: {{ b.begriff }}" data-body="begriff: {{ b.begriff }}&#10;sprache: {{ b.sprache or 'en' }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b.begriff }} entfernen?">Entfernen</button></li>
+          <li><span>{{ b }}</span>
+            <button class="link danger" type="button" data-issue="Suchbegriff: {{ b }}" data-body="begriff: {{ b }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b }} entfernen?">Entfernen</button></li>
           {% endfor %}
         </ul>
         <form class="form" id="searchForm" style="margin-top:14px">
-          <div class="row">
-            <input type="text" id="searchTerm" placeholder='z.B. "Consent Mode" Google' required>
-            <select id="searchLang" aria-label="Sprache"><option value="en">USA (en)</option><option value="de">Schweiz (de)</option></select>
-          </div>
+          <input type="text" id="searchTerm" placeholder='z.B. "Consent Mode" Google' required>
           <div><button class="btn" type="submit">Suchbegriff auf GitHub hinzufügen</button></div>
         </form>
       </div>
@@ -562,6 +561,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
         {% if errors %}
         <ul class="plain">{% for e in errors %}<li><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></li>{% endfor %}</ul>
         {% else %}<p class="lead">Alle Quellen erreichbar.</p>{% endif %}
+        <p class="lead">Briefing-Text: {% if briefing.by == "ki" %}von der KI (GitHub Models).{% else %}automatisch zusammengestellt{% if briefing.note %} – KI nicht verfügbar: {{ briefing.note }}{% endif %}.{% endif %}</p>
       </div>
     </section>
 
@@ -903,6 +903,8 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + $("topicWeight").value + "\nstichwoerter: " + $("topicWords").value.trim());
     $("topicForm").reset();
   });
+  function autosize(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+  $$(".form textarea").forEach(function (t) { t.addEventListener("input", function () { autosize(t); }); });
   $("rulesForm").addEventListener("submit", function (e) {
     e.preventDefault();
     openIssue("Regeln: für alle Quellen", "min_woerter: " + $("ruleWords").value + "\nmindest_gewicht: " + $("ruleWeight").value
@@ -911,7 +913,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   $("searchForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var term = $("searchTerm").value.trim();
-    openIssue("Suchbegriff: " + term, "begriff: " + term + "\nsprache: " + $("searchLang").value);
+    openIssue("Suchbegriff: " + term, "begriff: " + term);
     $("searchForm").reset();
   });
   document.querySelector("#admin").addEventListener("click", function (e) {
@@ -920,6 +922,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var edit = e.target.closest("[data-edit-topic]");
     if (edit) {
       $("topicName").value = edit.dataset.editTopic; $("topicWeight").value = edit.dataset.weight; $("topicWords").value = edit.dataset.words;
+      autosize($("topicWords"));
       $("topicName").scrollIntoView({ block: "center" }); $("topicWords").focus();
     }
   });

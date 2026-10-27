@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -68,9 +69,14 @@ STOPWORDS = set("""
     neue neuer neues jetzt diese dieser dieses wie was mit von für und der die das den dem des auf aus
 """.split())
 NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
+# Google-News-Ausgaben, in denen jeder Suchbegriff gesucht wird: USA, UK, Irland und DACH
 LOCALES = {
-    "en": "hl=en-US&gl=US&ceid=US:en",
-    "de": "hl=de&gl=CH&ceid=CH:de",
+    "US": "hl=en-US&gl=US&ceid=US:en",
+    "UK": "hl=en-GB&gl=GB&ceid=GB:en",
+    "IE": "hl=en-IE&gl=IE&ceid=IE:en",
+    "DE": "hl=de&gl=DE&ceid=DE:de",
+    "AT": "hl=de&gl=AT&ceid=AT:de",
+    "CH": "hl=de&gl=CH&ceid=CH:de",
 }
 
 
@@ -153,14 +159,15 @@ def search_sources(config: dict) -> list[dict]:
     """Macht aus jedem Suchbegriff eine Google-News-Suche, die wie eine Quelle abgerufen wird."""
     days = int(config.get("zeitraum_tage", 7))
     sources = []
-    for entry in config.get("begriffe") or []:
-        lang = entry.get("sprache", "en")
-        sources.append({
-            "name": f"Suche: {entry['begriff']} ({lang})",
-            "url": NEWS_SEARCH.format(q=quote_plus(entry["begriff"]), days=days, locale=LOCALES[lang]),
-            "kategorie": DISCOVER,
-            "suche": entry["begriff"],
-        })
+    for term in config.get("begriffe") or []:
+        # Jeder Begriff läuft in allen Ausgaben (US, UK, IE, DE, AT, CH); doppelte Treffer werden zusammengeführt
+        for lang, locale in LOCALES.items():
+            sources.append({
+                "name": f"Suche: {term} ({lang})",
+                "url": NEWS_SEARCH.format(q=quote_plus(term), days=days, locale=locale),
+                "kategorie": DISCOVER,
+                "suche": term,
+            })
     return sources
 
 
@@ -177,6 +184,8 @@ def passes_rules(rules: dict, title: str, link: str) -> bool:
 def parse_source(source: dict, seen_at: str, rules: dict) -> list[dict]:
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
+        if source.get("suche") and not feed.get("bozo"):
+            return []  # Suche ohne Treffer in dieser Ausgabe ist kein Fehler
         reason = feed.get("bozo_exception") or "keine Einträge im Feed"
         raise ValueError(str(reason))
 
@@ -508,11 +517,14 @@ def fallback_summary(day, pool: list[dict], topics: list[dict]) -> str:
     return text
 
 
-def ai_summary(day, pool: list[dict]) -> str | None:
-    """Kurzes Briefing über GitHub Models (gratis in GitHub Actions). None, wenn nicht verfügbar."""
+def ai_summary(day, pool: list[dict]) -> tuple[str | None, str]:
+    """Kurzes Briefing über GitHub Models (gratis in GitHub Actions).
+    Gibt (Text, Hinweis) zurück; der Hinweis erklärt, warum es keinen KI-Text gab."""
     token = os.environ.get("GITHUB_TOKEN")
-    if not token or not pool:
-        return None
+    if not token:
+        return None, "kein GITHUB_TOKEN (lokaler Lauf)"
+    if not pool:
+        return None, "keine Beiträge am Vortag"
     lines = [f"- {i['title']} ({i['source']}; Themen: {', '.join(i['topics']) or '–'})" for i in pool[:40]]
     payload = {
         "model": MODEL,
@@ -533,10 +545,14 @@ def ai_summary(day, pool: list[dict]) -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
             text = json.loads(resp.read())["choices"][0]["message"]["content"].strip()
-        return text.replace("ß", "ss") or None
+        return (text.replace("ß", "ss") or None), ""
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "ignore")[:300]
+        reason = f"HTTP {exc.code}: {detail}"
     except Exception as exc:
-        print(f"Hinweis: KI-Briefing nicht verfügbar ({exc})", file=sys.stderr)
-        return None
+        reason = str(exc)[:300]
+    print(f"Hinweis: KI-Briefing nicht verfügbar ({reason})", file=sys.stderr)
+    return None, reason
 
 
 def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | None) -> dict:
@@ -547,14 +563,15 @@ def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | 
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
     pool.sort(key=lambda i: (i.get("weight", 0), i["published"]), reverse=True)
     old = previous or {}
+    note = ""
     if old.get("date") == data["date"] and old.get("by") == "ki":
         text, by = old["text"], "ki"
     else:
-        text = ai_summary(day, pool)
+        text, note = ai_summary(day, pool)
         by = "ki" if text else "auto"
         text = text or fallback_summary(day, pool, data["topics"])
     top = pick_articles(pool, n=5)
-    return {"date": data["date"], "label": german_date(day), "text": text, "by": by,
+    return {"date": data["date"], "label": german_date(day), "text": text, "by": by, "note": note,
             "total": len(pool), "topics": data["topics"], "top": top}
 
 
@@ -639,7 +656,7 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
-        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "by")}, "items": items},
+        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "by", "note")}, "items": items},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
