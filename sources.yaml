@@ -16,6 +16,52 @@ kategorien:
   - DACH
   - LinkedIn
   - Entdecken   # Treffer der Suchbegriffe unten
+  - Forschung   # wissenschaftliche Arbeiten, siehe "forschung" unten
+
+# Wissenschaftliche Arbeiten. Google Scholar hat weder API noch Feed und darf nicht
+# automatisiert abgefragt werden; stattdessen zwei offene Quellen:
+#   arxiv:             Preprints (v.a. Informatik/Ökonomie: Auktionen, Autobidding,
+#                      Werbesysteme – oft von Google, Meta, Alibaba). Begriff gilt für den Abstract.
+#   fachzeitschriften: neue Artikel aus den gelisteten Journals über OpenAlex,
+#                      gefiltert auf Titel/Abstract. Journal über die ISSN ergänzen.
+forschung:
+  kategorie: Forschung
+  arxiv:
+    begriffe:
+      - '"sponsored search"'
+      - '"search advertising"'
+      - '"search ads"'
+      - '"ad auction"'
+      - '"ad auctions"'
+      - 'autobidding'
+      - '"auto-bidding"'
+      - '"paid search"'
+      - '"keyword advertising"'
+  fachzeitschriften:
+    begriffe:
+      - '"search advertising"'
+      - '"sponsored search"'
+      - '"paid search"'
+      - '"search engine"'
+      - '"online advertising"'
+      - '"digital advertising"'
+      - '"advertising auction"'
+      - '"keyword advertising"'
+      - '"programmatic"'
+      - '"retail media"'
+      - '"advertising attribution"'
+      - '"multi-touch attribution"'
+      - '"incrementality"'
+    issn:
+      - 0022-2429   # Journal of Marketing
+      - 0022-2437   # Journal of Marketing Research
+      - 0732-2399   # Marketing Science
+      - 0025-1909   # Management Science
+      - 0021-8499   # Journal of Advertising Research
+      - 0091-3367   # Journal of Advertising
+      - 0167-8116   # International Journal of Research in Marketing
+      - 1094-9968   # Journal of Interactive Marketing
+      - 1570-7156   # Quantitative Marketing and Economics
 
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.

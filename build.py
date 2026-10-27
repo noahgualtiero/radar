@@ -19,7 +19,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from collections import Counter
-from urllib.parse import parse_qsl, quote_plus, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlunsplit
 
 import feedparser
 import yaml
@@ -33,6 +33,11 @@ USER_AGENT = "paid-search-newsfeed/1.0 (+https://github.com)"
 TRACKING_PARAMS = re.compile(r"^(utm_|fbclid$|gclid$|mc_|ref$|source$)")
 DISCOVER = "Entdecken"
 NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
+ARXIV_SEARCH = "https://export.arxiv.org/api/query?search_query={q}&sortBy=submittedDate&sortOrder=descending&max_results=50"
+OPENALEX_SEARCH = (
+    "https://api.openalex.org/works?filter=primary_location.source.issn:{issns},"
+    "title_and_abstract.search:{q},from_publication_date:{since}&sort=publication_date:desc&per-page=100"
+)
 LOCALES = {
     "en": "hl=en-US&gl=US&ceid=US:en",
     "de": "hl=de&gl=CH&ceid=CH:de",
@@ -133,7 +138,73 @@ def search_sources(config: dict) -> list[dict]:
     return sources
 
 
+def research_sources(config: dict) -> list[dict]:
+    """Wissenschaftliche Quellen: arXiv (Preprints) und ausgewählte Fachzeitschriften via OpenAlex."""
+    category = config.get("kategorie", "Forschung")
+    sources = []
+    arxiv = config.get("arxiv") or {}
+    if arxiv.get("begriffe"):
+        query = " OR ".join(f"abs:{term}" for term in arxiv["begriffe"])
+        sources.append({"name": "arXiv", "url": ARXIV_SEARCH.format(q=quote(query)), "kategorie": category})
+    journals = config.get("fachzeitschriften") or {}
+    if journals.get("begriffe") and journals.get("issn"):
+        since = (now_utc() - timedelta(days=MAX_AGE_DAYS)).date().isoformat()
+        sources.append({
+            "name": "Fachzeitschriften",
+            "url": OPENALEX_SEARCH.format(
+                issns="|".join(journals["issn"]),
+                q=quote("|".join(journals["begriffe"])),
+                since=since,
+            ),
+            "kategorie": category,
+            "art": "openalex",
+            "begriffe": [term.strip('"').lower() for term in journals["begriffe"]],
+        })
+    return sources
+
+
+def openalex_abstract(index: dict | None) -> str:
+    if not index:
+        return ""
+    words = sorted((pos, word) for word, positions in index.items() for pos in positions)
+    return " ".join(word for _, word in words)
+
+
+def parse_openalex(source: dict, seen_at: str) -> list[dict]:
+    """OpenAlex liefert JSON statt eines Feeds; Journal-Name wird als Quelle angezeigt."""
+    works = json.loads(fetch(source["url"])).get("results", [])
+    items = []
+    for work in works:
+        link = work.get("doi") or (work.get("primary_location") or {}).get("landing_page_url")
+        title = strip_html(work.get("title") or "")
+        if not link or not title:
+            continue
+        abstract = openalex_abstract(work.get("abstract_inverted_index"))
+        # OpenAlex sucht mit Wortstämmen; nur behalten, was eine Phrase wörtlich enthält
+        text = f"{title} {abstract}".lower()
+        if not any(term in text for term in source["begriffe"]):
+            continue
+        journal = ((work.get("primary_location") or {}).get("source") or {}).get("display_name")
+        items.append({
+            "id": normalize_url(link),
+            "title": title,
+            "link": link,
+            "feed": source["name"],
+            "source": journal or source["name"],
+            "domain": domain_of(link),
+            "search": None,
+            "category": source["kategorie"],
+            "published": datetime.fromisoformat(work["publication_date"]).replace(tzinfo=timezone.utc).isoformat(),
+            "first_seen": seen_at,
+            "image": None,
+            "snippet": snippet(abstract),
+        })
+    return items
+
+
 def parse_source(source: dict, seen_at: str) -> list[dict]:
+    if source.get("art") == "openalex":
+        return parse_openalex(source, seen_at)
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
         reason = feed.get("bozo_exception") or "keine Einträge im Feed"
@@ -268,7 +339,7 @@ def main() -> int:
     categories = config.get("kategorien", [])
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
     searches = config.get("suchen") or {}
-    feeds = sources + search_sources(searches)
+    feeds = sources + search_sources(searches) + research_sources(config.get("forschung") or {})
 
     seen_at = now_utc().isoformat()
     fresh, errors = [], []
@@ -297,7 +368,7 @@ def main() -> int:
     page = env.get_template("index.html.j2").render(
         items=items,
         categories=categories,
-        sources=sorted({s["name"] for s in sources}),
+        sources=sorted({i["source"] for i in items if i["category"] != DISCOVER}),
         searches=sorted({f["suche"] for f in feeds if f.get("suche")}),
         unknown=unknown_sources(items),
         errors=errors,

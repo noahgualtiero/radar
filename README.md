@@ -73,6 +73,22 @@ Suchbegriff ergänzen:
 `sprache: en` fragt die US-Ausgabe von Google News ab, `sprache: de` die Schweizer Ausgabe.
 Anführungszeichen erzwingen die exakte Phrase, `OR` verbindet Alternativen.
 
+## Forschung
+
+Die Kategorie **Forschung** zeigt neue wissenschaftliche Arbeiten aus zwei offenen Quellen
+(Abschnitt `forschung:` in `sources.yaml`):
+
+- **arXiv**: Preprints, meist aus Informatik und Ökonomie (Auktionen, Autobidding,
+  Werbesysteme), oft von Forschungsteams bei Google, Meta oder Alibaba. Die Begriffe werden
+  im Abstract gesucht.
+- **Fachzeitschriften**: neue Artikel aus den unter `issn:` gelisteten Journals (Journal of
+  Marketing, Marketing Science, Management Science usw.), abgefragt über
+  [OpenAlex](https://openalex.org). Ein Artikel erscheint nur, wenn einer der Begriffe
+  wörtlich in Titel oder Abstract vorkommt. Weiteres Journal: ISSN ergänzen.
+
+Google Scholar ist nicht eingebunden: Es bietet weder API noch Feed und untersagt
+automatisierte Abfragen. Google-Scholar-Alerts gibt es nur per E-Mail.
+
 ## GitHub Pages aktivieren (einmalig)
 
 1. Repository auf GitHub öffnen → **Settings** → **Pages**.
