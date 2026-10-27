@@ -663,7 +663,11 @@ def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) 
             result[key] = old
     briefings = [result[k] for k in sorted(result, reverse=True)]
     for b in briefings:
-        b["label"] = german_date(datetime.fromisoformat(b["date"]).date())
+        day = datetime.fromisoformat(b["date"]).date()
+        b["label"] = german_date(day)
+        b["weekday"] = WEEKDAYS[day.weekday()]
+        b["daymonth"] = f"{day.day}. {MONTHS[day.month - 1]}"
+        b["relative"] = {1: "Gestern", 2: "Vorgestern"}.get((today - day).days, "")
         b["month"] = f"{MONTHS[int(b['date'][5:7]) - 1]} {b['date'][:4]}"
     return briefings, note
 
@@ -751,7 +755,7 @@ def main() -> int:
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
         json.dumps({"generated": generated, "briefing_note": briefing_note,
-                    "briefings": [{k: v for k, v in b.items() if k not in ("label", "month")} for b in briefings],
+                    "briefings": [{k: v for k, v in b.items() if k not in ("label", "month", "weekday", "daymonth", "relative")} for b in briefings],
                     "items": items},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",

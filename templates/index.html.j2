@@ -208,6 +208,9 @@ svg { flex: none; }
 .trend-now { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 6px; font-size: .85rem; }
 .trend-now .n { margin-right: 4px; }
 .hero.day { margin-bottom: 22px; }
+.day-head { margin: 0 0 6px; }
+.day-week { display: block; font-size: .8rem; font-weight: 650; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+.day-date { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; margin: 2px 0 0; }
 .hero.day .chip-row { margin: 4px 0 10px; }
 
 /* Briefing: die drei wichtigsten Punkte */
@@ -418,14 +421,14 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .app, html.rail-collapsed .app { grid-template-columns: minmax(0, 1fr); }
   .content { padding: 0 0 calc(80px + env(safe-area-inset-bottom)); max-width: none; }
   /* Chip-Reihe ganz oben; gleitet beim Runterscrollen weg und ist beim Hochscrollen sofort wieder da */
-  .top { display: flex; position: sticky; top: 0; z-index: 20; margin: 0 0 8px; padding: calc(10px + env(safe-area-inset-top)) 0 10px;
+  .top { display: flex; position: sticky; top: 0; z-index: 20; margin: 0 0 8px; padding: calc(30px + env(safe-area-inset-top)) 0 10px;
     background: var(--bg); border-bottom: 1px solid var(--sep); transition: transform .22s ease; }
   .top.away { transform: translateY(-100%); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
   .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month, .profile-seg { margin-left: 12px; margin-right: 12px; }
   .trend-now { margin-top: 8px; }
-  #briefingView, .profile-seg { margin-top: calc(14px + env(safe-area-inset-top)); }
+  #briefingView, .profile-seg { margin-top: calc(34px + env(safe-area-inset-top)); }
   .hero { margin-top: 10px; }
   .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
   .hero { margin-bottom: 28px; }
@@ -517,7 +520,10 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       {% for b in briefings %}
       {% if loop.first or b.month != briefings[loop.index0 - 1].month %}<h3 class="month">{{ b.month }}</h3>{% endif %}
       <article class="card hero day">
-        <p class="eyebrow">{{ b.label }}</p>
+        <header class="day-head">
+          <span class="day-week">{{ b.weekday }}{% if b.relative %} · {{ b.relative }}{% endif %}</span>
+          <h2 class="day-date">{{ b.daymonth }}</h2>
+        </header>
         <p class="brief-text">{{ b.text }}</p>
         {% if b.points %}
         <div class="points">
