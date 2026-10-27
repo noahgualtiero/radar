@@ -84,8 +84,13 @@ svg { flex: none; }
 .rail-foot { margin-top: auto; padding-top: 16px; }
 .hero { margin-top: 4px; }
 
-.content { width: 100%; max-width: 700px; margin: 0 auto; padding: 0 24px 60px; min-width: 0; }
-.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-height: 64px; margin: 0 -24px 4px; padding: 12px 24px;
+.side-search { position: relative; display: block; margin: 0 0 14px; }
+.side-search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--label2); }
+.side-search input { width: 100%; height: 36px; background: var(--fill); border: 0; border-radius: 10px; padding: 0 10px 0 33px; font-size: .92rem; }
+.side-search input::placeholder { color: var(--label2); }
+.side-search input:focus { outline: 2px solid var(--accent-soft); background: var(--card); }
+.content { width: 100%; max-width: 700px; margin: 0 auto; padding: 24px 24px 60px; min-width: 0; }
+.top { position: sticky; top: 0; z-index: 20; display: none; align-items: center; justify-content: flex-start; gap: 8px; min-height: 64px; margin: 0 -24px 4px; padding: 12px 24px;
   background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid transparent; transition: border-color .2s, padding .2s; }
 .top.scrolled { border-bottom-color: var(--sep); }
@@ -240,7 +245,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .app { grid-template-columns: minmax(0, 1fr); }
   .rail { display: none; }
   .content { padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
-  .top { margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; min-height: 60px; }
+  .top { display: flex; margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; min-height: 60px; }
   .chips { display: flex; margin-right: -16px; padding-right: 16px; }
   .tabbar { display: block; }
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
@@ -295,6 +300,10 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   {# ---------- Navigation links (Desktop) ---------- #}
   <aside class="rail">
     <a class="brand" href="./" aria-label="Radar"><img src="logo.svg" alt=""><b>Radar</b></a>
+    <label class="side-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="qSide" placeholder="Suchen" aria-label="Suche" title="Suchen (/)">
+    </label>
     <nav class="nav" aria-label="Bereiche">
       {% for key, label, icon in tabs %}
       <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}{{ label }}{% if key == "saved" %}<span class="n" id="nSavedSide"></span>{% endif %}</button>
@@ -764,18 +773,27 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       if (b.dataset.tab === "settings") go({ admin: true }); else go({ tab: b.dataset.tab, admin: false });
     });
   });
-  $("q").addEventListener("input", function (e) { state.q = e.target.value; state.admin = false; state.tab = filterTab(); render(); });
+  // Zwei Suchfelder (Handy oben, Desktop in der Seitenleiste) mit demselben Zustand
+  function setQuery(value) {
+    $("q").value = $("qSide").value = value;
+    state.q = value; state.admin = false; state.tab = filterTab(); render();
+  }
+  ["q", "qSide"].forEach(function (id) { $(id).addEventListener("input", function (e) { setQuery(e.target.value); }); });
+  $("qSide").addEventListener("keydown", function (e) { if (e.key === "Escape") { setQuery(""); e.target.blur(); } });
   // Lupe klappt das Suchfeld auf; Abbrechen oder Esc schliesst es und hebt die Suche auf, "/" öffnet es
   function openSearch() { $("top").classList.add("searching"); $("q").focus(); }
   function closeSearch() {
     $("top").classList.remove("searching");
-    if (state.q) { $("q").value = ""; state.q = ""; render(); }
+    if (state.q) setQuery("");
   }
   $("searchBtn").addEventListener("click", openSearch);
   $("searchCancel").addEventListener("click", closeSearch);
   $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") closeSearch(); });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+    if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+      e.preventDefault();
+      if (window.matchMedia("(max-width: 900px)").matches) openSearch(); else $("qSide").focus();
+    }
   });
   // Kopf wird beim Scrollen kompakter und bekommt eine feine Linie
   var top = $("top");
@@ -827,7 +845,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var suggest = e.target.closest("[data-suggest]");
     if (suggest) { $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
     var qBtn = e.target.closest("[data-q]");
-    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
+    if (qBtn) { $("q").value = $("qSide").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
     var topicBtn = e.target.closest("[data-topic]");
     if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: filterTab(), admin: false }); return; }
     var srcBtn = e.target.closest(".src");

@@ -14,8 +14,8 @@ Ruhige, moderne Oberfläche (Schrift Inter):
   orange = wichtig) und unten den Einstellungen; rechts der Inhalt.
 - **Handy:** oben die Themen-Chips, unten eine durchscheinende Tab-Leiste mit Feed, Studien,
   Community, Gemerkt und Einstellungen.
-- **Suche:** kleine Lupe oben links, vor den Themen-Chips; sie klappt das Suchfeld auf, «Abbrechen» oder Esc
-  schliesst es. Auf dem Desktop öffnet die Taste «/» die Suche.
+- **Suche:** auf dem Desktop als Feld oben in der Navigation (Taste «/» springt hinein, Esc
+  setzt zurück); auf dem Handy als Lupe vor den Themen-Chips, die das Suchfeld aufklappt.
 - Alle Links öffnen in einem neuen Tab, mit `rel="noopener nofollow external"`.
 
 | Tab | Inhalt |
