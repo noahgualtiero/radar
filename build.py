@@ -36,7 +36,7 @@ NEWS_SEARCH = "https://news.google.com/rss/search?q={q}+when:{days}d&{locale}"
 ARXIV_SEARCH = "https://export.arxiv.org/api/query?search_query={q}&sortBy=submittedDate&sortOrder=descending&max_results=50"
 OPENALEX_SEARCH = (
     "https://api.openalex.org/works?filter=primary_location.source.issn:{issns},"
-    "title_and_abstract.search:{q},from_publication_date:{since}&sort=publication_date:desc&per-page=100"
+    "title_and_abstract.search:{q},from_publication_date:{since}{oa}&sort=publication_date:desc&per-page=100"
 )
 LOCALES = {
     "en": "hl=en-US&gl=US&ceid=US:en",
@@ -155,6 +155,7 @@ def research_sources(config: dict) -> list[dict]:
                 issns="|".join(journals["issn"]),
                 q=quote("|".join(journals["begriffe"])),
                 since=since,
+                oa=",open_access.is_oa:true" if journals.get("nur_open_access") else "",
             ),
             "kategorie": category,
             "art": "openalex",
@@ -211,6 +212,7 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
         raise ValueError(str(reason))
 
     wanted = {c.lower() for c in source.get("nur_kategorien") or []}
+    terms = [t.lower() for t in source.get("nur_begriffe") or []]
     items = []
     for entry in feed.entries:
         link = entry.get("link")
@@ -226,6 +228,8 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
         if publisher and title.endswith(f" - {publisher}"):
             title = title[: -len(publisher) - 3]
         teaser = snippet(entry.get("summary") or (entry.get("content") or [{}])[0].get("value", ""))
+        if terms and not any(t in f"{title} {teaser}".lower() for t in terms):
+            continue
         if normalize_title(teaser).startswith(normalize_title(title)):
             teaser = ""
         published = entry_date(entry)
@@ -292,6 +296,13 @@ def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str]) -> li
     return unique
 
 
+def tag_topics(items: list[dict], topics: list[dict]) -> None:
+    """Ordnet jedem Artikel die Themenbereiche zu, deren Stichwörter im Titel oder Anriss vorkommen."""
+    for item in items:
+        text = f" {item['title']} {item['snippet']} ".lower()
+        item["topics"] = [t["name"] for t in topics if any(w.lower() in text for w in t["stichwoerter"])]
+
+
 def filter_discoveries(items: list[dict], ignored: set[str]) -> list[dict]:
     """Suchtreffer nur behalten, wenn sie nicht schon über eine feste Quelle kommen."""
     fixed = [i for i in items if i["category"] != DISCOVER]
@@ -354,6 +365,8 @@ def main() -> int:
 
     items = merge(load_previous(args.previous), fresh, {f["name"] for f in feeds})
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
+    topics = config.get("themen") or []
+    tag_topics(items, topics)
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -371,6 +384,8 @@ def main() -> int:
         sources=sorted({i["source"] for i in items if i["category"] != DISCOVER}),
         searches=sorted({f["suche"] for f in feeds if f.get("suche")}),
         unknown=unknown_sources(items),
+        topics=[t["name"] for t in topics],
+        topic_counts=Counter(t for i in items for t in i["topics"]),
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,

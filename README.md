@@ -50,6 +50,40 @@ bei [RSS.app](https://rss.app) in einen Feed umwandeln, dann die RSS.app-URL mit
 **Nur bestimmte Themen einer Quelle:** Mit `nur_kategorien: [PPC]` werden nur Artikel
 übernommen, die im Feed diese Kategorie tragen.
 
+## Bedienung
+
+Der Feed ist wie bei LinkedIn aufgebaut: ein Beitrag unter dem anderen, links die Filter
+(auf dem Handy über «Filter»).
+
+- **Mehr davon / Weniger** bewertet die *Quelle* eines Beitrags. «Mehr davon» rückt alle
+  Beiträge dieser Quelle um zwei Tage nach oben, «Weniger» um zwei Tage nach unten und
+  blasst sie ab. Mit «Abgewertete Quellen ausblenden» verschwinden sie ganz. Die Liste
+  «Deine Quellen-Bewertung» zeigt alle Bewertungen und setzt sie zurück. Erneutes Klicken
+  hebt eine Bewertung auf.
+- **Merken** legt einen Beitrag in die **Favoriten**. Favoriten bleiben auch erhalten,
+  wenn der Beitrag nach 30 Tagen aus dem Feed fällt.
+- **#Themen** unter einem Beitrag filtern auf diesen Themenbereich.
+
+Bewertungen und Favoriten werden im Browser gespeichert (pro Gerät und Browser, nicht
+synchronisiert). Wer Browserdaten löscht, verliert sie.
+
+## Themenbereiche
+
+Unter `themen:` in `sources.yaml` stehen die Themenbereiche mit ihren Stichwörtern. Jeder
+Beitrag erhält die Themen, deren Stichwörter in Titel oder Anriss vorkommen. Neues Thema:
+
+```yaml
+  - name: YouTube
+    stichwoerter: [youtube, video ads, ctv]
+```
+
+## Breite Medien eingrenzen
+
+Allgemeine Marketing-Medien (W&V, t3n, persoenlich.com …) sind mit `nur_begriffe: *paid`
+eingetragen: Es erscheinen nur Artikel, die einen Begriff aus der Liste `paid_begriffe`
+enthalten. Da deren Feeds nur die neuesten Artikel enthalten, füllt sich dieser Teil mit
+jedem Lauf.
+
 ## Suchbegriffe und unbekannte Quellen
 
 Neben den festen Quellen fragt der Lauf für jeden Suchbegriff unter `suchen:` in
@@ -85,6 +119,8 @@ Die Kategorie **Forschung** zeigt neue wissenschaftliche Arbeiten aus zwei offen
   Marketing, Marketing Science, Management Science usw.), abgefragt über
   [OpenAlex](https://openalex.org). Ein Artikel erscheint nur, wenn einer der Begriffe
   wörtlich in Titel oder Abstract vorkommt. Weiteres Journal: ISSN ergänzen.
+  Mit `nur_open_access: true` erscheinen nur frei lesbare Artikel (bei diesen Journals
+  selten – `false` zeigt alle, der Volltext ist dann teils kostenpflichtig).
 
 Google Scholar ist nicht eingebunden: Es bietet weder API noch Feed und untersagt
 automatisierte Abfragen. Google-Scholar-Alerts gibt es nur per E-Mail.

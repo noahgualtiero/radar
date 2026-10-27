@@ -8,119 +8,155 @@
 <title>Paid Search Newsfeed</title>
 <style>
 :root {
-  --bg: #f5f6f8; --card: #ffffff; --text: #1b1f27; --muted: #626b7a;
-  --line: #e1e4ea; --accent: #2f5bea; --accent-soft: #e6ecfd; --new: #e8590c;
-  --shadow: 0 1px 2px rgba(20, 25, 35, .06), 0 2px 8px rgba(20, 25, 35, .04);
+  --bg: #f3f2ef; --card: #ffffff; --text: #191919; --muted: #666a73;
+  --line: #e0dfdc; --accent: #0a66c2; --accent-soft: #e8f1fb; --new: #e8590c;
+  --up: #057642; --down: #b24020; --fav: #c37d16;
+  --shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #11141a; --card: #1a1e26; --text: #e6e8ec; --muted: #9aa3b2;
-    --line: #2a303b; --accent: #7c9cff; --accent-soft: #232c45; --new: #ff8a4c;
-    --shadow: none;
+    --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
+    --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
+    --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #11141a; --card: #1a1e26; --text: #e6e8ec; --muted: #9aa3b2;
-  --line: #2a303b; --accent: #7c9cff; --accent-soft: #232c45; --new: #ff8a4c;
-  --shadow: none;
+  --bg: #0e1013; --card: #1b1f23; --text: #e8e9eb; --muted: #9aa1ab;
+  --line: #2c3238; --accent: #70b5f9; --accent-soft: #1d2d40; --new: #ff8a4c;
+  --up: #5fd39a; --down: #ff8f73; --fav: #f5b94a; --shadow: none;
 }
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body {
-  margin: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  -webkit-text-size-adjust: 100%;
-}
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
-header { padding: 28px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-h1 { font-size: 1.5rem; margin: 0; letter-spacing: -.01em; }
-.sub { color: var(--muted); font-size: .9rem; margin: 2px 0 0; }
-.theme { background: var(--card); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
-  padding: 6px 10px; font: inherit; font-size: .85rem; cursor: pointer; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; }
 
-.controls { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--line); }
-.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.row + .row { margin-top: 10px; }
-.chip { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 999px;
-  padding: 5px 12px; font: inherit; font-size: .88rem; cursor: pointer; }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
-.chip:disabled { opacity: .45; cursor: default; }
-.chip .n { opacity: .7; margin-left: 4px; font-size: .8em; }
-input[type=search], select { font: inherit; font-size: .95rem; color: var(--text); background: var(--card);
-  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
-input[type=search] { flex: 1 1 240px; }
-select { flex: 0 1 260px; }
-.toggle { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); white-space: nowrap; }
-.count { color: var(--muted); font-size: .85rem; margin: 14px 0 10px; }
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); }
+.topbar .in { max-width: 1040px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 12px; align-items: center; }
+.logo { font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+.logo span { color: var(--accent); }
+.topbar input { flex: 1; min-width: 0; font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid transparent; border-radius: 6px; padding: 7px 12px; }
+.topbar input:focus { outline: none; border-color: var(--accent); }
+.icon-btn { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px;
+  cursor: pointer; font-size: .85rem; white-space: nowrap; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding-bottom: 32px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
-  box-shadow: var(--shadow); display: flex; flex-direction: column; }
-.card.is-new { border-color: var(--new); }
-.thumb { display: block; aspect-ratio: 16 / 9; background: var(--accent-soft); overflow: hidden; }
-.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--muted); }
-.cat { background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 1px 7px; font-weight: 600; }
-.badge-new { background: var(--new); color: #fff; border-radius: 4px; padding: 1px 7px; font-weight: 700; display: none; }
-.card.is-new .badge-new { display: inline-block; }
-.card h2 { font-size: 1.05rem; line-height: 1.35; margin: 0; }
-.card h2 a { color: inherit; text-decoration: none; }
-.card h2 a:hover { color: var(--accent); }
-.card p { margin: 0; color: var(--muted); font-size: .92rem; overflow-wrap: anywhere; }
-.more { margin-top: auto; font-size: .88rem; color: var(--accent); text-decoration: none; font-weight: 600; }
+.layout { max-width: 1040px; margin: 0 auto; padding: 20px 16px 40px; display: grid;
+  grid-template-columns: 250px minmax(0, 580px); gap: 24px; justify-content: center; }
+aside { position: sticky; top: 72px; align-self: start; max-height: calc(100vh - 90px); overflow: auto; }
+.panel { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
+.panel h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.nav button { display: flex; width: 100%; justify-content: space-between; background: none; border: 0;
+  padding: 7px 8px; border-radius: 6px; cursor: pointer; text-align: left; }
+.nav button:hover { background: var(--bg); }
+.nav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav button:disabled { opacity: .4; cursor: default; }
+.nav .n { color: var(--muted); font-size: .85em; }
+.panel select { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 8px; margin-bottom: 8px; }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: .9rem; cursor: pointer; }
+.votes-list { list-style: none; margin: 0; padding: 0; font-size: .88rem; }
+.votes-list li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
+.votes-list .up { color: var(--up); } .votes-list .down { color: var(--down); }
+.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: .85rem; }
+.hint { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
+
+.status { color: var(--muted); font-size: .85rem; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.post { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.post.dim { opacity: .55; }
+.post.is-new { box-shadow: 0 0 0 2px var(--new); }
+.post-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px 8px; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
+  font-weight: 700; font-size: .85rem; color: #fff; background: hsl(var(--h, 210) 55% 45%); }
+.who { min-width: 0; flex: 1; }
+.who strong { display: block; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .sub { color: var(--muted); font-size: .78rem; }
+.badge-new { background: var(--new); color: #fff; border-radius: 4px; padding: 1px 7px; font-size: .72rem; font-weight: 700; display: none; }
+.post.is-new .badge-new { display: inline-block; }
+.post-body { padding: 0 14px 10px; }
+.post-body h2 { font-size: 1.05rem; line-height: 1.35; margin: 0 0 6px; }
+.post-body h2 a { color: inherit; text-decoration: none; }
+.post-body h2 a:hover { color: var(--accent); text-decoration: underline; }
+.post-body p { margin: 0; color: var(--text); opacity: .85; font-size: .93rem; overflow-wrap: anywhere; }
+.tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.tag { background: none; border: 0; padding: 0; color: var(--accent); font-size: .85rem; font-weight: 600; cursor: pointer; }
+.post-img { display: block; background: var(--bg); }
+.post-img img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+.actions { display: flex; border-top: 1px solid var(--line); margin: 0 6px; }
+.actions button, .actions a { flex: 1; display: flex; gap: 6px; justify-content: center; align-items: center;
+  background: none; border: 0; padding: 10px 4px; color: var(--muted); font-size: .85rem; font-weight: 600;
+  cursor: pointer; text-decoration: none; border-radius: 6px; white-space: nowrap; }
+.actions button:hover, .actions a:hover { background: var(--bg); }
+.actions svg { width: 18px; height: 18px; flex: none; }
+.post[data-vote="1"] .act-up { color: var(--up); }
+.post[data-vote="-1"] .act-down { color: var(--down); }
+.post.is-fav .act-fav { color: var(--fav); }
+.post.is-fav .act-fav svg path { fill: currentColor; }
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 
-.via { font-style: italic; }
-.unknown { border-top: 1px solid var(--line); padding: 16px 0; }
-.unknown summary { cursor: pointer; font-weight: 600; }
-.unknown .n { color: var(--muted); font-weight: 400; margin-left: 4px; }
-.hint { color: var(--muted); font-size: .85rem; margin: 8px 0 12px; }
-.table { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: .88rem; }
-th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted); font-weight: 600; font-size: .8rem; }
-td a { color: var(--accent); }
-.num { text-align: right; padding-right: 16px; }
+.unknown { background: var(--card); border-radius: 10px; box-shadow: var(--shadow); padding: 14px; margin-top: 20px; }
+.unknown summary { cursor: pointer; font-weight: 700; }
+.unknown ol { margin: 10px 0 0; padding-left: 20px; font-size: .88rem; }
+.unknown li { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.unknown li a { color: var(--accent); font-weight: 600; }
 .muted { color: var(--muted); }
-.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; white-space: nowrap; }
-.active-domain { display: inline-flex; gap: 8px; align-items: center; }
-
-footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; padding: 18px 0 32px; }
-footer details { margin-top: 6px; }
+footer { color: var(--muted); font-size: .8rem; padding: 16px 0; }
 footer summary { cursor: pointer; }
-footer ul { margin: 6px 0 0; padding-left: 18px; }
 
-@media (max-width: 560px) {
-  header { padding-top: 18px; }
-  h1 { font-size: 1.25rem; }
-  .controls { position: static; }
-  .grid { grid-template-columns: 1fr; gap: 12px; }
-  select { flex: 1 1 100%; }
-  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.filters-toggle { display: none; }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
+  aside { position: static; max-height: none; display: none; }
+  aside.open { display: block; }
+  .filters-toggle { display: inline-block; }
+  .logo small { display: none; }
+}
+@media (max-width: 480px) {
+  .layout { padding-left: 0; padding-right: 0; }
+  .post, .unknown, .panel { border-radius: 0; }
+  .status, footer, aside { padding-left: 16px; padding-right: 16px; }
+  .actions .lbl { display: none; }
+  .logo .full { display: none; }
+  .topbar .in { gap: 8px; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Paid Search Newsfeed</h1>
-      <p class="sub">Neue Artikel der letzten {{ max_age_days }} Tage, neueste zuerst</p>
-    </div>
-    <button class="theme" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
-  </header>
+<div class="topbar"><div class="in">
+  <div class="logo"><span class="full">Paid Search </span><span>Feed</span></div>
+  <input type="search" id="q" placeholder="Suchen …" aria-label="Suche">
+  <button class="icon-btn filters-toggle" id="filtersBtn" type="button">Filter</button>
+  <button class="icon-btn" id="theme" type="button" aria-label="Farbschema wechseln">Auto</button>
+</div></div>
 
-  <div class="controls">
-    <div class="row chips" role="group" aria-label="Kategorie">
-      <button class="chip" type="button" data-cat="" aria-pressed="true">Alle<span class="n">{{ items|length }}</span></button>
+<div class="layout">
+  <aside id="aside">
+    <div class="panel nav" id="viewNav">
+      <h3>Ansicht</h3>
+      <button type="button" data-view="feed" aria-pressed="true">Feed <span class="n" id="nFeed">{{ items|length }}</span></button>
+      <button type="button" data-view="favs" aria-pressed="false">★ Favoriten <span class="n" id="nFavs">0</span></button>
+    </div>
+    <div class="panel nav" id="catNav">
+      <h3>Kategorie</h3>
+      <button type="button" data-cat="" aria-pressed="true">Alle <span class="n">{{ items|length }}</span></button>
       {% for cat in categories %}
       {% set n = items|selectattr("category", "equalto", cat)|list|length %}
-      <button class="chip" type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }}<span class="n">{{ n }}</span></button>
+      <button type="button" data-cat="{{ cat }}" aria-pressed="false"{% if not n %} disabled{% endif %}>{{ cat }} <span class="n">{{ n }}</span></button>
       {% endfor %}
     </div>
-    <div class="row">
-      <input type="search" id="q" placeholder="Suchen in Titel und Anriss …" aria-label="Suche">
+    <div class="panel nav" id="topicNav">
+      <h3>Themen</h3>
+      <button type="button" data-topic="" aria-pressed="true">Alle Themen</button>
+      {% for t in topics %}
+      {% set n = topic_counts[t] %}
+      <button type="button" data-topic="{{ t }}" aria-pressed="false"{% if not n %} disabled{% endif %}>#{{ t }} <span class="n">{{ n }}</span></button>
+      {% endfor %}
+    </div>
+    <div class="panel">
+      <h3>Filter</h3>
       <select id="source" aria-label="Quelle">
         <option value="">Alle Quellen</option>
         {% for s in sources %}<option>{{ s }}</option>{% endfor %}
@@ -131,156 +167,276 @@ footer ul { margin: 6px 0 0; padding-left: 18px; }
         {% for s in searches %}<option>{{ s }}</option>{% endfor %}
       </select>
       {% endif %}
-      <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue</label>
+      <label class="toggle"><input type="checkbox" id="onlyNew"> Nur neue seit letztem Besuch</label>
+      <label class="toggle"><input type="checkbox" id="hideDown"> Abgewertete Quellen ausblenden</label>
     </div>
-  </div>
+    <div class="panel">
+      <h3>Deine Quellen-Bewertung</h3>
+      <ul class="votes-list" id="votesList"></ul>
+      <p class="hint" id="votesHint">«Mehr davon» rückt Beiträge einer Quelle um zwei Tage nach oben, «Weniger» um zwei Tage nach unten und blasst sie ab. Gespeichert in diesem Browser.</p>
+    </div>
+  </aside>
 
-  <p class="count"><span id="count"></span>
-    <span class="active-domain" id="domainInfo" hidden> · Quelle: <strong id="domainName"></strong>
+  <main>
+    <p class="status"><span id="count"></span><span id="domainInfo" hidden>· Quelle: <strong id="domainName"></strong>
       <button class="link" type="button" id="domainClear">× aufheben</button></span></p>
 
-  <main class="grid" id="grid">
+    <div id="feed">
     {% for item in items %}
-    <article class="card" data-cat="{{ item.category }}" data-source="{{ item.source }}" data-search="{{ item.search or '' }}" data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}"
-             data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source)|lower }}">
+    <article class="post" data-id="{{ item.id }}" data-cat="{{ item.category }}" data-source="{{ item.source }}"
+      data-search="{{ item.search or '' }}" data-domain="{{ item.domain }}" data-seen="{{ item.first_seen }}"
+      data-published="{{ item.published }}" data-topics="{{ item.topics|join('|') }}"
+      data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source ~ ' ' ~ item.topics|join(' '))|lower }}">
+      <header class="post-head">
+        <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}</span>
+        <div class="who">
+          <strong>{{ item.source }}</strong>
+          <span class="sub">{{ item.category }} · <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>{% if item.search %} · Suche: {{ item.search }}{% endif %}</span>
+        </div>
+        <span class="badge-new">Neu</span>
+      </header>
+      <div class="post-body">
+        <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
+        {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
+        {% if item.topics %}<div class="tags">{% for t in item.topics %}<button class="tag" type="button" data-topic="{{ t }}">#{{ t }}</button>{% endfor %}</div>{% endif %}
+      </div>
       {% if item.image %}
-      <a class="thumb" href="{{ item.link }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+      <a class="post-img" href="{{ item.link }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
         <img src="{{ item.image }}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()">
       </a>
       {% endif %}
-      <div class="body">
-        <div class="meta">
-          <span class="badge-new">Neu</span>
-          <span class="cat">{{ item.category }}</span>
-          <span>{{ item.source }}</span>
-          <time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time>
-          {% if item.search %}<span class="via">Suche: {{ item.search }}</span>{% endif %}
-        </div>
-        <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
-        {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
-        <a class="more" href="{{ item.link }}" target="_blank" rel="noopener">Zum Artikel →</a>
+      <div class="actions">
+        <button class="act-up" type="button" data-act="up" title="Mehr von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg><span class="lbl">Mehr davon</span></button>
+        <button class="act-down" type="button" data-act="down" title="Weniger von dieser Quelle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg><span class="lbl">Weniger</span></button>
+        <button class="act-fav" type="button" data-act="fav" title="Zu Favoriten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/></svg><span class="lbl">Merken</span></button>
+        <a href="{{ item.link }}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7M21 3l-9 9M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg><span class="lbl">Lesen</span></a>
       </div>
     </article>
     {% endfor %}
-  </main>
-  <p class="empty" id="empty" hidden>Keine Artikel für diese Auswahl.</p>
+    </div>
+    <div id="favFeed" hidden></div>
+    <p class="empty" id="empty" hidden>Keine Beiträge für diese Auswahl.</p>
 
-  {% if unknown %}
-  <section class="unknown" id="unbekannt">
-    <details>
-      <summary>Unbekannte Quellen <span class="n">{{ unknown|length }}</span></summary>
-      <p class="hint">Domains aus den Suchtreffern der letzten {{ max_age_days }} Tage, die noch nicht als feste Quelle
-        in <code>sources.yaml</code> stehen – häufigste zuerst. Passende Seiten als Quelle aufnehmen, Rauschen unter
-        <code>suchen → ignorieren</code> eintragen.</p>
-      <div class="table">
-        <table>
-          <thead><tr><th>Quelle</th><th>Treffer</th><th>Zuletzt</th><th>Gefunden über</th><th></th></tr></thead>
-          <tbody>
-          {% for u in unknown %}
-            <tr>
-              <td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>{% if u.name != u.domain and not u.name.startswith("http") %}<br><span class="muted">{{ u.name }}</span>{% endif %}</td>
-              <td class="num">{{ u.count }}</td>
-              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.{{ u.latest[0:4] }}</time></td>
-              <td class="muted">{{ u.searches|join(", ") }}</td>
-              <td><button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button></td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </details>
-  </section>
-  {% endif %}
-
-  <footer>
-    Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
-    · {{ sources|length }} Quellen · Inhalte gehören den jeweiligen Quellen.
-    {% if errors %}
-    <details>
-      <summary>{{ errors|length }} Quelle{{ "n" if errors|length > 1 }} beim letzten Lauf nicht erreichbar</summary>
-      <ul>{% for e in errors %}<li>{{ e.source }}: {{ e.error }}</li>{% endfor %}</ul>
+    {% if unknown %}
+    <details class="unknown" id="unknown">
+      <summary>Unbekannte Quellen ({{ unknown|length }})</summary>
+      <p class="hint">Domains aus den Suchtreffern, die noch nicht als feste Quelle in <code>sources.yaml</code>
+        stehen, häufigste zuerst. Passende Seiten als Quelle aufnehmen, Rauschen unter <code>suchen → ignorieren</code>.</p>
+      <ol>
+        {% for u in unknown %}
+        <li><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>
+          · {{ u.count }} Treffer · zuletzt <time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time>
+          · <button class="link" type="button" data-domain="{{ u.domain }}">Treffer zeigen</button><br>
+          <span class="muted">{{ u.searches|join(", ") }}</span></li>
+        {% endfor %}
+      </ol>
     </details>
     {% endif %}
-  </footer>
+
+    <footer>
+      Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time>
+      · {{ sources|length }} Quellen · Inhalte gehören den jeweiligen Quellen.
+      {% if errors %}
+      <details>
+        <summary>{{ errors|length }} Quelle{{ "n" if errors|length > 1 }} beim letzten Lauf nicht erreichbar</summary>
+        <ul>{% for e in errors %}<li>{{ e.source }}: {{ e.error }}</li>{% endfor %}</ul>
+      </details>
+      {% endif %}
+    </footer>
+  </main>
 </div>
 
 <script>
 (function () {
   var store = {
-    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
+  var DAY = 864e5, VOTE_SHIFT = 2 * DAY;
 
   // Farbschema: Auto → Hell → Dunkel
   var root = document.documentElement, themeBtn = document.getElementById("theme");
   var labels = { "": "Auto", light: "Hell", dark: "Dunkel" }, order = ["", "light", "dark"];
-  function applyTheme(t) {
-    if (t) root.setAttribute("data-theme", t); else root.removeAttribute("data-theme");
-    themeBtn.textContent = labels[t];
+  var theme = store.get("psn-theme", "");
+  function applyTheme() {
+    if (theme) root.setAttribute("data-theme", theme); else root.removeAttribute("data-theme");
+    themeBtn.textContent = labels[theme];
   }
-  var theme = store.get("psn-theme") || "";
-  applyTheme(theme);
+  applyTheme();
   themeBtn.addEventListener("click", function () {
-    theme = order[(order.indexOf(theme) + 1) % order.length];
-    store.set("psn-theme", theme);
-    applyTheme(theme);
+    theme = order[(order.indexOf(theme) + 1) % order.length]; store.set("psn-theme", theme); applyTheme();
+  });
+  document.getElementById("filtersBtn").addEventListener("click", function () {
+    document.getElementById("aside").classList.toggle("open");
   });
 
-  // Datumsangaben in lokaler Zeit (Schweiz)
   var dateFmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "2-digit", year: "numeric" });
-  document.querySelectorAll(".meta time").forEach(function (t) { t.textContent = dateFmt.format(new Date(t.dateTime)); });
+  function fmt(iso) { return dateFmt.format(new Date(iso)); }
+  document.querySelectorAll(".post time").forEach(function (t) { t.textContent = fmt(t.dateTime); });
   var gen = document.getElementById("generated");
   gen.textContent = new Intl.DateTimeFormat("de-CH", { dateStyle: "medium", timeStyle: "short" }).format(new Date(gen.dateTime));
 
-  // "Neu seit letztem Besuch": Vergleich mit dem Zeitpunkt, an dem der Artikel erstmals im Feed auftauchte
-  var lastVisit = store.get("psn-last-visit");
-  var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
-  var newCount = 0;
-  if (lastVisit) {
-    cards.forEach(function (c) {
-      if (c.dataset.seen > lastVisit) { c.classList.add("is-new"); newCount++; }
-    });
-  }
+  function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+  function paintAvatar(post) { post.querySelector(".avatar").style.setProperty("--h", hue(post.dataset.source)); }
+
+  var feed = document.getElementById("feed"), favFeed = document.getElementById("favFeed");
+  var posts = Array.prototype.slice.call(feed.querySelectorAll(".post"));
+  posts.forEach(paintAvatar);
+
+  // Neu seit letztem Besuch (Zeitpunkt, an dem der Beitrag erstmals im Feed auftauchte)
+  var lastVisit = store.get("psn-last-visit", null), newCount = 0;
+  if (lastVisit) posts.forEach(function (p) {
+    if (p.dataset.seen > lastVisit) { p.classList.add("is-new"); newCount++; }
+  });
   store.set("psn-last-visit", new Date().toISOString());
 
-  // Filter
-  var state = { cat: "", source: "", search: "", domain: "", q: "", onlyNew: false };
-  var chips = document.querySelectorAll(".chip"), count = document.getElementById("count"), empty = document.getElementById("empty");
-  function render() {
-    var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean), shown = 0;
-    cards.forEach(function (c) {
-      var ok = (!state.cat || c.dataset.cat === state.cat)
-        && (!state.source || c.dataset.source === state.source)
-        && (!state.search || c.dataset.search === state.search)
-        && (!state.domain || c.dataset.domain === state.domain)
-        && (!state.onlyNew || c.classList.contains("is-new"))
-        && terms.every(function (t) { return c.dataset.text.indexOf(t) !== -1; });
-      c.hidden = !ok;
-      if (ok) shown++;
+  // Bewertungen pro Quelle und Favoriten (im Browser gespeichert)
+  var votes = store.get("psn-votes", {});
+  var favs = store.get("psn-favs", {});
+
+  function snapshot(post) {
+    var a = post.querySelector("h2 a"), p = post.querySelector(".post-body p"), img = post.querySelector(".post-img img");
+    return { id: post.dataset.id, title: a.textContent, link: a.href, source: post.dataset.source,
+      category: post.dataset.cat, published: post.dataset.published, snippet: p ? p.textContent : "",
+      image: img ? img.src : null, topics: post.dataset.topics, saved: new Date().toISOString() };
+  }
+
+  var state = { view: "feed", cat: "", topic: "", source: "", search: "", domain: "", q: "", onlyNew: false, hideDown: false };
+
+  function score(post) {
+    return new Date(post.dataset.published).getTime() + (votes[post.dataset.source] || 0) * VOTE_SHIFT;
+  }
+  function matches(post) {
+    var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+    var vote = votes[post.dataset.source] || 0;
+    return (!state.cat || post.dataset.cat === state.cat)
+      && (!state.topic || post.dataset.topics.split("|").indexOf(state.topic) !== -1)
+      && (!state.source || post.dataset.source === state.source)
+      && (!state.search || post.dataset.search === state.search)
+      && (!state.domain || post.dataset.domain === state.domain)
+      && (!state.onlyNew || post.classList.contains("is-new"))
+      && (!state.hideDown || vote >= 0)
+      && terms.every(function (t) { return post.dataset.text.indexOf(t) !== -1; });
+  }
+  function decorate(post) {
+    var vote = votes[post.dataset.source] || 0;
+    post.dataset.vote = vote;
+    post.classList.toggle("dim", vote < 0);
+    post.classList.toggle("is-fav", !!favs[post.dataset.id]);
+  }
+
+  function buildFavPost(f) {
+    var live = feed.querySelector('.post[data-id="' + CSS.escape(f.id) + '"]');
+    if (live) return live.cloneNode(true);
+    // Beitrag ist aus dem 30-Tage-Fenster gefallen: aus dem gespeicherten Stand neu aufbauen
+    var tpl = posts[0].cloneNode(true);
+    tpl.dataset.id = f.id; tpl.dataset.source = f.source; tpl.dataset.cat = f.category;
+    tpl.dataset.published = f.published; tpl.dataset.topics = f.topics || ""; tpl.classList.remove("is-new");
+    tpl.querySelector(".avatar").textContent = f.source.slice(0, 2).toUpperCase();
+    tpl.querySelector(".who strong").textContent = f.source;
+    tpl.querySelector(".who .sub").textContent = f.category + " · " + fmt(f.published);
+    var a = tpl.querySelector("h2 a"); a.textContent = f.title; a.href = f.link;
+    tpl.querySelectorAll(".actions a").forEach(function (l) { l.href = f.link; });
+    var p = tpl.querySelector(".post-body p"); if (p) p.textContent = f.snippet;
+    var tags = tpl.querySelector(".tags"); if (tags) tags.remove();
+    var img = tpl.querySelector(".post-img"); if (img) img.remove();
+    return tpl;
+  }
+
+  function renderVotes() {
+    var list = document.getElementById("votesList"), names = Object.keys(votes).sort();
+    list.innerHTML = "";
+    names.forEach(function (name) {
+      var li = document.createElement("li"), label = document.createElement("span"), reset = document.createElement("button");
+      label.textContent = (votes[name] > 0 ? "▲ " : "▼ ") + name;
+      label.className = votes[name] > 0 ? "up" : "down";
+      reset.className = "link"; reset.type = "button"; reset.textContent = "zurücksetzen";
+      reset.addEventListener("click", function () { delete votes[name]; store.set("psn-votes", votes); render(); });
+      li.appendChild(label); li.appendChild(reset); list.appendChild(li);
     });
-    count.textContent = shown + " von " + cards.length + " Artikeln"
-      + (lastVisit ? " · " + newCount + " neu seit letztem Besuch" : "");
-    empty.hidden = shown > 0;
+  }
+
+  function render() {
+    var shown = 0;
+    document.getElementById("nFavs").textContent = Object.keys(favs).length;
+    renderVotes();
+    if (state.view === "favs") {
+      feed.hidden = true; favFeed.hidden = false; favFeed.innerHTML = "";
+      Object.keys(favs).map(function (id) { return favs[id]; })
+        .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
+        .forEach(function (f) {
+          var post = buildFavPost(f); post.hidden = false; paintAvatar(post); decorate(post);
+          favFeed.appendChild(post); shown++;
+        });
+      document.getElementById("count").textContent = shown + " Favoriten";
+    } else {
+      feed.hidden = false; favFeed.hidden = true;
+      posts.sort(function (a, b) { return score(b) - score(a); });
+      posts.forEach(function (post) {
+        decorate(post);
+        var ok = matches(post);
+        post.hidden = !ok;
+        if (ok) shown++;
+        feed.appendChild(post);
+      });
+      document.getElementById("count").textContent = shown + " von " + posts.length + " Beiträgen"
+        + (lastVisit ? " · " + newCount + " neu seit letztem Besuch" : "");
+    }
+    document.getElementById("empty").hidden = shown > 0;
     document.getElementById("domainInfo").hidden = !state.domain;
     document.getElementById("domainName").textContent = state.domain;
   }
-  chips.forEach(function (chip) {
-    chip.addEventListener("click", function () {
-      chips.forEach(function (c) { c.setAttribute("aria-pressed", c === chip ? "true" : "false"); });
-      state.cat = chip.dataset.cat;
-      render();
+
+  // Aktionen auf Beiträgen (Feed und Favoriten)
+  document.querySelector("main").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-act]"), tag = e.target.closest(".tag[data-topic]");
+    if (tag) { setPressed("topicNav", "topic", tag.dataset.topic); return; }
+    if (!btn) return;
+    var post = btn.closest(".post"), src = post.dataset.source, act = btn.dataset.act;
+    if (act === "fav") {
+      if (favs[post.dataset.id]) delete favs[post.dataset.id]; else favs[post.dataset.id] = snapshot(post);
+      store.set("psn-favs", favs);
+    } else {
+      var v = act === "up" ? 1 : -1;
+      if (votes[src] === v) delete votes[src]; else votes[src] = v;
+      store.set("psn-votes", votes);
+    }
+    render();
+  });
+
+  function setPressed(navId, key, value) {
+    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
+    });
+    state[key] = value;
+    if (key !== "view") { state.view = "feed"; setPressedOnly("viewNav", "view", "feed"); }
+    render(); window.scrollTo(0, 0);
+  }
+  function setPressedOnly(navId, key, value) {
+    document.querySelectorAll("#" + navId + " button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset[key] === value ? "true" : "false");
+    });
+  }
+  [["viewNav", "view"], ["catNav", "cat"], ["topicNav", "topic"]].forEach(function (pair) {
+    document.querySelectorAll("#" + pair[0] + " button").forEach(function (b) {
+      b.addEventListener("click", function () { setPressed(pair[0], pair[1], b.dataset[pair[1]]); });
     });
   });
-  document.getElementById("source").addEventListener("change", function (e) { state.source = e.target.value; render(); });
-  var searchSel = document.getElementById("search");
-  if (searchSel) searchSel.addEventListener("change", function (e) { state.search = e.target.value; render(); });
-  document.querySelectorAll("[data-domain].link").forEach(function (b) {
-    b.addEventListener("click", function () { state.domain = b.dataset.domain; render(); window.scrollTo(0, 0); });
+  function bind(id, ev, key, prop) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(ev, function () { state[key] = el[prop]; render(); });
+  }
+  bind("source", "change", "source", "value");
+  bind("search", "change", "search", "value");
+  bind("q", "input", "q", "value");
+  bind("onlyNew", "change", "onlyNew", "checked");
+  bind("hideDown", "change", "hideDown", "checked");
+  document.querySelectorAll("#unknown [data-domain]").forEach(function (b) {
+    b.addEventListener("click", function () { state.domain = b.dataset.domain; setPressed("viewNav", "view", "feed"); });
   });
   document.getElementById("domainClear").addEventListener("click", function () { state.domain = ""; render(); });
-  document.querySelectorAll(".unknown time").forEach(function (t) { t.textContent = dateFmt.format(new Date(t.dateTime)); });
-  document.getElementById("q").addEventListener("input", function (e) { state.q = e.target.value; render(); });
-  document.getElementById("onlyNew").addEventListener("change", function (e) { state.onlyNew = e.target.checked; render(); });
+  document.querySelectorAll("#unknown time").forEach(function (t) { t.textContent = fmt(t.dateTime).slice(0, 6); });
+
   render();
 })();
 </script>

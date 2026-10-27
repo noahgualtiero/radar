@@ -7,7 +7,11 @@
 #   kategorie:       eine der Kategorien unten
 #   nur_kategorien:  optional – nur Artikel übernehmen, deren Feed-Kategorie
 #                    einem dieser Begriffe entspricht (Gross/klein egal)
+#   nur_begriffe:    optional – nur Artikel übernehmen, deren Titel oder Anriss einen
+#                    dieser Begriffe enthält (für breite Marketing-Medien, z.B. *paid)
 #   aktiv:           optional – false blendet die Quelle aus, ohne sie zu löschen
+#
+# Alle Quellen sind gratis: offene RSS-Feeds, Google News, arXiv und OpenAlex.
 
 kategorien:
   - Offiziell
@@ -15,8 +19,56 @@ kategorien:
   - Studien
   - DACH
   - LinkedIn
+  - Community   # Foren wie Reddit
   - Entdecken   # Treffer der Suchbegriffe unten
   - Forschung   # wissenschaftliche Arbeiten, siehe "forschung" unten
+
+# Themenbereiche: Jeder Artikel erhält die Themen, deren Stichwörter in Titel oder Anriss
+# vorkommen (Gross/klein egal). Leerzeichen um ein Stichwort verhindern Teiltreffer,
+# z.B. " ki " trifft nicht "Kiosk". Themen erscheinen als Filter und als #Tags.
+themen:
+  - name: Google Ads
+    stichwoerter: [google ads, performance max, pmax, demand gen, ai max, responsive search ad, " rsa ", search campaign, youtube ads]
+  - name: Microsoft Ads
+    stichwoerter: [microsoft advertising, microsoft ads, bing ads, copilot ads]
+  - name: Shopping & Feeds
+    stichwoerter: [shopping, merchant center, product feed, produktfeed, feed-optimierung, " gmc "]
+  - name: KI-Suche & ChatGPT Ads
+    stichwoerter: [chatgpt, openai, ai overview, ai mode, gemini, perplexity, llm, " ki ", " ai ", agentic, generative]
+  - name: Gebote & Budgets
+    stichwoerter: [bidding, gebot, auction, auktion, autobidding, troas, tcpa, target roas, target cpa, budget]
+  - name: Tracking & Messung
+    stichwoerter: [tracking, consent, conversion, attribution, incrementality, measurement, messung, ga4, server-side, enhanced conversions, meridian]
+  - name: Retail Media
+    stichwoerter: [retail media, amazon ads, sponsored products, sponsored brands, commerce media]
+  - name: Richtlinien & Recht
+    stichwoerter: [policy, richtlinie, dsgvo, gdpr, dma, lawsuit, klage, antitrust, kartell, regulation]
+
+# Begriffe, mit denen breite Marketing-Medien auf Paid Search eingeschränkt werden
+paid_begriffe: &paid
+  - google ads
+  - search ads
+  - suchmaschinenwerbung
+  - suchmaschinenmarketing
+  - paid search
+  - " sea "
+  - " sea-"
+  - performance max
+  - demand gen
+  - microsoft advertising
+  - bing ads
+  - google shopping
+  - shopping ads
+  - merchant center
+  - retail media
+  - amazon ads
+  - " ppc"
+  - chatgpt ads
+  - chatgpt-werbung
+  - werbung in chatgpt
+  - ai overviews
+  - ai max
+  - smart bidding
 
 # Wissenschaftliche Arbeiten. Google Scholar hat weder API noch Feed und darf nicht
 # automatisiert abgefragt werden; stattdessen zwei offene Quellen:
@@ -24,6 +76,7 @@ kategorien:
 #                      Werbesysteme – oft von Google, Meta, Alibaba). Begriff gilt für den Abstract.
 #   fachzeitschriften: neue Artikel aus den gelisteten Journals über OpenAlex,
 #                      gefiltert auf Titel/Abstract. Journal über die ISSN ergänzen.
+#                      nur_open_access: nur Artikel, die frei lesbar sind.
 forschung:
   kategorie: Forschung
   arxiv:
@@ -38,6 +91,7 @@ forschung:
       - '"paid search"'
       - '"keyword advertising"'
   fachzeitschriften:
+    nur_open_access: true
     begriffe:
       - '"search advertising"'
       - '"sponsored search"'
@@ -101,6 +155,14 @@ quellen:
     url: https://about.ads.microsoft.com/en/blog/rss
     kategorie: Offiziell
 
+  - name: Google Ads Developer Blog
+    url: https://ads-developers.googleblog.com/feeds/posts/default
+    kategorie: Offiziell
+
+  - name: Google Marketing Platform Blog
+    url: https://blog.google/products/marketingplatform/rss/
+    kategorie: Offiziell
+
   # --- News ---
   # Die Feeds von Search Engine Land blockieren automatisierte Abrufe (403), der alte
   # Feedburner-Feed ist eingefroren. Ersatz: Google-News-Suche auf searchengineland.com,
@@ -121,6 +183,16 @@ quellen:
     url: https://www.searchenginejournal.com/category/paid-media/feed/
     kategorie: News
 
+  - name: AdExchanger
+    url: https://www.adexchanger.com/feed/
+    kategorie: News
+    nur_begriffe: *paid
+
+  - name: Semrush Blog
+    url: https://www.semrush.com/blog/feed/
+    kategorie: News
+    nur_begriffe: *paid
+
   # --- Studien ---
   - name: Optmyzr Blog
     url: https://www.optmyzr.com/blog/index.xml
@@ -128,6 +200,14 @@ quellen:
 
   - name: Smarter Ecommerce Blog
     url: https://smarter-ecommerce.com/blog/en/feed/
+    kategorie: Studien
+
+  - name: Brainlabs
+    url: https://www.brainlabsdigital.com/feed/
+    kategorie: Studien
+
+  - name: AdNabu Blog
+    url: https://blog.adnabu.com/feed/
     kategorie: Studien
 
   # --- DACH ---
@@ -138,6 +218,53 @@ quellen:
     url: ""
     kategorie: DACH
     aktiv: false
+
+  # Breite Medien – nur Artikel mit Paid-Search-Bezug (*paid, siehe oben)
+  - name: OnlineMarketing.de
+    url: https://onlinemarketing.de/feed
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: W&V
+    url: https://www.wuv.de/feed/rss
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: ADZINE
+    url: https://www.adzine.de/rss/
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: t3n
+    url: https://t3n.de/rss.xml
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: Horizont
+    url: https://www.horizont.net/news/feed/
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: persoenlich.com (CH)
+    url: https://www.persoenlich.com/rss/news.xml
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: Netzwoche (CH)
+    url: https://www.netzwoche.ch/rss.xml
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  - name: Werbewoche / m&k (CH)
+    url: https://www.markt-kom.com/de/feed/
+    kategorie: DACH
+    nur_begriffe: *paid
+
+  # --- Community ---
+  # Reddit begrenzt anonyme Abrufe; fällt der Feed aus, steht das im Footer.
+  - name: Reddit r/PPC
+    url: https://www.reddit.com/r/PPC/.rss
+    kategorie: Community
 
   # --- LinkedIn ---
   # LinkedIn-Profile und -Seiten folgen als RSS.app-Feeds. Beispiel:
