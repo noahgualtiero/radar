@@ -85,7 +85,7 @@ svg { flex: none; }
 .hero { margin-top: 4px; }
 
 .content { width: 100%; max-width: 700px; margin: 0 auto; padding: 0 24px 60px; min-width: 0; }
-.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-height: 64px; margin: 0 -24px 4px; padding: 12px 24px;
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-height: 64px; margin: 0 -24px 4px; padding: 12px 24px;
   background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid transparent; transition: border-color .2s, padding .2s; }
 .top.scrolled { border-bottom-color: var(--sep); }
@@ -241,7 +241,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .rail { display: none; }
   .content { padding: 0 16px calc(96px + env(safe-area-inset-bottom)); }
   .top { margin: 0 -16px 4px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; min-height: 60px; }
-  .chips { display: flex; margin-left: -16px; padding-left: 16px; }
+  .chips { display: flex; margin-right: -16px; padding-right: 16px; }
   .tabbar { display: block; }
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
@@ -311,8 +311,11 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   </aside>
 
   <div class="content">
-    {# Kopf: Themen-Chips (Handy) und Lupe; die Lupe klappt das Suchfeld auf #}
+    {# Kopf: Lupe vorne, dann Themen-Chips (Handy); die Lupe klappt das Suchfeld auf #}
     <header class="top" id="top">
+      <button class="search-btn" type="button" id="searchBtn" aria-label="Suchen" title="Suchen (/)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
       <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
         <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
         {% for t in topics if topic_counts[t] %}
@@ -324,9 +327,6 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
         <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche" enterkeyhint="search">
       </label>
       <button class="link search-cancel" type="button" id="searchCancel">Abbrechen</button>
-      <button class="search-btn" type="button" id="searchBtn" aria-label="Suchen" title="Suchen (/)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      </button>
     </header>
 
     {# ---------- Briefing oben im Feed ---------- #}
