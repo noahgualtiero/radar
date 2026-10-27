@@ -1,13 +1,17 @@
 {
+  "id": "./",
   "name": "Radar",
   "short_name": "Radar",
   "description": "Newsradar für Paid Search",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f0f2f5",
-  "theme_color": "#0866ff",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
   ]
 }

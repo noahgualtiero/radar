@@ -61,6 +61,16 @@ Quellen mit ihren Artikeln, Farbschema und Status des letzten Laufs.
 
 Die Seite hat `noindex` gesetzt und sperrt Suchmaschinen per `robots.txt` aus.
 
+## Als App auf dem Handy
+
+**iPhone:** Seite in Safari öffnen → Teilen → «Zum Home-Bildschirm». **Android:** Chrome →
+Menü → «App installieren» bzw. «Zum Startbildschirm hinzufügen».
+
+Radar startet dann im Vollbild ohne Browser-Leisten: die Chips beginnen unter Statusleiste
+bzw. Dynamic Island, die Tab-Leiste endet über dem Home-Balken, Neuladen durch Ziehen nach
+unten. Die App hat ihren eigenen Speicher: Passwort, Gemerkt und Bewertungen müssen dort
+einmal neu gesetzt werden (sie werden nicht aus Safari übernommen).
+
 ## Passwort
 
 Vor der Seite steht eine einfache Passwort-Sperre. Nach einmaliger Eingabe bleibt der Browser

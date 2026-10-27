@@ -6,7 +6,10 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#242526" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Radar</title>
 <meta name="description" content="Newsradar für Paid Search: Neuigkeiten, Studien und Trends aus ausgewählten Quellen.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
@@ -296,10 +299,19 @@ footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
 .ptr.loading svg { animation: ptr-spin .7s linear infinite; }
 @keyframes ptr-spin { to { transform: rotate(360deg); } }
 
+/* App vom Home-Bildschirm: Streifen hinter der Statusleiste (Uhrzeit, Notch), damit beim Scrollen
+   nichts durchscheint; im Browser ist der Abstand 0 und der Streifen unsichtbar */
+body::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: env(safe-area-inset-top); background: var(--bg); z-index: 40; }
+body { -webkit-tap-highlight-color: transparent; }
+.tabbar button, .chip, .actions > button { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+@media (display-mode: standalone) {
+  html, body { overscroll-behavior-y: none; }   /* kein Gummiband; Neuladen über das eigene Ziehen nach unten */
+}
+
 /* Passwort-Sperre */
 .gate { display: none; }
 html.locked .app, html.locked .tabbar { display: none; }
-html.locked .gate { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+html.locked .gate { display: grid; place-items: center; min-height: 100vh; min-height: 100dvh; padding: calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom)); }
 .gate form { width: 100%; max-width: 340px; text-align: center; }
 .gate img { width: 72px; height: 72px; border-radius: 17px; box-shadow: var(--shadow-lg); }
 .gate h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em; margin: 18px 0 4px; }
@@ -394,7 +406,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 .group { background: var(--panel); border-color: var(--sep-soft); }
 
 /* Tab-Leiste unten: nur Icons */
-.tabbar { background: var(--bg); border-top: 1px solid var(--sep); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.tabbar { background: var(--bg); border-top: 1px solid var(--sep); -webkit-backdrop-filter: none; backdrop-filter: none;
+  padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 .tabbar button { font-size: .66rem; font-weight: 600; gap: 3px; padding: 8px 0 6px; color: var(--label2); }
 .tabbar button svg { width: 25px; height: 25px; color: var(--text); }
 .tabbar button[aria-selected="true"] span { color: var(--text); font-weight: 750; }
