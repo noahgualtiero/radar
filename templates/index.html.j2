@@ -406,7 +406,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .top.away { transform: translateY(-100%); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
-  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month, .profile-seg { margin-left: 12px; margin-right: 12px; }
+  .hero, .active-filter, .list-head, #admin, #listFeed, .empty, footer, .seen-line, .trend-now, .month, .profile-seg { margin-left: 12px; margin-right: 12px; }
   .trend-now { margin-top: 8px; }
   #briefingView, .profile-seg { margin-top: calc(34px + env(safe-area-inset-top)); }
   .hero { margin-top: 10px; }
@@ -554,22 +554,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
 
     {# ---------- Gemerkt ---------- #}
-    <section id="savedHead" hidden>
-      <div class="list-head">
-        <div class="n" id="savedHint">Zum späteren Lesen, auf all deinen Geräten</div>
-        <div>
-          <button class="btn plain" type="button" id="copyList">Kopieren</button>
-          <button class="btn" type="button" id="addBtn">+ Link</button>
-        </div>
-      </div>
-      <form class="card form" id="addForm" hidden>
-        <input type="url" id="addUrl" placeholder="Link zu einem Artikel von anderswo" required>
-        <input type="text" id="addTitle" placeholder="Titel (optional)">
-        <select id="addTopic"><option value="">Thema (optional)</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
-        <div><button class="btn" type="submit">Ablegen</button> <button class="link" type="button" id="addCancel">Abbrechen</button></div>
-      </form>
-    </section>
-
     <div id="suggest" hidden></div>
     <div id="feed">
     {% for item in items %}
@@ -874,7 +858,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   var EMPTY = {
     feed: "Keine Beiträge für diese Auswahl.",
     discover: "Keine Funde für diese Auswahl.",
-    saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag oder «+ Link» landet es hier."
+    saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag landet es hier."
   };
 
   function matches(p) {
@@ -984,7 +968,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     $("teamChip").hidden = !team; $("nTeam").textContent = team || "";
     $("teamChip").setAttribute("aria-pressed", state.team ? "true" : "false");
     $("admin").hidden = !admin;
-    $("savedHead").hidden = !isSaved;
     feed.hidden = admin || isSaved || brief;
     listFeed.hidden = !isSaved;
     $("activeFilter").hidden = admin || isSaved || brief || !(state.topic || state.source);
@@ -1160,28 +1143,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       render();
       toast(adding ? "Gemerkt" : "Entfernt");
     }
-  });
-
-  // Links von anderswo ablegen
-  $("addBtn").addEventListener("click", function () { $("addForm").hidden = false; $("addUrl").focus(); });
-  $("addCancel").addEventListener("click", function () { $("addForm").reset(); $("addForm").hidden = true; });
-  $("addForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var url = $("addUrl").value.trim(), host;
-    try { host = new URL(url).hostname.replace(/^www\./, ""); } catch (err) { return; }
-    var now = new Date().toISOString(), id = "manual:" + url;
-    saved[id] = { id: id, link: url, source: host, domain: host, category: "Abgelegt", kind: "feed",
-      title: $("addTitle").value.trim() || url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 120),
-      published: now, snippet: "", image: null, topics: $("addTopic").value, saved: now };
-    if (server.online) api("save", { id: id, item: saved[id] }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
-    else store.set("psn-favs", saved);
-    $("addForm").reset(); $("addForm").hidden = true;
-    render(); toast("Abgelegt");
-  });
-  $("copyList").addEventListener("click", function () {
-    var text = Object.keys(saved).map(function (id) { var f = saved[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
-    if (!text) { toast("Liste ist leer"); return; }
-    navigator.clipboard.writeText(text).then(function () { toast("Liste kopiert"); });
   });
 
   // ---------- Einstellungen ändern ----------

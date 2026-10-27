@@ -28,7 +28,7 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 | **Feed** | Die eigenen Quellen. Oben Themen-Chips und «Team-Tipps» (Artikel, die andere hochgevotet haben). Gelegentlich erscheint ein Vorschlag |
 | **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
-| **Gemerkt** | Persönlich und auf allen Geräten gleich. «+ Link» legt fremde Artikel ab, «Kopieren» kopiert die Liste |
+| **Gemerkt** | Persönlich und auf allen Geräten gleich |
 | **Quellen** | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
 Bei jedem Beitrag gibt es vier Aktionen:
