@@ -548,10 +548,12 @@ def ai_briefing(day, pool: list[dict]) -> tuple[dict | None, str]:
     req = urllib.request.Request(MODELS_URL, data=json.dumps(payload).encode(), method="POST", headers={
         "Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/json",
     })
+    raw = b""
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
-            content = json.loads(resp.read())["choices"][0]["message"]["content"]
-        answer = json.loads(content)
+            raw = resp.read()
+        content = json.loads(raw)["choices"][0]["message"]["content"] or ""
+        answer = parse_json_answer(content)
         points = []
         for point in answer.get("punkte") or []:
             nr = int(point.get("nr", 0))
@@ -564,9 +566,23 @@ def ai_briefing(day, pool: list[dict]) -> tuple[dict | None, str]:
     except urllib.error.HTTPError as exc:
         reason = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'ignore')[:300]}"
     except Exception as exc:
-        reason = str(exc)[:300]
+        snippet = raw.decode("utf-8", "ignore")[:200].replace("\n", " ")
+        reason = f"{type(exc).__name__}: {str(exc)[:150]} | Antwort: {snippet or '(leer)'}"
     print(f"Hinweis: KI-Briefing nicht verfügbar ({reason})", file=sys.stderr)
     return None, reason
+
+
+def parse_json_answer(content: str) -> dict:
+    """Liest das JSON aus der Modellantwort, auch wenn es in einem Code-Block oder Text steht."""
+    content = content.strip()
+    fence = re.search(r"```(?:json)?\s*(\{.*\})\s*```", content, re.S)
+    if fence:
+        content = fence.group(1)
+    elif not content.startswith("{"):
+        start, end = content.find("{"), content.rfind("}")
+        if start != -1 and end > start:
+            content = content[start:end + 1]
+    return json.loads(content)
 
 
 def article_ref(item: dict) -> dict:
