@@ -165,17 +165,8 @@ quellen:
     url: https://blog.adnabu.com/feed/
     kategorie: Studien
 
-  - name: McKinsey Insights
-    url: https://www.mckinsey.com/insights/rss
-    kategorie: Studien
-
   - name: IAB
     url: https://www.iab.com/feed/
-    kategorie: Studien
-
-  # BCG hat keinen eigenen Feed – Ersatz über Google News (nur bcg.com)
-  - name: BCG
-    url: https://news.google.com/rss/search?q=site:bcg.com+(marketing+OR+advertising+OR+%22generative+AI%22+OR+search)+when:30d&hl=en-US&gl=US&ceid=US:en
     kategorie: Studien
 
   # --- DACH ---
@@ -201,22 +192,6 @@ quellen:
 
   - name: t3n
     url: https://t3n.de/rss.xml
-    kategorie: DACH
-
-  - name: Horizont
-    url: https://www.horizont.net/news/feed/
-    kategorie: DACH
-
-  - name: persoenlich.com (CH)
-    url: https://www.persoenlich.com/rss/news.xml
-    kategorie: DACH
-
-  - name: Netzwoche (CH)
-    url: https://www.netzwoche.ch/rss.xml
-    kategorie: DACH
-
-  - name: Werbewoche / m&k (CH)
-    url: https://www.markt-kom.com/de/feed/
     kategorie: DACH
 
   # --- Community ---
