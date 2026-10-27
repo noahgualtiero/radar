@@ -43,15 +43,13 @@ def check(url: str) -> tuple[str, int] | None:
     return None
 
 
-def main() -> int:
-    if len(sys.argv) < 2:
-        print(__doc__)
-        return 1
-    url = sys.argv[1]
-    category = sys.argv[2] if len(sys.argv) > 2 else "News"
+def discover(url: str) -> tuple[str, str, int] | None:
+    """Sucht den Feed zu einer Seiten- oder Artikel-URL: (Feed-URL, Titel, Anzahl Einträge)."""
+    if check(url):  # schon ein Feed
+        title, count = check(url)
+        return url, title, count
     parts = urlsplit(url)
     home = f"{parts.scheme}://{parts.netloc}"
-
     candidates = advertised_feeds(url) + advertised_feeds(home + "/")
     candidates += [home + path for path in COMMON_PATHS]
     seen = set()
@@ -61,11 +59,23 @@ def main() -> int:
         seen.add(candidate)
         result = check(candidate)
         if result:
-            title, count = result
-            print(f"Feed gefunden: {candidate} ({count} Einträge)\n")
-            print(f"  - name: {title}\n    url: {candidate}\n    kategorie: {category}")
-            return 0
-    print(f"Kein Feed gefunden für {home}. Alternative: RSS.app oder eine Google-News-Suche mit site:{domain_of(url)}")
+            return candidate, result[0], result[1]
+    return None
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        print(__doc__)
+        return 1
+    url = sys.argv[1]
+    category = sys.argv[2] if len(sys.argv) > 2 else "News"
+    found = discover(url)
+    if found:
+        feed_url, title, count = found
+        print(f"Feed gefunden: {feed_url} ({count} Einträge)\n")
+        print(f"  - name: {title}\n    url: {feed_url}\n    kategorie: {category}")
+        return 0
+    print(f"Kein Feed gefunden für {domain_of(url)}. Alternative: RSS.app oder eine Google-News-Suche mit site:{domain_of(url)}")
     return 2
 
 

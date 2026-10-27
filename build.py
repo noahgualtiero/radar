@@ -15,7 +15,9 @@ import argparse
 import html
 import json
 import re
+import os
 import shutil
+import subprocess
 import sys
 import time
 import urllib.request
@@ -40,6 +42,13 @@ DISCOVER = "Entdecken"
 COMMUNITY = "Community"
 STUDIES = "Studien"
 TREND_DAYS = 3
+# Stellenanzeigen sind keine Artikel: Titel- und Link-Muster, die für alle Quellen gelten
+JOB_TITLE = re.compile(
+    r"working student|werkstudent|\binternship\b|\bintern\b|praktikum|praktikant|all genders|"
+    r"\([mwd/]{5}\)|we.re hiring|job opening|stellenangebot|find [\w ]*jobs",
+    re.I,
+)
+JOB_LINK = re.compile(r"(//|\.)(careers|jobs|karriere)\.|/(careers|jobs|karriere|stellen)/", re.I)
 OG_IMAGE_LIMIT = 40  # Titelbilder, die pro Lauf höchstens nachgeladen werden
 OG_IMAGE = re.compile(
     r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*content=["\']([^"\']+)'
@@ -159,6 +168,17 @@ def search_sources(config: dict) -> list[dict]:
     return sources
 
 
+def passes_filters(source: dict, title: str, teaser: str, link: str) -> bool:
+    """nur_begriffe, min_woerter, ausschliessen und der Stellenanzeigen-Filter einer Quelle."""
+    terms = [t.lower() for t in source.get("nur_begriffe") or []]
+    if terms and not any(t in f"{title} {teaser}".lower() for t in terms):
+        return False
+    if len(title.split()) < int(source.get("min_woerter", 0)):
+        return False
+    excluded = [t.lower() for t in source.get("ausschliessen") or []]
+    return not (JOB_TITLE.search(title) or JOB_LINK.search(link) or any(t in title.lower() for t in excluded))
+
+
 def parse_source(source: dict, seen_at: str) -> list[dict]:
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
@@ -166,7 +186,6 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
         raise ValueError(str(reason))
 
     wanted = {c.lower() for c in source.get("nur_kategorien") or []}
-    terms = [t.lower() for t in source.get("nur_begriffe") or []]
     items = []
     for entry in feed.entries:
         link = entry.get("link")
@@ -182,7 +201,7 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
         if publisher and title.endswith(f" - {publisher}"):
             title = title[: -len(publisher) - 3]
         teaser = snippet(entry.get("summary") or (entry.get("content") or [{}])[0].get("value", ""))
-        if terms and not any(t in f"{title} {teaser}".lower() for t in terms):
+        if not passes_filters(source, title, teaser, link):
             continue
         if normalize_title(teaser).startswith(normalize_title(title)):
             teaser = ""
@@ -223,10 +242,12 @@ def load_previous(location: str | None) -> list[dict]:
         return []
 
 
-def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str]) -> list[dict]:
+def merge(previous: list[dict], fresh: list[dict], feeds: dict[str, dict]) -> list[dict]:
     by_id: dict[str, dict] = {}
     for item in previous:
-        if item.get("feed", item.get("source")) in active_feeds:
+        # Bestand nur von aktiven Quellen und mit deren aktuellen Filtern (geänderte Filter wirken sofort)
+        feed = feeds.get(item.get("feed", item.get("source")))
+        if feed and passes_filters(feed, item["title"], item.get("snippet", ""), item["link"]):
             by_id[item["id"]] = item
     for item in fresh:
         old = by_id.get(item["id"])
@@ -403,21 +424,69 @@ def story_clusters(items: list[dict], weights: dict[str, int]) -> list[dict]:
     return clusters[:6]
 
 
-def rising_topics(items: list[dict], weights: dict[str, int]) -> list[dict]:
-    """Themen, die in den letzten Tagen deutlich häufiger vorkommen als im 30-Tage-Schnitt."""
+# Allgemeine Wörter, die als Trend nichts aussagen
+GENERIC = set("""
+    advertisers advertiser advertising marketing marketers search campaigns campaign data report reports
+    brands brand users user business businesses update updates feature features tool tools test tests
+    study guide tips strategy strategies performance results growth companies company year week today
+    first best better ways things people help helps make makes using used get gets announces announced
+    launches launched introduces rolls rolling expands adds says shows find finds more less don't can't
+    werbung marketing unternehmen kampagne kampagnen neue neues studie zeigt mehr jahr
+    a an the of to in on at by as it its is be are was vs or if so up no us we our you how why what who
+    ein eine der die das und im am zu von mit für ist""".split())
+
+
+def trending_terms(items: list[dict], limit: int = 6) -> list[dict]:
+    """Konkrete Begriffe (1–3 Wörter) aus den Titeln, die in den letzten Tagen bei mehreren Quellen
+    auftauchen und deutlich häufiger sind als im 30-Tage-Schnitt."""
     now = now_utc()
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY)]
-    rows = []
-    for name, weight in weights.items():
-        ages = [(now - datetime.fromisoformat(i["published"])).days for i in pool if name in i["topics"]]
-        recent = sum(1 for a in ages if a < TREND_DAYS)
-        before = sum(1 for a in ages if a >= TREND_DAYS)
-        baseline = before / (MAX_AGE_DAYS - TREND_DAYS)
-        ratio = (recent / TREND_DAYS) / max(baseline, 0.2)
-        if recent >= 3 and ratio >= 1.5:
-            rows.append({"topic": name, "recent": recent, "ratio": round(ratio, 1), "score": ratio * weight})
-    rows.sort(key=lambda r: -r["score"])
-    return rows[:5]
+    stats: dict[str, dict] = {}
+    for item in pool:
+        words = re.findall(r"[A-Za-zÄÖÜäöüß0-9][\w’'\-]*", item["title"])
+        recent = (now - datetime.fromisoformat(item["published"])).days < TREND_DAYS
+        seen: set[str] = set()
+        for n in (1, 2, 3):
+            for k in range(len(words) - n + 1):
+                gram = words[k:k + n]
+                low = [w.lower().strip("’'") for w in gram]
+                if low[0] in STOPWORDS | GENERIC or low[-1] in STOPWORDS | GENERIC:
+                    continue
+                key = " ".join(low)
+                if key in seen:
+                    continue
+                seen.add(key)
+                row = stats.setdefault(key, {"recent": 0, "before": 0, "sources": set(), "forms": Counter()})
+                row["forms"][" ".join(gram)] += 1
+                if recent:
+                    row["recent"] += 1
+                    row["sources"].add(item["source"])
+                else:
+                    row["before"] += 1
+
+    candidates = []
+    for key, row in stats.items():
+        # Einzelwörter sind unschärfer ("traffic", "pages") und brauchen deshalb drei Quellen
+        min_sources = 3 if " " not in key else 2
+        if row["recent"] < 2 or len(row["sources"]) < min_sources or len(key) < 4:
+            continue
+        baseline = row["before"] / (MAX_AGE_DAYS - TREND_DAYS)
+        ratio = (row["recent"] / TREND_DAYS) / max(baseline, 0.15)
+        if ratio < 2:
+            continue
+        candidates.append({"key": key, "term": row["forms"].most_common(1)[0][0], "count": row["recent"],
+                           "sources": len(row["sources"]), "ratio": round(ratio, 1),
+                           "score": len(row["sources"]) * ratio * (1 + 0.3 * key.count(" "))})
+    candidates.sort(key=lambda c: -c["score"])
+    picked: list[dict] = []
+    for cand in candidates:
+        # Kein Begriff, der in einem schon gewählten steckt oder ihn enthält ("AI Max" vs. "Max")
+        if any(cand["key"] in p["key"] or p["key"] in cand["key"] for p in picked):
+            continue
+        picked.append(cand)
+        if len(picked) == limit:
+            break
+    return picked
 
 
 def community_topics(items: list[dict]) -> list[tuple[str, int]]:
@@ -441,6 +510,18 @@ def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
             "host": domain_of(source["url"]),
         })
     return rows
+
+
+def repo_slug() -> str:
+    """owner/repo für Links auf GitHub: in Actions aus der Umgebung, lokal aus dem Git-Remote."""
+    if os.environ.get("GITHUB_REPOSITORY"):
+        return os.environ["GITHUB_REPOSITORY"]
+    try:
+        remote = subprocess.run(["git", "remote", "get-url", "origin"], cwd=ROOT, capture_output=True, text=True).stdout
+    except OSError:
+        return ""
+    match = re.search(r"github\.com[:/](.+?)(?:\.git)?\s*$", remote)
+    return match.group(1) if match else ""
 
 
 def main() -> int:
@@ -470,7 +551,7 @@ def main() -> int:
             errors.append({"source": source["name"], "error": str(exc)[:160]})
             print(f"FEHLER {source['name']}: {exc}", file=sys.stderr)
 
-    items = merge(load_previous(args.previous), fresh, {f["name"] for f in feeds})
+    items = merge(load_previous(args.previous), fresh, {f["name"]: f for f in feeds})
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
     tag_topics(items, topics)
@@ -479,6 +560,9 @@ def main() -> int:
     weights = {t["name"]: int(t.get("gewicht", 1)) for t in topics}
     for item in items:
         item["weight"] = max((weights.get(t, 1) for t in item["topics"]), default=0)
+    # nur_themen: Quelle liefert nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
+    min_weight = {f["name"]: int(f["nur_themen"]) for f in feeds if f.get("nur_themen")}
+    items = [i for i in items if i["weight"] >= min_weight.get(i.get("feed"), 0)]
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -499,13 +583,15 @@ def main() -> int:
         weights=weights,
         yesterday=yesterday_topics(items, weights),
         stories=story_clusters(items, weights),
-        rising=rising_topics(items, weights),
+        trends=trending_terms(items),
         community=community_topics(items),
         stats=source_stats(sources, items),
         topic_counts=Counter(t for i in shown for t in i["topics"]),
         errors=errors,
         generated=generated,
         max_age_days=MAX_AGE_DAYS,
+        repo=repo_slug(),
+        categories=[c for c in config.get("kategorien", []) if c != DISCOVER],
         password_hash=(config.get("zugang") or {}).get("passwort_sha256", ""),
     )
     (out / "index.html").write_text(page, encoding="utf-8")

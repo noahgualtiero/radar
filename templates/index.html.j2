@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#242526" media="(prefers-color-scheme: dark)">
 <title>Radar</title>
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="logo.svg">
@@ -21,220 +21,238 @@
 </script>
 {% endif %}
 <style>
-/* Farben nach den iOS-Systemfarben (Hintergrund gruppiert, Labels, Trennlinien, Systemblau) */
+/* Farben und Flächen angelehnt an Facebook (Meta): hellgrauer Grund, weisse Karten, Meta-Blau */
 :root {
-  --bg: #f2f2f7; --card: #ffffff; --fill: rgba(120,120,128,.12); --text: #000000;
-  --label2: rgba(60,60,67,.6); --label3: rgba(60,60,67,.3); --sep: rgba(60,60,67,.18);
-  --accent: #007aff; --accent-soft: rgba(0,122,255,.1); --orange: #ff9500; --purple: #af52de; --red: #ff3b30; --green: #34c759;
-  --bar: rgba(249,249,249,.82); --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  --bg: #f0f2f5; --card: #ffffff; --text: #080809; --label2: #65686c; --label3: #8a8d91;
+  --fill: #e4e6eb; --hover: #f2f2f2; --sep: #e4e6eb; --accent: #0866ff; --accent-soft: #ebf5ff;
+  --green: #31a24c; --orange: #f7923b; --purple: #9360f7; --red: #e41e3f; --teal: #1ba9a0;
+  --shadow: 0 1px 2px rgba(0,0,0,.12); --shadow-lg: 0 12px 28px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.1);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #000000; --card: #1c1c1e; --fill: rgba(118,118,128,.24); --text: #ffffff;
-    --label2: rgba(235,235,245,.6); --label3: rgba(235,235,245,.3); --sep: rgba(84,84,88,.6);
-    --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18); --orange: #ff9f0a; --purple: #bf5af2; --red: #ff453a; --green: #30d158;
-    --bar: rgba(22,22,24,.82); --shadow: none;
+    --bg: #18191a; --card: #242526; --text: #e4e6eb; --label2: #b0b3b8; --label3: #8a8d91;
+    --fill: #3a3b3c; --hover: #3a3b3c; --sep: #3e4042; --accent: #2d88ff; --accent-soft: #263951;
+    --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow-lg: 0 12px 28px rgba(0,0,0,.45);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #000000; --card: #1c1c1e; --fill: rgba(118,118,128,.24); --text: #ffffff;
-  --label2: rgba(235,235,245,.6); --label3: rgba(235,235,245,.3); --sep: rgba(84,84,88,.6);
-  --accent: #0a84ff; --accent-soft: rgba(10,132,255,.18); --orange: #ff9f0a; --purple: #bf5af2; --red: #ff453a; --green: #30d158;
-  --bar: rgba(22,22,24,.82); --shadow: none; color-scheme: dark;
+  --bg: #18191a; --card: #242526; --text: #e4e6eb; --label2: #b0b3b8; --label3: #8a8d91;
+  --fill: #3a3b3c; --hover: #3a3b3c; --sep: #3e4042; --accent: #2d88ff; --accent-soft: #263951;
+  --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow-lg: 0 12px 28px rgba(0,0,0,.45); color-scheme: dark;
 }
 :root[data-theme="light"] { color-scheme: light; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text);
-  font: 15px/1.47 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-feature-settings: "cv11", "ss01"; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
 button, input, select { font: inherit; color: inherit; }
 a { color: var(--accent); }
 svg { flex: none; }
 
-/* Navigationsleiste oben: durchscheinend wie bei iOS */
-.navbar { position: sticky; top: 0; z-index: 20; background: var(--bar); border-bottom: .5px solid var(--sep);
-  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); padding-top: env(safe-area-inset-top); }
-.navbar .in { max-width: 1100px; margin: 0 auto; padding: 8px 20px; display: flex; gap: 12px; align-items: center; }
-.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); flex: none; }
-.brand img { width: 30px; height: 30px; border-radius: 7px; }
-.brand b { font-weight: 800; font-size: 1.12rem; letter-spacing: -.02em; }
-.search { flex: 1; min-width: 0; max-width: 420px; margin-left: auto; position: relative; }
-.search svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--label2); }
-.search input { width: 100%; background: var(--fill); border: 0; border-radius: 10px; padding: 8px 10px 8px 32px; font-size: 16px; }
-.search input:focus { outline: 2px solid var(--accent-soft); }
-.icon { background: none; border: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-  cursor: pointer; color: var(--accent); flex: none; }
-.icon:hover, .icon[aria-pressed="true"] { background: var(--fill); }
-.icon svg { width: 22px; height: 22px; }
+/* Kopfzeile: Logo links, Suche in der Mitte, Zahnrad rechts */
+.navbar { position: sticky; top: 0; z-index: 20; height: 56px; background: var(--card); box-shadow: var(--shadow);
+  display: grid; grid-template-columns: 1fr minmax(0, 600px) 1fr; align-items: center; gap: 16px; padding: 0 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); justify-self: start; }
+.brand img { width: 40px; height: 40px; border-radius: 10px; }
+.brand b { font-weight: 800; font-size: 1.25rem; letter-spacing: -.03em; }
+.search { position: relative; width: 100%; }
+.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--label2); }
+.search input { width: 100%; height: 40px; background: var(--bg); border: 0; border-radius: 999px; padding: 0 16px 0 40px; font-size: 16px; }
+.search input::placeholder { color: var(--label2); }
+.search input:focus { outline: 2px solid var(--accent); }
+.round { justify-self: end; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--fill); display: grid; place-items: center; cursor: pointer; }
+.round:hover { filter: brightness(.95); }
+.round[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.round svg { width: 20px; height: 20px; }
 
-/* Grundraster: Seitenleiste auf dem Desktop, Tab-Leiste auf dem Handy */
-.shell { max-width: 1100px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 236px minmax(0, 640px); gap: 36px; justify-content: center; }
-.sidebar { position: sticky; top: 64px; align-self: start; max-height: calc(100vh - 64px); overflow: auto; padding: 22px 0 40px; scrollbar-width: none; }
-.side-nav button { display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: 0; border-radius: 10px;
-  padding: 8px 10px; cursor: pointer; font-size: .97rem; font-weight: 500; text-align: left; }
-.side-nav button:hover { background: var(--fill); }
-.side-nav button[aria-selected="true"], .side-nav button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.side-nav svg { width: 22px; height: 22px; color: var(--accent); }
-.side-nav .n { margin-left: auto; color: var(--label2); font-size: .82rem; font-weight: 500; }
-.side-title { font-size: .8rem; font-weight: 600; color: var(--label2); margin: 22px 10px 6px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--label3); margin: 0 7px; }
-.dot.w2 { background: var(--orange); } .dot.w3 { background: var(--red); }
+/* Raster: links Navigation, Mitte Feed, rechts Briefing */
+.shell { display: grid; grid-template-columns: 300px minmax(0, 600px) 340px; grid-template-areas: "left head right" "left main right";
+  grid-template-rows: auto 1fr; column-gap: 32px; justify-content: space-between; max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+.left { grid-area: left; position: sticky; top: 56px; align-self: start; max-height: calc(100vh - 56px); overflow: auto; padding: 16px 0 32px; scrollbar-width: none; }
+.right { grid-area: right; position: sticky; top: 56px; align-self: start; max-height: calc(100vh - 56px); overflow: auto; padding: 20px 0 32px; scrollbar-width: none; }
+.head { grid-area: head; padding: 20px 0 0; }
+main { grid-area: main; min-width: 0; padding-bottom: 60px; }
 
-main { padding: 22px 0 60px; min-width: 0; }
-.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
-.eyebrow { font-size: .8rem; font-weight: 600; color: var(--label2); text-transform: uppercase; letter-spacing: .04em; margin: 0; }
-.large-title { font-size: 2.1rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin: 2px 0 0; }
+.nav button { display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: 0; border-radius: 8px;
+  padding: 8px; cursor: pointer; font-size: .95rem; font-weight: 500; text-align: left; }
+.nav button:hover { background: var(--hover); }
+.nav button[aria-selected="true"], .nav button[aria-pressed="true"] { background: var(--card); box-shadow: var(--shadow); font-weight: 600; }
+.nav .ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; flex: none; }
+.nav .ic svg { width: 20px; height: 20px; }
+.ic-feed { background: var(--accent); } .ic-studies { background: var(--green); } .ic-community { background: var(--orange); } .ic-saved { background: var(--purple); }
+.nav .n { margin-left: auto; color: var(--label2); font-size: .82rem; font-weight: 500; }
+.nav-title { font-size: 1.05rem; font-weight: 700; color: var(--label2); margin: 18px 8px 4px; }
+.nav .hash { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; background: var(--fill); font-weight: 700; color: var(--label2); flex: none; }
+.nav .hash.w3 { background: #fde2e4; color: var(--red); } .nav .hash.w2 { background: #fdebd8; color: #c96a12; }
+:root[data-theme="dark"] .nav .hash.w3 { background: #4a2a2e; } :root[data-theme="dark"] .nav .hash.w2 { background: #4a3a26; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nav .hash.w3 { background: #4a2a2e; } :root:not([data-theme="light"]) .nav .hash.w2 { background: #4a3a26; } }
 
-/* Themen-Chips (Handy) */
-.chips { display: none; gap: 8px; overflow-x: auto; margin: 0 -20px 14px; padding: 0 20px 2px; scrollbar-width: none; }
+.eyebrow { font-size: .78rem; font-weight: 600; color: var(--label2); text-transform: uppercase; letter-spacing: .04em; margin: 0; }
+.page-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; margin: 2px 0 14px; }
+
+/* Themen-Chips (nur schmale Bildschirme) */
+.chips { display: none; gap: 8px; overflow-x: auto; margin: 0 -16px 12px; padding: 2px 16px 4px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; border: 0; background: var(--card); box-shadow: var(--shadow); border-radius: 999px; padding: 7px 14px;
-  cursor: pointer; font-size: .88rem; font-weight: 500; white-space: nowrap; }
-.chip[aria-pressed="true"] { background: var(--accent); color: #fff; }
-.chip .n { opacity: .65; font-size: .82em; margin-left: 4px; }
+.chip { flex: none; border: 0; background: var(--fill); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-size: .9rem; font-weight: 600; white-space: nowrap; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.chip .n { opacity: .7; font-weight: 500; font-size: .85em; margin-left: 4px; }
 
-.card { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 16px; }
-.active-filter { display: flex; gap: 8px; align-items: center; margin: 0 0 14px; font-size: .9rem; color: var(--label2); }
-.active-filter button { background: var(--accent-soft); color: var(--accent); border: 0; border-radius: 999px; padding: 5px 12px; cursor: pointer; font-weight: 600; }
-.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: inherit; font-weight: 500; }
+.card { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 16px; }
+.active-filter { display: flex; gap: 8px; align-items: center; margin: 0 0 12px; font-size: .92rem; color: var(--label2); }
+.active-filter button { background: var(--accent-soft); color: var(--accent); border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font-size: inherit; font-weight: 600; }
 .muted, .n { color: var(--label2); }
 
-/* Briefing */
-.briefing { padding: 18px 20px; }
-.briefing-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.briefing h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; margin: 0; }
-.briefing .date { color: var(--label2); font-size: .85rem; }
-.brief-topic { margin-top: 16px; }
-.brief-topic > .head { display: flex; align-items: baseline; gap: 6px; }
-.brief-topic > .head button { font-weight: 700; font-size: .95rem; }
-.brief-topic ol { margin: 6px 0 0; padding: 0; list-style: none; }
-.brief-topic li { padding: 7px 0; border-top: .5px solid var(--sep); font-size: .93rem; line-height: 1.4; }
-.brief-topic li a { color: var(--text); text-decoration: none; font-weight: 500; }
-.brief-topic li a:hover { color: var(--accent); }
-.brief-topic li .n { display: block; font-size: .8rem; margin-top: 1px; }
-.brief-line { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .88rem; }
-.brief-line .chip { box-shadow: none; background: var(--fill); font-size: .82rem; padding: 5px 12px; }
-.multi { margin-top: 14px; font-size: .9rem; }
-.multi a { color: var(--text); font-weight: 500; }
+/* Briefing (rechte Spalte) */
+.side-card { padding: 16px; }
+.side-card h2 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+.side-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.side-card .date { color: var(--label2); font-size: .82rem; display: block; margin-top: 1px; }
+.b-sec { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--sep); }
+.b-sec:first-child { margin-top: 12px; }
+.b-sec h3 { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--label2); margin: 0 0 6px; }
+.b-item { display: grid; gap: 2px; padding: 8px; margin: 0 -8px; border-radius: 8px; }
+.b-item:hover { background: var(--hover); }
+.b-topic { justify-self: start; background: none; border: 0; padding: 0; color: var(--accent); font-weight: 700; font-size: .8rem; cursor: pointer; }
+.b-title { color: var(--text); text-decoration: none; font-weight: 600; font-size: .92rem; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.b-title:hover { text-decoration: underline; }
+.b-item .n { font-size: .8rem; }
+.b-item .n .link { font-size: .8rem; }
+.trend-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.trend-chips .chip { font-size: .85rem; padding: 6px 12px; }
 
 /* Beiträge */
 .post { overflow: hidden; }
-.post-head { display: flex; gap: 11px; align-items: center; padding: 14px 16px 10px; }
-.avatar { position: relative; width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center;
-  font-weight: 700; font-size: .8rem; color: #fff; background: hsl(var(--h, 210) 55% 50%); overflow: hidden; box-shadow: 0 0 0 .5px var(--sep); }
-.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 7px; background: #fff; object-fit: contain; }
-.who { min-width: 0; flex: 1; line-height: 1.25; }
+.post-head { display: flex; gap: 10px; align-items: center; padding: 12px 16px 8px; }
+.avatar { position: relative; width: 40px; height: 40px; border-radius: 10px; flex: none; display: grid; place-items: center;
+  font-weight: 700; font-size: .8rem; color: #fff; background: hsl(var(--h, 210) 55% 50%); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.who { min-width: 0; flex: 1; line-height: 1.3; }
 .who .src { display: block; background: none; border: 0; padding: 0; font-weight: 600; font-size: .95rem; cursor: pointer;
   max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
-.who .src:hover { color: var(--accent); }
+.who .src:hover { text-decoration: underline; }
 .who .sub { color: var(--label2); font-size: .8rem; }
-.badge { border-radius: 6px; padding: 2px 8px; font-size: .72rem; font-weight: 600; background: var(--accent-soft); color: var(--accent); }
-.post-body { padding: 0 16px 12px; }
-.post-body h2 { font-size: 1.12rem; font-weight: 700; letter-spacing: -.015em; line-height: 1.32; margin: 0 0 6px; }
+.badge { border-radius: 6px; padding: 3px 8px; font-size: .74rem; font-weight: 600; background: #e7f3e8; color: #1e7a32; }
+:root[data-theme="dark"] .badge { background: #26402c; color: #7fd28f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge { background: #26402c; color: #7fd28f; } }
+.post-body { padding: 0 16px 10px; }
+.post-body h2 { font-size: 1.08rem; font-weight: 700; letter-spacing: -.01em; line-height: 1.32; margin: 0 0 4px; }
 .post-body h2 a { color: inherit; text-decoration: none; }
-.post-body h2 a:hover { color: var(--accent); }
-.post-body p { margin: 0; color: var(--label2); font-size: .94rem; overflow-wrap: anywhere; }
-.tags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { background: var(--fill); border: 0; border-radius: 999px; padding: 3px 10px; color: var(--text); font-size: .8rem; font-weight: 500; cursor: pointer; }
-.tag:hover { background: var(--accent-soft); color: var(--accent); }
-.post-img { display: block; margin: 0 16px 4px; border-radius: 12px; overflow: hidden; background: var(--fill); }
-.post-img img { width: 100%; max-height: 360px; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
-.actions { position: relative; display: flex; justify-content: flex-end; gap: 4px; padding: 4px 8px 8px; }
-.actions > button { display: flex; gap: 6px; align-items: center; background: none; border: 0; padding: 8px 12px; min-height: 40px;
-  color: var(--label2); font-size: .86rem; font-weight: 500; cursor: pointer; border-radius: 10px; }
-.actions > button:hover { background: var(--fill); color: var(--text); }
+.post-body h2 a:hover { text-decoration: underline; }
+.post-body p { margin: 0; font-size: .94rem; overflow-wrap: anywhere; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { background: none; border: 0; padding: 0; color: var(--accent); font-size: .88rem; font-weight: 600; cursor: pointer; }
+.tag::before { content: "#"; }
+.tag:hover { text-decoration: underline; }
+.post-img { display: block; background: var(--fill); }
+.post-img img { width: 100%; max-height: 380px; aspect-ratio: 1.91 / 1; object-fit: cover; display: block; }
+.actions { position: relative; display: flex; gap: 4px; margin: 0 12px; padding: 4px 0; border-top: 1px solid var(--sep); }
+.post-img + .actions, .tags-wrap + .actions { margin-top: 0; }
+.actions > button { flex: 1; display: flex; gap: 8px; justify-content: center; align-items: center; background: none; border: 0;
+  padding: 8px 4px; min-height: 40px; color: var(--label2); font-size: .92rem; font-weight: 600; cursor: pointer; border-radius: 6px; }
+.actions > button.more { flex: 0 0 48px; }
+.actions > button:hover { background: var(--hover); }
 .actions svg { width: 20px; height: 20px; }
-.post.is-fav .act-favs { color: var(--orange); }
-.post.is-blog .act-blog { color: var(--purple); }
+.post.is-fav .act-favs { color: var(--purple); }
+.post.is-blog .act-blog { color: var(--teal); }
 .post.is-fav .act-favs svg path, .post.is-blog .act-blog svg path { fill: currentColor; }
-.menu { position: absolute; right: 8px; bottom: 48px; z-index: 5; background: var(--card); border-radius: 13px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.2), 0 0 0 .5px var(--sep); min-width: 250px; overflow: hidden; }
-.menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 12px 16px; cursor: pointer; font-size: .95rem; }
-.menu button + button { border-top: .5px solid var(--sep); }
-.menu button:hover { background: var(--fill); }
-.menu .destructive { color: var(--red); }
-.seen-line { display: flex; align-items: center; gap: 12px; color: var(--label2); font-size: .8rem; font-weight: 500; margin: 8px 0 24px; }
-.seen-line::before, .seen-line::after { content: ""; flex: 1; border-top: .5px solid var(--sep); }
+.menu { position: absolute; right: 0; bottom: 46px; z-index: 5; background: var(--card); border-radius: 10px; box-shadow: var(--shadow-lg); padding: 6px; min-width: 260px; }
+.menu button { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 10px; border-radius: 6px; cursor: pointer; font-size: .93rem; font-weight: 600; }
+.menu button:hover { background: var(--hover); }
+.seen-line { display: flex; align-items: center; gap: 12px; color: var(--label2); font-size: .82rem; font-weight: 600; margin: 8px 0 24px; }
+.seen-line::before, .seen-line::after { content: ""; flex: 1; border-top: 1px solid var(--sep); }
 .empty { color: var(--label2); padding: 48px 20px; text-align: center; }
 
 /* Gemerkt */
-.seg { display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; }
-.seg button { background: none; border: 0; border-radius: 7px; padding: 5px 14px; cursor: pointer; font-weight: 500; font-size: .88rem; }
-.seg button[aria-pressed="true"] { background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
-.list-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.add-form { padding: 16px; display: grid; gap: 10px; }
-.add-form input, .add-form select { width: 100%; background: var(--fill); border: 0; border-radius: 10px; padding: 10px 12px; font-size: 16px; }
-.btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
-.btn.plain { background: var(--fill); color: var(--accent); }
+.seg { display: inline-flex; gap: 4px; }
+.seg button { background: var(--fill); border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.list-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.form { padding: 16px; display: grid; gap: 10px; }
+.form input, .form select { width: 100%; background: var(--bg); border: 1px solid var(--sep); border-radius: 8px; padding: 10px 12px; font-size: 16px; }
+.form input:focus, .form select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.form .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.form .row > * { flex: 1 1 160px; }
+.btn { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 9px 16px; font-weight: 600; cursor: pointer; }
+.btn.plain { background: var(--fill); color: var(--text); }
 
-/* Pflege */
-.admin { padding: 18px 20px; }
-.admin h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 4px; }
-.admin .lead { color: var(--label2); font-size: .84rem; margin: 0 0 12px; }
+/* Einstellungen */
+.admin { padding: 16px; }
+.admin h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; }
+.admin .lead { color: var(--label2); font-size: .86rem; margin: 0 0 12px; }
+.admin .form { padding: 0; }
 .table { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: .86rem; }
-th, td { text-align: left; padding: 9px 10px 9px 0; border-bottom: .5px solid var(--sep); vertical-align: top; }
-th { color: var(--label2); font-weight: 600; font-size: .76rem; white-space: nowrap; }
+table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+th, td { text-align: left; padding: 9px 10px 9px 0; border-bottom: 1px solid var(--sep); vertical-align: top; }
+th { color: var(--label2); font-weight: 600; font-size: .78rem; white-space: nowrap; }
 .num { text-align: right; }
 .vote-up { color: var(--green); font-weight: 600; } .vote-down { color: var(--red); font-weight: 600; }
 .hits { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
-.admin ul.plain { list-style: none; padding: 0; margin: 0; font-size: .92rem; }
-.admin ul.plain li { display: flex; justify-content: space-between; gap: 8px; padding: 9px 0; border-bottom: .5px solid var(--sep); }
+.admin ul.plain { list-style: none; padding: 0; margin: 0; font-size: .93rem; }
+.admin ul.plain li { display: flex; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--sep); }
 
 /* Tab-Leiste unten (Handy) */
-.tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bar); border-top: .5px solid var(--sep);
-  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); padding-bottom: env(safe-area-inset-bottom); }
+.tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--card); box-shadow: 0 -1px 0 var(--sep);
+  padding-bottom: env(safe-area-inset-bottom); }
 .tabbar .in { display: flex; }
-.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: 0;
-  padding: 7px 0 5px; color: var(--label2); font-size: .66rem; font-weight: 500; cursor: pointer; }
-.tabbar button[aria-selected="true"] { color: var(--accent); }
-.tabbar svg { width: 25px; height: 25px; }
+.tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: 0;
+  padding: 8px 0 6px; color: var(--label2); font-size: .7rem; font-weight: 600; cursor: pointer; border-top: 3px solid transparent; }
+.tabbar button[aria-selected="true"] { color: var(--accent); border-top-color: var(--accent); }
+.tabbar svg { width: 24px; height: 24px; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 30; background: rgba(30,30,32,.92); color: #fff;
-  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-radius: 14px; padding: 11px 16px; font-size: .9rem;
-  display: flex; gap: 16px; align-items: center; box-shadow: 0 8px 30px rgba(0,0,0,.25); white-space: nowrap; }
-.toast button { background: none; border: 0; color: #64d2ff; font-weight: 600; cursor: pointer; }
+.toast { position: fixed; left: 24px; bottom: 24px; z-index: 30; background: var(--card); color: var(--text); border-radius: 8px;
+  padding: 12px 16px; font-size: .92rem; font-weight: 500; display: flex; gap: 16px; align-items: center; box-shadow: var(--shadow-lg); white-space: nowrap; }
+.toast button { background: none; border: 0; color: var(--accent); font-weight: 700; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 4px 0 24px; }
 
 /* Passwort-Sperre */
 .gate { display: none; }
 html.locked .navbar, html.locked .shell, html.locked .tabbar { display: none; }
 html.locked .gate { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
-.gate form { width: 100%; max-width: 320px; text-align: center; }
-.gate img { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
-.gate h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; margin: 16px 0 4px; }
-.gate p { color: var(--label2); margin: 0 0 20px; font-size: .92rem; }
-.gate input { width: 100%; background: var(--card); border: 0; border-radius: 12px; padding: 13px 14px; font-size: 16px;
-  box-shadow: var(--shadow), 0 0 0 .5px var(--sep); text-align: center; }
-.gate input:focus { outline: 2px solid var(--accent); }
-.gate .btn { width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; }
+.gate form { width: 100%; max-width: 360px; text-align: center; background: var(--card); border-radius: 12px; box-shadow: var(--shadow-lg); padding: 28px 20px 20px; }
+.gate img { width: 64px; height: 64px; border-radius: 14px; }
+.gate h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; margin: 12px 0 2px; }
+.gate p { color: var(--label2); margin: 0 0 18px; font-size: .92rem; }
+.gate input { width: 100%; background: var(--card); border: 1px solid var(--sep); border-radius: 6px; padding: 13px 14px; font-size: 16px; }
+.gate input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.gate .btn { width: 100%; margin-top: 10px; padding: 12px; font-size: 1.05rem; }
 .gate .err { color: var(--red); font-size: .88rem; margin-top: 10px; min-height: 1.3em; }
 
+/* Bis 1250 px: rechte Spalte wandert über den Feed */
+@media (max-width: 1250px) {
+  .shell { grid-template-columns: 260px minmax(0, 600px); grid-template-areas: "left head" "left right" "left main"; grid-template-rows: auto auto 1fr; justify-content: center; }
+  .right { position: static; max-height: none; overflow: visible; padding: 0; }
+  .navbar { grid-template-columns: 260px minmax(0, 600px) 1fr; }
+}
+/* Bis 900 px: Handy-Aufbau mit Tab-Leiste und Chips */
 @media (max-width: 900px) {
-  .shell { grid-template-columns: minmax(0, 640px); }
-  .sidebar { display: none; }
+  .shell { grid-template-columns: minmax(0, 600px); grid-template-areas: "head" "right" "main"; }
+  .left { display: none; }
   .chips { display: flex; }
   .tabbar { display: block; }
+  .navbar { grid-template-columns: auto 1fr auto; gap: 10px; }
   main { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
-  .toast { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .toast { left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 520px) {
-  .navbar .in, .shell { padding-left: 16px; padding-right: 16px; }
-  .chips { margin: 0 -16px 14px; padding: 0 16px 2px; }
-  .large-title { font-size: 1.9rem; }
-  main .card { margin-left: -6px; margin-right: -6px; }
+  .shell { padding: 0; }
+  .head, .chips, .active-filter, .list-head, footer, .empty { padding-left: 12px; padding-right: 12px; }
+  .chips { margin: 0 0 12px; }
+  main .card, .right .card { border-radius: 0; margin-bottom: 8px; }
+  .brand b { font-size: 1.1rem; }
   .actions .lbl { display: none; }
+  .page-title { font-size: 1.5rem; }
 }
 </style>
 </head>
 <body>
-{# Symbole im Stil der SF Symbols #}
-{% set ico_feed %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h6"/></svg>{% endset %}
-{% set ico_studies %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>{% endset %}
-{% set ico_community %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>{% endset %}
-{% set ico_saved %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>{% endset %}
+{% set ico_feed %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm2 4v2h12V8H6zm0 4v2h12v-2H6zm0 4v1h8v-1H6z"/></svg>{% endset %}
+{% set ico_studies %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 13h3v7H4zM10.5 4h3v16h-3zM17 9h3v11h-3z"/></svg>{% endset %}
+{% set ico_community %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c5 0 9 3.6 9 8s-4 8-9 8c-1.1 0-2.2-.2-3.2-.5L4 20l1.3-3.7C3.9 14.9 3 13 3 11c0-4.4 4-8 9-8z"/></svg>{% endset %}
+{% set ico_saved %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>{% endset %}
 {% set tabs = [("feed", "Feed", ico_feed), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
 
 {% if password_hash %}
@@ -243,7 +261,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     <img src="logo.svg" alt="">
     <h1>Radar</h1>
     <p>Bitte Passwort eingeben.</p>
-    <input type="password" id="gatePw" autocomplete="current-password" aria-label="Passwort" autofocus>
+    <input type="password" id="gatePw" autocomplete="current-password" placeholder="Passwort" aria-label="Passwort" autofocus>
     <button class="btn" type="submit">Öffnen</button>
     <div class="err" id="gateErr"></div>
   </form>
@@ -269,77 +287,79 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 {% endif %}
 
 <header class="navbar">
-  <div class="in">
-    <a class="brand" href="./" aria-label="Radar"><img src="logo.svg" alt=""><b>Radar</b></a>
-    <label class="search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" id="q" placeholder="Suchen" aria-label="Suche">
-    </label>
-    <button class="icon" id="adminBtn" type="button" aria-pressed="false" title="Quellen und Einstellungen" aria-label="Quellen und Einstellungen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
-    </button>
-  </div>
+  <a class="brand" href="./" aria-label="Radar"><img src="logo.svg" alt=""><b>Radar</b></a>
+  <label class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="search" id="q" placeholder="In Radar suchen" aria-label="Suche">
+  </label>
+  <button class="round" id="adminBtn" type="button" aria-pressed="false" title="Einstellungen" aria-label="Einstellungen">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4a.49.49 0 0 0-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.49.49 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+  </button>
 </header>
 
 <div class="shell">
-  <aside class="sidebar">
-    <nav class="side-nav" aria-label="Bereiche">
+  {# ---------- Linke Spalte: Bereiche und Themen ---------- #}
+  <aside class="left">
+    <nav class="nav" aria-label="Bereiche">
       {% for key, label, icon in tabs %}
-      <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}">{{ icon }}{{ label }}{% if key == "saved" %}<span class="n" id="nSavedSide"></span>{% endif %}</button>
+      <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}"><span class="ic ic-{{ key }}">{{ icon }}</span>{{ label }}{% if key == "saved" %}<span class="n" id="nSavedSide"></span>{% endif %}</button>
       {% endfor %}
     </nav>
-    <p class="side-title">Themen</p>
-    <nav class="side-nav topic-nav" aria-label="Themen">
-      <button type="button" data-topic="" aria-pressed="true"><span class="dot"></span>Alle Themen</button>
+    <p class="nav-title">Themen</p>
+    <nav class="nav topic-nav" aria-label="Themen">
+      <button type="button" data-topic="" aria-pressed="true"><span class="hash">#</span>Alle Themen</button>
       {% for t in topics if topic_counts[t] %}
-      <button type="button" data-topic="{{ t }}" aria-pressed="false" title="Gewicht {{ weights[t] }}"><span class="dot w{{ weights[t] }}"></span>{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
+      <button type="button" data-topic="{{ t }}" aria-pressed="false" title="{{ ['', 'normal', 'wichtig', 'sehr wichtig'][weights[t]] }}"><span class="hash w{{ weights[t] }}">#</span>{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
       {% endfor %}
     </nav>
   </aside>
 
-  <main>
-    <div class="page-head">
-      <div>
-        <p class="eyebrow" id="eyebrow"><time class="today"></time></p>
-        <h1 class="large-title" id="pageTitle">Feed</h1>
-      </div>
-    </div>
-
+  <div class="head">
+    <p class="eyebrow"><time class="today"></time></p>
+    <h1 class="page-title" id="pageTitle">Feed</h1>
     <div class="chips topic-nav" id="chips" role="group" aria-label="Themen">
       <button class="chip" type="button" data-topic="" aria-pressed="true">Alle</button>
       {% for t in topics if topic_counts[t] %}
       <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
       {% endfor %}
     </div>
+  </div>
 
-    <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
-
-    {# ---------- Briefing ---------- #}
+  {# ---------- Rechte Spalte: Briefing ---------- #}
+  <aside class="right">
     {% set brief = yesterday.topics[:3] %}
-    {% if brief or rising or stories %}
-    <section class="card briefing" id="briefing">
-      <div class="briefing-head">
-        <h2>Briefing</h2>
+    {% if brief or trends or stories %}
+    <section class="card side-card" id="briefing">
+      <div class="side-head">
+        <div><h2>Briefing</h2>{% if brief %}<span class="date">für <time class="day" datetime="{{ yesterday.date }}">{{ yesterday.date }}</time></span>{% endif %}</div>
         <button class="link" type="button" id="briefToggle">Einklappen</button>
       </div>
       <div id="briefBody">
         {% if brief %}
-        <span class="date">Das Wichtigste vom <time class="day" datetime="{{ yesterday.date }}">{{ yesterday.date }}</time></span>
-        {% for row in brief %}
-        <div class="brief-topic">
-          <div class="head"><button class="link" type="button" data-topic="{{ row.topic }}">{{ row.topic }}</button><span class="n">{{ row.count }} Beiträge</span></div>
-          <ol>{% for a in row.articles[:2] %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a><span class="n">{{ a.source }}</span></li>{% endfor %}</ol>
+        <div class="b-sec">
+          <h3>Gestern wichtig</h3>
+          {% for row in brief %}
+          {% set top = row.articles[0] %}
+          <div class="b-item">
+            <button class="b-topic" type="button" data-topic="{{ row.topic }}">#{{ row.topic }}</button>
+            <a class="b-title" href="{{ top.link }}" target="_blank" rel="noopener nofollow external">{{ top.title }}</a>
+            <span class="n">{{ top.source }}{% if row.count > 1 %} · <button class="link" type="button" data-topic="{{ row.topic }}">{{ row.count - 1 }} weitere</button>{% endif %}</span>
+          </div>
+          {% endfor %}
         </div>
-        {% endfor %}
+        {% endif %}
+        {% if trends %}
+        <div class="b-sec">
+          <h3>Im Trend</h3>
+          <div class="trend-chips">{% for t in trends %}<button class="chip" type="button" data-q="{{ t.term }}" title="{{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">{{ t.term }}</button>{% endfor %}</div>
+        </div>
         {% endif %}
         {% if stories %}
-        <div class="multi"><span class="n">Mehrfach berichtet:</span>
-          {% for c in stories[:2] %}<a href="{{ c.articles[0].link }}" target="_blank" rel="noopener">{{ c.title }}</a> <span class="n">({{ c.sources }} Quellen)</span>{% if not loop.last %} · {% endif %}{% endfor %}
-        </div>
-        {% endif %}
-        {% if rising %}
-        <div class="brief-line"><span class="n">Im Trend</span>
-          {% for r in rising %}<button class="chip" type="button" data-topic="{{ r.topic }}" title="{{ r.recent }} Beiträge in 3 Tagen, {{ r.ratio }}× so viele wie üblich">↑ {{ r.topic }}</button>{% endfor %}
+        <div class="b-sec">
+          <h3>Mehrfach berichtet</h3>
+          {% for c in stories[:2] %}
+          <div class="b-item"><a class="b-title" href="{{ c.articles[0].link }}" target="_blank" rel="noopener nofollow external">{{ c.title }}</a><span class="n">{{ c.sources }} Quellen</span></div>
+          {% endfor %}
         </div>
         {% endif %}
       </div>
@@ -347,13 +367,15 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     {% endif %}
 
     {% if community %}
-    <section class="card briefing" id="communityBrief" hidden>
-      <h2>Diese Woche</h2>
-      <div class="brief-line">
-        {% for t, n in community %}<button class="chip" type="button" data-topic="{{ t }}">{{ t }} · {{ n }}</button>{% endfor %}
-      </div>
+    <section class="card side-card" id="communityBrief" hidden>
+      <h2>Diese Woche in der Community</h2>
+      <div class="trend-chips" style="margin-top:10px">{% for t, n in community %}<button class="chip" type="button" data-topic="{{ t }}">{{ t }} · {{ n }}</button>{% endfor %}</div>
     </section>
     {% endif %}
+  </aside>
+
+  <main>
+    <p class="active-filter" id="activeFilter" hidden>Gefiltert: <button type="button" id="clearFilter"></button></p>
 
     {# ---------- Gemerkt ---------- #}
     <section id="savedHead" hidden>
@@ -367,7 +389,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
           <button class="btn" type="button" id="addBtn">+ Link</button>
         </div>
       </div>
-      <form class="card add-form" id="addForm" hidden>
+      <form class="card form" id="addForm" hidden>
         <input type="url" id="addUrl" placeholder="Link zu einem Artikel von anderswo" required>
         <input type="text" id="addTitle" placeholder="Titel (optional)">
         <select id="addTopic"><option value="">Thema (optional)</option>{% for t in topics %}<option>{{ t }}</option>{% endfor %}</select>
@@ -382,7 +404,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       data-topics="{{ item.topics|join('|') }}" data-weight="{{ item.weight }}" data-study="{{ 1 if item.study else 0 }}"
       data-text="{{ (item.title ~ ' ' ~ item.snippet ~ ' ' ~ item.source ~ ' ' ~ item.topics|join(' '))|lower }}">
       <header class="post-head">
-        <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}<img src="https://www.google.com/s2/favicons?domain={{ item.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.remove()"></span>
+        <span class="avatar" aria-hidden="true">{{ item.source[:2]|upper }}<img src="https://www.google.com/s2/favicons?domain={{ item.domain }}&amp;sz=128" alt="" loading="lazy" onerror="this.remove()"></span>
         <div class="who">
           <button class="src" type="button" title="Nur diese Quelle zeigen">{{ item.source }}</button>
           <span class="sub"><time datetime="{{ item.published }}">{{ item.published[8:10] }}.{{ item.published[5:7] }}.{{ item.published[0:4] }}</time></span>
@@ -390,19 +412,19 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
         {% if item.study %}<span class="badge">Studie</span>{% endif %}
       </header>
       <div class="post-body">
-        <h2><a href="{{ item.link }}" target="_blank" rel="noopener">{{ item.title }}</a></h2>
+        <h2><a href="{{ item.link }}" target="_blank" rel="noopener nofollow external">{{ item.title }}</a></h2>
         {% if item.snippet %}<p>{{ item.snippet }}</p>{% endif %}
       </div>
+      {% if item.topics %}<div class="post-body tags-wrap"><div class="tags">{% for t in item.topics %}<button class="tag" type="button" data-topic="{{ t }}">{{ t }}</button>{% endfor %}</div></div>{% endif %}
       {% if item.image %}
-      <a class="post-img" href="{{ item.link }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+      <a class="post-img" href="{{ item.link }}" target="_blank" rel="noopener nofollow external" tabindex="-1" aria-hidden="true">
         <img src="{{ item.image }}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()">
       </a>
       {% endif %}
-      {% if item.topics %}<div class="post-body tags-wrap"><div class="tags">{% for t in item.topics %}<button class="tag" type="button" data-topic="{{ t }}">{{ t }}</button>{% endfor %}</div></div>{% endif %}
       <div class="actions">
-        <button class="act-favs" type="button" data-act="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg><span class="lbl">Merken</span></button>
-        <button class="act-blog" type="button" data-act="blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog-Idee</span></button>
-        <button class="more" type="button" data-act="menu" aria-label="Weitere Aktionen"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+        <button class="act-favs" type="button" data-act="favs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg><span class="lbl">Merken</span></button>
+        <button class="act-blog" type="button" data-act="blog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"/></svg><span class="lbl">Blog-Idee</span></button>
+        <button class="more" type="button" data-act="menu" aria-label="Weitere Aktionen"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       </div>
     </article>
     {% endfor %}
@@ -410,11 +432,26 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     <div id="listFeed" hidden></div>
     <p class="empty" id="empty" hidden></p>
 
-    {# ---------- Pflege ---------- #}
+    {# ---------- Einstellungen ---------- #}
     <section id="admin" hidden>
       <div class="card admin">
+        <h2>Quelle aufnehmen</h2>
+        <p class="lead">Link zu einer Seite oder einem Artikel eingeben. Der Knopf öffnet GitHub mit einem vorbereiteten Auftrag;
+          dort auf «Create» klicken. Eine Action sucht den Feed, trägt die Quelle in <code>sources.yaml</code> ein und baut die Seite neu.
+          Nach etwa 3 Minuten ist sie im Feed, das Ergebnis steht als Kommentar im Auftrag.</p>
+        <form class="form" id="sourceForm">
+          <input type="url" id="srcUrl" placeholder="https://… Seite, Blog oder Feed" required>
+          <div class="row">
+            <select id="srcCat" aria-label="Kategorie">{% for c in categories %}<option{% if c == "News" %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+            <input type="text" id="srcName" placeholder="Name (optional)">
+          </div>
+          <div><button class="btn" type="submit">Auf GitHub aufnehmen</button></div>
+        </form>
+      </div>
+
+      <div class="card admin">
         <h2>Quellen</h2>
-        <p class="lead">Feste Quellen aus <code>sources.yaml</code>, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
+        <p class="lead">Feste Quellen, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
           Bewertung und Gemerkt stammen aus diesem Browser.</p>
         <div class="table"><table>
           <thead><tr><th>Quelle</th><th class="num">Beiträge</th><th class="num">Themen</th><th>Letzter</th><th>Bewertung</th><th class="num">Gemerkt</th></tr></thead>
@@ -441,18 +478,18 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       {% if unknown %}
       <div class="card admin">
         <h2>Vorschläge für neue Quellen</h2>
-        <p class="lead">Seiten, die bei den Google-News-Suchbegriffen auftauchen und noch keine feste Quelle sind, häufigste zuerst.
-          Passt eine, den Feed mit <code>find_feed.py</code> suchen und in <code>sources.yaml</code> aufnehmen.</p>
+        <p class="lead">Seiten, die bei den Google-News-Suchbegriffen auftauchen und noch keine feste Quelle sind, häufigste zuerst.</p>
         <div class="table"><table>
-          <thead><tr><th>Seite</th><th class="num">Treffer</th><th>Zuletzt</th></tr></thead>
+          <thead><tr><th>Seite</th><th class="num">Treffer</th><th>Zuletzt</th><th></th></tr></thead>
           <tbody>
           {% for u in unknown[:40] %}
-            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener">{{ u.domain }}</a>
+            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener nofollow external">{{ u.domain }}</a>
                 <details><summary class="n">Artikel zeigen</summary><ul class="hits">
-                  {% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener">{{ a.title }}</a></li>{% endfor %}
+                  {% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener nofollow external">{{ a.title }}</a></li>{% endfor %}
                 </ul></details></td>
               <td class="num">{{ u.count }}</td>
-              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td></tr>
+              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td>
+              <td><button class="link" type="button" data-suggest="https://{{ u.domain }}">Aufnehmen</button></td></tr>
           {% endfor %}
           </tbody>
         </table></div>
@@ -466,7 +503,10 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 
       <div class="card admin">
         <h2>Letzter Lauf</h2>
-        <p class="lead">Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time> · {{ stats|length }} feste Quellen</p>
+        <p class="lead">Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time> · {{ stats|length }} feste Quellen.
+          Läuft automatisch alle 3 Stunden.</p>
+        {% if repo %}<p><a class="btn" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Jetzt aktualisieren</a>
+          <span class="n">öffnet GitHub, dort «Run workflow»</span></p>{% endif %}
         {% if errors %}
         <ul class="plain">{% for e in errors %}<li><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></li>{% endfor %}</ul>
         {% else %}<p class="lead">Alle Quellen erreichbar.</p>{% endif %}
@@ -485,10 +525,11 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   </div>
 </nav>
 
-<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastUndo">Widerrufen</button></div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastUndo">Rückgängig</button></div>
 
 <script>
 (function () {
+  var REPO = "{{ repo }}";
   var store = {
     get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -496,7 +537,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   var $ = function (id) { return document.getElementById(id); };
   var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   var DAY = 864e5, BOOST = 2 * DAY, WEIGHT_SHIFT = DAY / 4;
-  var TITLES = { feed: "Feed", studies: "Studien", community: "Community", saved: "Gemerkt", admin: "Quellen" };
+  var TITLES = { feed: "Feed", studies: "Studien", community: "Community", saved: "Gemerkt", admin: "Einstellungen" };
 
   // Farbschema
   var root = document.documentElement, theme = store.get("psn-theme", "");
@@ -586,7 +627,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     Object.assign(tpl.dataset, { id: f.id, source: f.source, cat: f.category, published: f.published, topics: f.topics || "", domain: f.domain || "" });
     var av = tpl.querySelector(".avatar"), favicon = av.querySelector("img");
     av.firstChild.textContent = f.source.slice(0, 2).toUpperCase();
-    if (favicon) { if (f.domain) favicon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=64"; else favicon.remove(); }
+    if (favicon) { if (f.domain) favicon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(f.domain) + "&sz=128"; else favicon.remove(); }
     tpl.querySelector(".src").textContent = f.source;
     tpl.querySelector(".sub").textContent = f.category === "Abgelegt" ? "Selbst abgelegt" : fmt(f.published);
     var a = tpl.querySelector("h2 a"); a.textContent = f.title; a.href = f.link;
@@ -647,7 +688,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     feed.hidden = admin || saved;
     listFeed.hidden = admin || !saved;
     $("activeFilter").hidden = admin || saved || !(state.topic || state.source);
-    $("clearFilter").textContent = (state.source ? state.source : state.topic) + "  ✕";
+    $("clearFilter").textContent = (state.source ? state.source : "#" + state.topic) + "  ✕";
 
     if (admin) {
       renderAdmin();
@@ -692,7 +733,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     });
   });
 
-  // Hinweis unten mit "Widerrufen"
+  // Hinweis unten mit "Rückgängig"
   var toastTimer, undoFn;
   function toast(text, undo) {
     $("toastText").textContent = text; undoFn = undo; $("toastUndo").hidden = !undo; $("toast").hidden = false;
@@ -707,9 +748,8 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     menu.className = "menu";
     var boost = document.createElement("button"), mute = document.createElement("button");
     boost.type = mute.type = "button";
-    boost.textContent = votes[src] > 0 ? "«Mehr von " + src + "» aufheben" : "Mehr von " + src;
+    boost.textContent = votes[src] > 0 ? "«Mehr von " + src + "» aufheben" : "Mehr von " + src + " anzeigen";
     mute.textContent = src + " stummschalten";
-    mute.className = "destructive";
     boost.addEventListener("click", function () {
       if (votes[src] > 0) delete votes[src]; else votes[src] = 1;
       store.set("psn-votes", votes); closeMenus(); render();
@@ -729,6 +769,10 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest(".menu") && !e.target.closest("[data-act=menu]")) closeMenus();
+    var suggest = e.target.closest("[data-suggest]");
+    if (suggest) { $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
+    var qBtn = e.target.closest("[data-q]");
+    if (qBtn) { $("q").value = qBtn.dataset.q; go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
     var topicBtn = e.target.closest("[data-topic]");
     if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: filterTab(), admin: false }); return; }
     var srcBtn = e.target.closest(".src");
@@ -764,6 +808,18 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var text = Object.keys(list).map(function (id) { var f = list[id]; return "- " + f.title + " (" + f.source + ")\n  " + f.link; }).join("\n");
     if (!text) { toast("Liste ist leer"); return; }
     navigator.clipboard.writeText(text).then(function () { toast("Liste kopiert"); });
+  });
+
+  // Quelle aufnehmen: vorbereiteten Auftrag (Issue) auf GitHub öffnen; die Action add-source.yml erledigt den Rest
+  $("sourceForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!REPO) { toast("Repository unbekannt"); return; }
+    var url = $("srcUrl").value.trim();
+    var body = "url: " + url + "\nkategorie: " + $("srcCat").value + "\nname: " + $("srcName").value.trim()
+      + "\n\n(Automatisch verarbeitet von der Action «Quelle aufnehmen».)";
+    var href = "https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent("Quelle: " + url) + "&body=" + encodeURIComponent(body);
+    window.open(href, "_blank", "noopener");
+    $("sourceForm").reset();
   });
 
   render();
