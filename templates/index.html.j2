@@ -228,6 +228,15 @@ th { color: var(--label2); font-weight: 600; font-size: .78rem; white-space: now
 .toast button { background: none; border: 0; color: var(--accent); font-weight: 700; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 4px 0 24px; }
 
+/* Nach unten ziehen zum Neuladen (nur in der App vom Home-Bildschirm, Browser können das selbst) */
+.ptr { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top)); z-index: 25; width: 40px; height: 40px; margin-left: -20px;
+  border-radius: 50%; background: var(--card); box-shadow: var(--shadow-lg); display: grid; place-items: center; color: var(--label2);
+  opacity: 0; transform: translateY(-70px); pointer-events: none; transition: transform .25s ease, opacity .25s ease; }
+.ptr svg { width: 22px; height: 22px; }
+.ptr.ready { color: var(--accent); }
+.ptr.loading svg { animation: ptr-spin .7s linear infinite; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
+
 /* Passwort-Sperre */
 .gate { display: none; }
 html.locked .navbar, html.locked .shell, html.locked .tabbar { display: none; }
@@ -613,6 +622,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   </div>
 </nav>
 
+<div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></div>
 <div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastUndo">Rückgängig</button></div>
 
 <script>
@@ -938,6 +948,42 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
       $("topicName").scrollIntoView({ block: "center" }); $("topicWords").focus();
     }
   });
+
+  // Nach unten ziehen zum Neuladen: nur in der App vom Home-Bildschirm (dort fehlt es); ?ptr=1 zum Testen
+  (function () {
+    var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    if (!standalone && !/[?&]ptr=1/.test(location.search)) return;
+    var ptr = $("ptr"), icon = ptr.querySelector("svg"), startY = null, pull = 0, TRIGGER = 70, MAX = 110;
+    function place(offset, animate) {
+      ptr.style.transition = animate ? "" : "none";
+      ptr.style.transform = "translateY(" + (offset - 70) + "px)";
+      ptr.style.opacity = Math.min(offset / TRIGGER, 1);
+    }
+    document.addEventListener("touchstart", function (e) {
+      startY = window.scrollY <= 0 && !root.classList.contains("locked") ? e.touches[0].clientY : null;
+      pull = 0;
+    }, { passive: true });
+    document.addEventListener("touchmove", function (e) {
+      if (startY === null) return;
+      pull = Math.min(Math.max(0, e.touches[0].clientY - startY) * 0.5, MAX);
+      place(pull, false);
+      icon.style.transform = "rotate(" + pull * 3 + "deg)";
+      ptr.classList.toggle("ready", pull >= TRIGGER);
+    }, { passive: true });
+    document.addEventListener("touchend", function () {
+      if (startY === null) return;
+      startY = null;
+      if (pull >= TRIGGER) {
+        place(TRIGGER, true);
+        icon.style.transform = "";
+        ptr.classList.add("loading");
+        setTimeout(function () { location.reload(); }, 250);
+      } else {
+        place(0, true);
+        ptr.classList.remove("ready");
+      }
+    });
+  })();
 
   render();
 })();

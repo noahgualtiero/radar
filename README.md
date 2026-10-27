@@ -71,6 +71,10 @@ Unter jedem Beitrag:
 
 Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
 
+**Neu laden auf dem Handy:** oben nach unten ziehen. Im Browser macht das Safari bzw.
+Chrome selbst; in der App vom Home-Bildschirm übernimmt es Radar (Symbol oben, ab etwa
+7 cm Zug lädt die Seite neu). Neue Beiträge gibt es nach jedem Lauf der Action.
+
 Bewertungen, Gemerkt und Blog-Ideen werden **im Browser** gespeichert, also pro Gerät und
 Browser. Wer die Browserdaten löscht, verliert sie.
 
