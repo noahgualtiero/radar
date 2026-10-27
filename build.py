@@ -361,9 +361,8 @@ def pick_articles(items: list[dict], n: int = 3) -> list[dict]:
     return picked[:n]
 
 
-def yesterday_topics(items: list[dict], weights: dict[str, int]) -> dict:
-    """Wichtigste Themen des Vortages: Beiträge × Quellen, gewichtet mit der Themen-Wichtigkeit."""
-    day = datetime.now(TZ).date() - timedelta(days=1)
+def day_topics(items: list[dict], weights: dict[str, int], day) -> dict:
+    """Wichtigste Themen eines Tages: Beiträge × Quellen, gewichtet mit der Themen-Wichtigkeit."""
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
     rows = []
     for name, weight in weights.items():
@@ -600,23 +599,73 @@ def fallback_points(pool: list[dict]) -> list[dict]:
     return points
 
 
-def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | None) -> dict:
-    """Briefing für den Vortag: Lauftext, die drei wichtigsten Beiträge, Themen. Das KI-Ergebnis wird
-    pro Tag nur einmal erzeugt und danach aus dem bisherigen Stand übernommen."""
-    data = yesterday_topics(items, weights)
-    day = datetime.fromisoformat(data["date"]).date()
+BRIEFING_DAYS = 62      # Briefings so lange aufbewahren (deckt den Vormonat ab)
+AI_BACKFILL = 2         # ältere Tage ohne KI-Text, die pro Lauf nachgeholt werden
+
+
+def brief_refs(items: list[dict], n: int) -> list[dict]:
+    return [{**article_ref(i), "why": ""} for i in items[:n]]
+
+
+def build_day(day, items: list[dict], weights: dict[str, int], use_ai: bool) -> tuple[dict | None, str]:
+    """Briefing eines Tages aus den Beiträgen dieses Tages; None, wenn es keine gibt."""
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
+    if not pool:
+        return None, ""
     pool.sort(key=lambda i: (i.get("weight", 0), i["category"] == "Offiziell", i["published"]), reverse=True)
-    old = previous or {}
-    note = ""
-    if old.get("date") == data["date"] and old.get("by") == "ki":
-        result, by = {"text": old["text"], "points": old.get("points") or []}, "ki"
-    else:
-        result, note = ai_briefing(day, pool)
-        by = "ki" if result else "auto"
-        result = result or {"text": fallback_summary(day, pool, data["topics"]), "points": fallback_points(pool)}
-    return {"date": data["date"], "label": german_date(day), "text": result["text"], "points": result["points"],
-            "by": by, "note": note, "total": len(pool), "topics": data["topics"]}
+    topics = day_topics(items, weights, day)["topics"]
+    result, note = ai_briefing(day, pool) if use_ai else (None, "")
+    by = "ki" if result else "auto"
+    result = result or {"text": fallback_summary(day, pool, topics), "points": fallback_points(pool)}
+    shown = {pt["link"] for pt in result["points"]}
+    studies = [i for i in pool if i.get("study") and i["link"] not in shown]
+    community = sorted((i for i in items if i["category"] == COMMUNITY and local_date(i) == day),
+                       key=lambda i: (i.get("weight", 0), i["published"]), reverse=True)
+    return {
+        "date": day.isoformat(), "text": result["text"], "points": result["points"], "by": by,
+        "total": len(pool), "topics": [{"topic": t["topic"], "count": t["count"]} for t in topics],
+        "studies": brief_refs(studies, 3), "community": brief_refs(community, 3),
+    }, note
+
+
+def build_briefings(items: list[dict], weights: dict[str, int], previous: dict) -> tuple[list[dict], str]:
+    """Ein Briefing pro Tag, neueste zuerst. Gespeicherte Briefings bleiben BRIEFING_DAYS Tage erhalten,
+    auch wenn ihre Beiträge schon aus dem 30-Tage-Fenster gefallen sind. Die KI schreibt den Vortag und
+    holt pro Lauf AI_BACKFILL ältere Tage nach; ein KI-Text wird nie neu erzeugt."""
+    today = datetime.now(TZ).date()
+    stored = {b["date"]: b for b in previous.get("briefings") or []}
+    legacy = previous.get("briefing") or {}
+    if legacy.get("date") and legacy["date"] not in stored and legacy.get("by") == "ki":
+        stored[legacy["date"]] = legacy
+    has_token = bool(os.environ.get("GITHUB_TOKEN"))
+    backfill, note = AI_BACKFILL, ""
+    result = {}
+    for offset in range(1, MAX_AGE_DAYS + 1):
+        day = today - timedelta(days=offset)
+        key = day.isoformat()
+        old = stored.get(key)
+        if old and old.get("by") == "ki":
+            result[key] = old
+            continue
+        use_ai = has_token and (offset == 1 or backfill > 0)
+        entry, reason = build_day(day, items, weights, use_ai)
+        if offset == 1:
+            note = reason
+        if use_ai and offset > 1:
+            backfill -= 1
+        if entry:
+            result[key] = entry
+        elif old:
+            result[key] = old
+    cutoff = (today - timedelta(days=BRIEFING_DAYS)).isoformat()
+    for key, old in stored.items():
+        if key not in result and key >= cutoff:
+            result[key] = old
+    briefings = [result[k] for k in sorted(result, reverse=True)]
+    for b in briefings:
+        b["label"] = german_date(datetime.fromisoformat(b["date"]).date())
+        b["month"] = f"{MONTHS[int(b['date'][5:7]) - 1]} {b['date'][:4]}"
+    return briefings, note
 
 
 def community_topics(items: list[dict]) -> list[tuple[str, int]]:
@@ -695,13 +744,15 @@ def main() -> int:
     mark_studies(items)
     add_cover_images(items)
 
-    briefing = build_briefing(items, weights, previous.get("briefing"))
+    briefings, briefing_note = build_briefings(items, weights, previous)
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
-        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "points", "by", "note")}, "items": items},
+        json.dumps({"generated": generated, "briefing_note": briefing_note,
+                    "briefings": [{k: v for k, v in b.items() if k not in ("label", "month")} for b in briefings],
+                    "items": items},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )
@@ -718,7 +769,8 @@ def main() -> int:
         topic_defs=topics,
         search_defs=searches.get("begriffe") or [],
         weights=weights,
-        briefing=briefing,
+        briefings=briefings,
+        briefing_note=briefing_note,
         stories=story_clusters(items, weights),
         trends=trending_terms(items),
         community=community_topics(items),

@@ -193,6 +193,14 @@ svg { flex: none; }
 .btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 9px 18px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
 .btn.plain { background: var(--fill); color: var(--text); }
 
+/* Briefing-Feed */
+.month { font-size: 1.15rem; font-weight: 800; letter-spacing: -.02em; margin: 30px 4px 12px; }
+#briefingView .month:first-of-type { margin-top: 6px; }
+.trend-now { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 6px; font-size: .85rem; }
+.trend-now .n { margin-right: 4px; }
+.hero.day { margin-bottom: 22px; }
+.hero.day .chip-row { margin: 4px 0 10px; }
+
 /* Briefing: die drei wichtigsten Punkte */
 .points { margin: 4px 0 14px; border-top: 1px solid var(--sep); }
 .points-title { font-size: .74rem; font-weight: 650; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 4px; }
@@ -399,7 +407,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   .top { display: flex; margin: 0 0 8px; padding: 4px 0 10px; border-bottom: 1px solid var(--sep); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
-  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line { margin-left: 12px; margin-right: 12px; }
+  .hero, .active-filter, .list-head, #admin, #savedHead, #listFeed, .empty, footer, .seen-line, .trend-now, .month { margin-left: 12px; margin-right: 12px; }
+  .trend-now { margin-top: 8px; }
   .hero { margin-top: 10px; }
   .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
   .hero { margin-bottom: 28px; }
@@ -415,7 +424,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 {% set ico_community %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>{% endset %}
 {% set ico_saved %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4v-17z"/></svg>{% endset %}
 {% set ico_gear %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>{% endset %}
-{% set tabs = [("feed", "Feed", ico_feed), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
+{% set ico_brief %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>{% endset %}
+{% set tabs = [("feed", "Feed", ico_feed), ("briefing", "Briefing", ico_brief), ("studies", "Studien", ico_studies), ("community", "Community", ico_community), ("saved", "Gemerkt", ico_saved)] %}
 
 {% if password_hash %}
 <div class="gate">
@@ -485,27 +495,48 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       <button class="link search-cancel" type="button" id="searchCancel">Abbrechen</button>
     </div>
 
-    {# ---------- Briefing oben im Feed ---------- #}
-    <section class="card hero" id="briefing">
-      <p class="eyebrow">Briefing · {{ briefing.label }}</p>
-      <p class="brief-text">{{ briefing.text }}</p>
-      {% if briefing.points %}
-      <div class="points">
-        <p class="points-title">Das Wichtigste</p>
-        {% for pt in briefing.points %}
-        <a class="point" href="{{ pt.link }}" target="_blank" rel="noopener nofollow external">
-          <img src="https://www.google.com/s2/favicons?domain={{ pt.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-          <div><b>{{ pt.title }}</b>{% if pt.why %}<span class="why">{{ pt.why }}</span>{% endif %}<span class="src">{{ pt.source }}</span></div>
-        </a>
-        {% endfor %}
-      </div>
-      {% endif %}
-      <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Beiträgen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
+    {# ---------- Briefing-Feed: ein Briefing pro Tag, neueste zuerst ---------- #}
+    <section id="briefingView" hidden>
       {% if trends %}
-      <div class="chip-row">
-        {% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="Im Trend: {{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}
+      <div class="trend-now"><span class="n">Jetzt im Trend</span>
+        {% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="{{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}
       </div>
       {% endif %}
+      {% for b in briefings %}
+      {% if loop.first or b.month != briefings[loop.index0 - 1].month %}<h3 class="month">{{ b.month }}</h3>{% endif %}
+      <article class="card hero day">
+        <p class="eyebrow">{{ b.label }}</p>
+        <p class="brief-text">{{ b.text }}</p>
+        {% if b.points %}
+        <div class="points">
+          <p class="points-title">Das Wichtigste</p>
+          {% for pt in b.points %}
+          <a class="point" href="{{ pt.link }}" target="_blank" rel="noopener nofollow external">
+            <img src="https://www.google.com/s2/favicons?domain={{ pt.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div><b>{{ pt.title }}</b>{% if pt.why %}<span class="why">{{ pt.why }}</span>{% endif %}<span class="src">{{ pt.source }}</span></div>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% for title, refs in [("Studien", b.studies), ("Aus der Community", b.community)] if refs %}
+        <div class="points">
+          <p class="points-title">{{ title }}</p>
+          {% for pt in refs %}
+          <a class="point" href="{{ pt.link }}" target="_blank" rel="noopener nofollow external">
+            <img src="https://www.google.com/s2/favicons?domain={{ pt.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div><b>{{ pt.title }}</b><span class="src">{{ pt.source }}</span></div>
+          </a>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        {% if b.topics %}
+        <div class="chip-row">{% for t in b.topics %}<button class="chip" type="button" data-topic="{{ t.topic }}">{{ t.topic }}<span class="n">{{ t.count }}</span></button>{% endfor %}</div>
+        {% endif %}
+        <p class="brief-by">{% if b.by == "ki" %}Von KI zusammengefasst aus {{ b.total }} Beiträgen.{% else %}Automatisch zusammengestellt aus {{ b.total }} Beiträgen.{% endif %}</p>
+      </article>
+      {% else %}
+      <p class="empty">Noch keine Briefings.</p>
+      {% endfor %}
     </section>
 
     {% if community %}
@@ -719,8 +750,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       <h3 class="group-title">Letzter Lauf</h3>
       <div class="card group">
         <div class="setting"><span>Stand</span><span class="n"><time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time></span></div>
-        <div class="setting"><span>Briefing</span><span class="n">{% if briefing.by == "ki" %}von der KI{% else %}automatisch{% endif %}</span></div>
-        {% if briefing.by != "ki" and briefing.note %}<div class="setting stack"><span class="n">KI nicht verfügbar: {{ briefing.note }}</span></div>{% endif %}
+        {% set latest = briefings[0] if briefings else none %}
+        <div class="setting"><span>Briefing</span><span class="n">{% if latest and latest.by == "ki" %}von der KI{% else %}automatisch{% endif %} · {{ briefings|selectattr("by", "equalto", "ki")|list|length }} von {{ briefings|length }} Tagen mit KI</span></div>
+        {% if briefing_note %}<div class="setting stack"><span class="n">KI nicht verfügbar: {{ briefing_note }}</span></div>{% endif %}
         {% for e in errors %}<div class="setting stack"><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></div>{% endfor %}
         {% if repo %}<div class="setting end"><a class="btn plain" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Jetzt aktualisieren</a></div>{% endif %}
       </div>
@@ -893,20 +925,22 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     $$("[data-tab]").forEach(function (b) {
       b.setAttribute("aria-selected", (admin ? b.dataset.tab === "settings" : b.dataset.tab === tab) ? "true" : "false");
     });
-    $("briefing").hidden = admin || tab !== "feed" || filtered;
+    var brief = tab === "briefing" && !admin;
+    $("briefingView").hidden = !brief;
+    $("top").hidden = brief || admin;
     $$(".topic-nav [data-topic]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.topic === state.topic ? "true" : "false"); });
     $("admin").hidden = !admin;
     $("chips").hidden = admin || saved;
     var communityBrief = $("communityBrief");
     if (communityBrief) communityBrief.hidden = admin || tab !== "community" || filtered;
     $("savedHead").hidden = admin || !saved;
-    feed.hidden = admin || saved;
+    feed.hidden = admin || saved || brief;
     listFeed.hidden = admin || !saved;
-    $("activeFilter").hidden = admin || saved || !(state.topic || state.source);
+    $("activeFilter").hidden = admin || saved || brief || !(state.topic || state.source);
     $("clearFilter").textContent = (state.source ? state.source : "#" + state.topic) + "  ✕";
 
-    if (admin) {
-      renderAdmin();
+    if (admin || brief) {
+      if (admin) renderAdmin();
     } else if (saved) {
       listFeed.innerHTML = "";
       Object.keys(lists[state.list]).map(function (id) { return lists[state.list][id]; })
@@ -928,7 +962,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       var lastShown = posts.filter(function (p) { return !p.hidden; }).pop();
       if (lineAfter && !filtered && lineAfter !== lastShown) lineAfter.after(seenLine); else seenLine.remove();
     }
-    $("empty").hidden = admin || shown > 0;
+    $("empty").hidden = admin || brief || shown > 0;
     $("empty").textContent = EMPTY[saved ? state.list : tab];
   }
 

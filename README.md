@@ -22,20 +22,24 @@ Oberfläche im Stil von Instagram (Schrift Inter):
 
 | Tab | Inhalt |
 |---|---|
-| **Feed** (Start) | Oben die Briefing-Karte zum Vortag (Lauftext, «Das Wichtigste» mit drei Beiträgen, Trend-Begriffe und Themen als Chips), darunter die Beiträge der festen Quellen |
+| **Feed** (Start) | Beiträge der festen Quellen |
+| **Briefing** | Ein Briefing pro Tag, neueste zuerst, nach Monaten getrennt, rund 2 Monate zurück: Lauftext, «Das Wichtigste» (3 Beiträge mit Begründung), Studien und Community des Tages, Themen; oben die aktuellen Trend-Begriffe |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
 | **Einstellungen** | Gruppierte Listen: Quellen (mit Daumen hoch/runter), Regeln, Themen, Suchbegriffe, Vorschläge, Darstellung, letzter Lauf |
 
-**Briefing:** In der GitHub Action wertet eine KI über
-[GitHub Models](https://github.com/marketplace/models) (gratis Kontingent, Modell
-`openai/gpt-4.1-mini`) Titel und Anriss der Beiträge des Vortages aus. Sie schreibt 3–4 Sätze
-Lauftext und wählt die drei wichtigsten Beiträge mit je einem Satz, was sie für Google-Ads-,
-Microsoft-Ads- oder Shopping-Kampagnen bedeuten – nur aus den Beiträgen, ohne Erfindungen.
-Das Ergebnis entsteht einmal pro Tag. Ohne KI (lokal oder bei einem Fehler) stehen ein
-zusammengesetzter Text und die drei wichtigsten Beiträge (offizielle zuerst) mit ihrem Anriss
-da. Ob die KI lief und warum nicht, steht in den Einstellungen unter «Letzter Lauf».
+**Briefing:** Für jeden Tag entsteht ein Briefing aus den Beiträgen dieses Tages. In der GitHub
+Action wertet eine KI über [GitHub Models](https://github.com/marketplace/models) (gratis
+Kontingent, Modell `openai/gpt-4.1-mini`) Titel und Anriss aus: 3–4 Sätze Lauftext und die
+drei wichtigsten Beiträge mit je einem Satz, was sie für Google-Ads-, Microsoft-Ads- oder
+Shopping-Kampagnen bedeuten – nur aus den Beiträgen, ohne Erfindungen. Dazu kommen die
+Studien und die Community-Beiträge des Tages. Die KI schreibt jeweils den Vortag und holt pro
+Lauf zwei ältere Tage ohne KI-Text nach; ein KI-Text wird einmal erzeugt und dann behalten.
+Briefings bleiben rund 2 Monate gespeichert (`items.json`, Feld `briefings`), auch wenn die
+Beiträge nach 30 Tagen aus dem Feed fallen. Ohne KI stehen ein zusammengesetzter Text und
+die drei wichtigsten Beiträge mit ihrem Anriss da. Ob und warum die KI nicht lief, steht in
+den Einstellungen unter «Letzter Lauf».
 
 **Themen:** Ein Tipp auf einen Themen-Chip filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
