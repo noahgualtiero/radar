@@ -440,6 +440,13 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 .actions .cnt { font-size: .86rem; font-weight: 650; min-width: 0; }
 .actions .cnt:empty { display: none; }
 
+/* Schalter «in meinem Feed» in der Quellen-Zeile */
+.toggle { width: 50px; height: 30px; border-radius: 999px; border: 0; background: var(--fill); position: relative; cursor: pointer; flex: none; padding: 0; transition: background .2s; }
+.toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); transition: transform .2s; }
+.toggle[aria-checked="true"] { background: var(--green); }
+.toggle[aria-checked="true"]::after { transform: translateX(20px); }
+.row.is-off .row-main b, .row.is-off .fav { opacity: .5; }
+
 /* Vorschläge oben im Feed */
 .suggestion { padding: 16px 18px; margin-bottom: 22px; background: var(--panel); border-color: var(--sep-soft); }
 .suggestion p { margin: 0 0 12px; font-size: .95rem; font-weight: 550; }
@@ -607,10 +614,11 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       <h3 class="group-title">Quellen <span class="n">{{ stats|length }}</span></h3>
       <div class="card group">
         {% for s in stats %}
-        <details class="row" data-source="{{ s.name }}">
+        <details class="row" data-source="{{ s.name }}" data-standard="{{ 1 if s.standard else 0 }}">
           <summary>
             <img class="fav" src="https://www.google.com/s2/favicons?domain={{ s.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}<span class="eng"></span></span></div>
+            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}{% if not s.standard %} · aufgenommen{% if s.by %} von {{ s.by }}{% endif %}{% endif %}<span class="eng"></span></span></div>
+            <button class="toggle" type="button" role="switch" aria-checked="false" aria-label="{{ s.name }} in meinem Feed" title="In meinem Feed"></button>
             <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
           </summary>
           <div class="row-body">
@@ -622,13 +630,10 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
               <div><span>Themen-Treffer</span><b>{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</b></div>
               <div><span>Feed</span><b>{{ s.host }}</b></div>
             </div>
-            <div class="row-actions">
-              <button class="btn plain danger admin-only" type="button" hidden data-op="source_remove" data-name="{{ s.name }}" data-confirm="{{ s.name }} als Quelle entfernen?">Quelle entfernen</button>
-            </div>
           </div>
         </details>
         {% endfor %}
-        <details class="row admin-only" id="addSource" hidden>
+        <details class="row" id="addSource">
           <summary><span class="plus">+</span><div class="row-main"><b>Quelle aufnehmen</b><span>Website, Blog oder Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
           <div class="row-body">
             <form class="form flat" id="sourceForm">
@@ -642,9 +647,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
           </div>
         </details>
       </div>
-      <p class="group-note">Die Reihenfolge im Feed richtet sich nach Aktualität, Daumen und geöffneten Artikeln des Teams.
-        Quellen aufnehmen und entfernen können nur Admins; ihnen schlägt Radar oben im Feed auch Quellen vor.
-        Den Feed einer neuen Website sucht der nächste Abruf.</p>
+      <p class="group-note">Der Schalter bestimmt, was in <b>deinem</b> Feed steht; andere sehen ihre eigene Auswahl.
+        Eine neue Quelle steht in deinem Feed, für andere bleibt sie aus, bis sie sie anschalten. Das Briefing und
+        «Team-Tipps» berücksichtigen alle Quellen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
 
       <h3 class="group-title">Regeln für alle Quellen</h3>
       <form class="card group" id="rulesForm">
@@ -797,8 +802,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   // ---------- Daten des Teams (API) ----------
   // Online: Votes, Klicks und Gemerkt liegen in der Datenbank. Ohne API (z.B. Datei lokal geöffnet)
   // bleiben eigene Votes und Gemerkt in diesem Browser.
-  var server = { online: false, me: "", articles: {}, votes: {}, suggestions: [], autoRebuild: false };
+  var server = { online: false, me: "", articles: {}, votes: {}, sources: {}, suggestions: [], autoRebuild: false };
   var localVotes = store.get("psn-avotes", {});
+  var localSources = store.get("psn-sources", {});
   var saved = store.get("psn-favs", {});
   var clicked = {};
 
@@ -810,6 +816,24 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
         if (!r.ok) throw new Error(d.error || "Fehler " + r.status);
         return d;
       });
+    });
+  }
+  // Eigene Quellenwahl: 1 = an, -1 = aus; sonst gilt, ob die Quelle Standard ist
+  var STANDARD = {};
+  $$("#admin details[data-source]").forEach(function (r) { STANDARD[r.dataset.source] = r.dataset.standard === "1"; });
+  function mySources() { return server.online ? server.sources : localSources; }
+  function inMyFeed(name) {
+    var v = mySources()[name];
+    return v === 1 ? true : v === -1 ? false : STANDARD[name] !== false;
+  }
+  function reloadState() {
+    return api("state").then(function (d) {
+      server = Object.assign(d, { online: true });
+      saved = {};
+      d.saved.forEach(function (f) { saved[f.id] = f; });
+      computeSourceAvg();
+      render();
+      return d;
     });
   }
   function myVote(id) { return (server.online ? server.votes : localVotes)[id] || 0; }
@@ -843,8 +867,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   // ---------- Darstellung ----------
   var state = { tab: "feed", topic: "", type: "", team: false, source: "", q: "" };
   var TABS = {
-    feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community"; },
-    discover: function (p) { return p.dataset.kind === "entdecken" || p.dataset.cat === "Community"; }
+    // Feed: eigene Quellen; «Team-Tipps» zeigt, was andere gut fanden, aus allen Quellen
+    feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && (state.team || inMyFeed(p.dataset.source)); },
+    discover: function (p) { return p.dataset.kind === "entdecken" || (p.dataset.cat === "Community" && inMyFeed(p.dataset.source)); }
   };
   var EMPTY = {
     feed: "Keine Beiträge für diese Auswahl.",
@@ -916,8 +941,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
         b.type = "button"; b.className = o[2]; b.textContent = o[1];
         b.addEventListener("click", function () {
           api("suggestion", { key: s.key, action: o[0], name: s.name }).then(function (d) {
-            server.suggestions = server.suggestions.filter(function (x) { return x.key !== s.key; });
-            render(); toast(d.message + (d.rebuild ? " Radar baut neu." : ""));
+            toast(d.message + (d.rebuild ? " Radar holt die Beiträge in ein paar Minuten." : ""));
+            return reloadState();
           }).catch(function (e) { toast(e.message); });
         });
         row.appendChild(b);
@@ -927,8 +952,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   }
 
   function renderAdmin() {
-    $("me").textContent = server.online ? server.me + (server.admin ? " (Admin)" : "") : "offline";
-    $$(".admin-only").forEach(function (el) { el.hidden = !server.admin; });
+    $("me").textContent = server.online ? server.me : "offline";
     $$("#admin details[data-source]").forEach(function (row) {
       var name = row.dataset.source, up = 0, down = 0, clicks = 0;
       posts.forEach(function (p) {
@@ -938,6 +962,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       row.querySelector(".f-votes").textContent = server.online ? "▲ " + up + "  ▼ " + down : "–";
       row.querySelector(".f-clicks").textContent = server.online ? clicks : "–";
       row.querySelector(".eng").textContent = up || down ? " · ▲ " + up + " ▼ " + down : "";
+      var on = inMyFeed(name);
+      row.querySelector(".toggle").setAttribute("aria-checked", on ? "true" : "false");
+      row.classList.toggle("is-off", !on);
     });
   }
 
@@ -953,7 +980,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
       var on = b.id === "chipAll" ? !(state.topic || state.type || state.team) : b.dataset.topic ? b.dataset.topic === state.topic : b.dataset.type === state.type;
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
-    var team = posts.filter(function (p) { return TABS.feed(p) && counts(p.dataset.id).team > 0; }).length;
+    var team = posts.filter(function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && counts(p.dataset.id).team > 0; }).length;
     $("teamChip").hidden = !team; $("nTeam").textContent = team || "";
     $("teamChip").setAttribute("aria-pressed", state.team ? "true" : "false");
     $("admin").hidden = !admin;
@@ -1161,8 +1188,9 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   function change(body, done) {
     if (!server.online) { toast("Ändern geht nur in der Online-Version"); return; }
     api("config", body).then(function (d) {
-      toast(d.message + (d.rebuild ? " Radar baut neu, in ein paar Minuten sichtbar." : " Wirkt beim nächsten Abruf."));
+      toast(d.message + (d.rebuild ? " Radar baut neu, in ein paar Minuten sichtbar." : d.message.indexOf("Feed.") > 0 ? "" : " Wirkt beim nächsten Abruf."));
       if (done) done();
+      reloadState();
     }).catch(function (e) { toast(e.message); });
   }
   $("sourceForm").addEventListener("submit", function (e) {
@@ -1187,6 +1215,23 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     change({ op: "search_add", term: $("searchTerm").value.trim() }, function () { $("searchForm").reset(); });
   });
   $("admin").addEventListener("click", function (e) {
+    // Schalter in der Quellen-Zeile: ohne die Zeile auf- oder zuzuklappen
+    var sw = e.target.closest(".toggle");
+    if (sw) {
+      e.preventDefault();
+      var name = sw.closest("[data-source]").dataset.source, on = !inMyFeed(name);
+      mySources()[name] = on ? 1 : -1;
+      if (server.online) api("my-source", { source: name, on: on }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
+      else store.set("psn-sources", localSources);
+      computeSourceAvg(); render();
+      toast(on ? name + " ist in deinem Feed" : name + " ist aus deinem Feed", function () {
+        mySources()[name] = on ? -1 : 1;
+        if (server.online) api("my-source", { source: name, on: !on }).catch(function () {});
+        else store.set("psn-sources", localSources);
+        render();
+      });
+      return;
+    }
     var op = e.target.closest("[data-op]");
     if (op && confirm(op.dataset.confirm)) change({ op: op.dataset.op, name: op.dataset.name, term: op.dataset.term });
   });
@@ -1253,7 +1298,7 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     }
     computeSourceAvg();
     render();
-  }).catch(function () { /* offline: lokale Votes und Gemerkt */ });
+  }).catch(function () { /* offline: lokale Votes, Quellenwahl und Gemerkt */ });
 })();
 </script>
 </body>

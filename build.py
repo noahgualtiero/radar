@@ -671,6 +671,8 @@ def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
             "host": domain_of(source.get("feed") or source["url"]),
             "domain": Counter(i["domain"] for i in hits).most_common(1)[0][0] if hits else domain_of(source["url"]),
             "rel": round(sum(i["rel"] for i in hits) / len(hits), 1) if hits else None,
+            "standard": source.get("standard") is not False,
+            "by": (source.get("von") or "").split("@")[0],
         })
     return rows
 

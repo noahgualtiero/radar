@@ -25,11 +25,11 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 
 | Tab | Inhalt |
 |---|---|
-| **Feed** | Die festen Quellen. Oben Themen-Chips und «Team-Tipps» (Artikel, die andere hochgevotet haben). Gelegentlich erscheint ein Vorschlag |
+| **Feed** | Die eigenen Quellen. Oben Themen-Chips und «Team-Tipps» (Artikel, die andere hochgevotet haben). Gelegentlich erscheint ein Vorschlag |
 | **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
 | **Gemerkt** | Persönlich und auf allen Geräten gleich. «+ Link» legt fremde Artikel ab, «Kopieren» kopiert die Liste |
-| **Quellen** | Quellen mit Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
+| **Quellen** | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
 Bei jedem Beitrag gibt es vier Aktionen:
 - **Daumen hoch:** guter Artikel. Die Zahl daneben zählt alle Daumen im Team.
@@ -40,7 +40,7 @@ Bei jedem Beitrag gibt es vier Aktionen:
 Melden mehrere Quellen dasselbe, steht der Beitrag nur einmal da, mit dem Vermerk «Auch bei …».
 
 Sichtbare Profile gibt es keine. Cloudflare Access weiss, wer angemeldet ist. Damit zählt jede
-Person pro Artikel nur einmal, und Gemerkt bleibt persönlich.
+Person pro Artikel nur einmal; Gemerkt und die Quellenwahl sind persönlich.
 
 Mit der Taste «/» oder dem Chip «Suchen» lässt sich suchen. Direktlinks wie `#discover`,
 `#briefing`, `#saved` oder `#sources` öffnen einen Tab direkt.
@@ -59,15 +59,15 @@ Mit der Taste «/» oder dem Chip «Suchen» lässt sich suchen. Direktlinks wie
 
 Alle Gewichte stehen unter `gewichtung` in `sources.yaml`.
 
-**Vorschläge oben im Feed** (Schwellen unter `vorschlaege`):
+**Vorschläge oben im Feed**, für jede Person aus ihrem eigenen Verhalten (Schwellen unter `vorschlaege`):
 
-- **Aufnehmen?** Das Team hat in 30 Tagen mindestens 3 Suchfunde derselben Website geöffnet
+- **Aufnehmen?** Ich habe in 30 Tagen mindestens 3 Suchfunde derselben Website geöffnet
   oder hochgevotet.
-- **Entfernen?** Eine Quelle hat in 30 Tagen mindestens 5 Votes mit negativem Saldo, oder
-  seit 60 Tagen hat sie niemand geöffnet.
+- **Aus dem Feed nehmen?** Ich habe eine Quelle in 30 Tagen mindestens 3-mal bewertet, mit
+  negativem Saldo, oder sie seit 60 Tagen nicht geöffnet.
 - **Antworten:**
   - «Nein, danke» blendet den Vorschlag 90 Tage aus.
-  - «Aufnehmen» trägt die Website ein. Den Feed sucht der nächste Abruf. Ohne Feed dient eine
+  - «Aufnehmen» nimmt die Website in den eigenen Feed. Den Feed sucht der nächste Abruf. Ohne Feed dient eine
     Google-News-Suche nach `site:Domain`.
 
 ## KI
@@ -104,10 +104,13 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 - Ist `GITHUB_TOKEN` gesetzt (siehe unten), stösst jede Änderung sofort einen neuen Abruf an.
 - Sonst wirkt sie beim nächsten regulären Lauf.
 
-**Wer was ändern darf:**
-- Quellen aufnehmen und entfernen, auch über die Vorschläge: nur die Admins aus `ADMIN_EMAILS`.
-  Nur sie sehen die Vorschläge und die Knöpfe dazu, und die API lehnt solche Änderungen von anderen ab.
-- Themen, Suchbegriffe und Regeln: alle Angemeldeten.
+**Eigene Quellen:** Jede Person wählt im Tab Quellen per Schalter, was in ihrem Feed steht.
+- Die Quellen aus `sources.yaml` sind Standard: für alle an, jede Person kann sie für sich ausschalten.
+- Wer eine Quelle aufnimmt, hat sie im eigenen Feed. Für die anderen bleibt sie aus, bis sie sie selbst anschalten.
+- Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
+- Das Briefing und «Team-Tipps» berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
+
+**Gemeinsam für alle:** Themen, Suchbegriffe und Regeln.
 
 **Regeln:** Sie gelten für alle Quellen gleich:
 - Mindestlänge des Titels
@@ -175,7 +178,6 @@ Secrets*, Umgebung Production)
 |---|---|
 | `ACCESS_TEAM_DOMAIN` | z.B. `standout.cloudflareaccess.com` (unter *Zero Trust → Settings*) |
 | `ACCESS_AUD` | AUD-Tag aus Schritt 5 |
-| `ADMIN_EMAILS` | wer Quellen aufnehmen und entfernen darf, z.B. `noah.kaech@standout.ch` (mehrere mit Komma) |
 | `GITHUB_REPO` | optional: `noahgualtiero/radar` |
 | `GITHUB_TOKEN` (Secret) | optional: Fine-grained Token, nur für dieses Repo, mit *Actions: Read and write*. Damit stösst eine Änderung in Radar sofort einen Abruf an |
 
@@ -201,7 +203,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 ```bash
-printf 'DEV_USER=ich@lokal.test\nADMIN_EMAILS=ich@lokal.test\n' > .dev.vars && npx wrangler@4.149.0 d1 execute radar --local --file schema.sql
+printf 'DEV_USER=ich@lokal.test\n' > .dev.vars && npx wrangler@4.149.0 d1 execute radar --local --file schema.sql
 ```
 
 ```bash

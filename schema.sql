@@ -34,10 +34,21 @@ CREATE TABLE IF NOT EXISTS saved (
   PRIMARY KEY (user, article_id)
 );
 
--- Beantwortete Vorschläge («aufnehmen?», «entfernen?») erscheinen bis «until» nicht wieder
+-- Beantwortete Vorschläge («aufnehmen?», «entfernen?») erscheinen dieser Person bis «until» nicht wieder
 CREATE TABLE IF NOT EXISTS dismissed (
-  key   TEXT PRIMARY KEY,
-  until TEXT NOT NULL
+  user  TEXT NOT NULL,
+  key   TEXT NOT NULL,
+  until TEXT NOT NULL,
+  PRIMARY KEY (user, key)
+);
+
+-- Eigene Quellenwahl: 1 = im eigenen Feed, -1 = ausgeschaltet; ohne Eintrag gilt der Standard der Quelle
+CREATE TABLE IF NOT EXISTS user_sources (
+  user       TEXT NOT NULL,
+  source     TEXT NOT NULL,
+  value      INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (user, source)
 );
 
 -- Einstellungen (Quellen, Themen, Regeln, Suchen, KI) als ein JSON-Dokument unter key 'main'

@@ -4,15 +4,17 @@
 // (Cf-Access-Jwt-Assertion) mit der E-Mail. Ohne gültiges Token gibt es keine Antwort.
 // Lokal (wrangler pages dev) ersetzt DEV_USER aus .dev.vars die Anmeldung.
 //
-// Quellen aufnehmen und entfernen (auch über Vorschläge) dürfen nur die Admins aus ADMIN_EMAILS
-// (Komma-Liste). Ist die Variable leer, darf es niemand.
+// Quellen wählt jede Person für sich: Standardquellen sind für alle an, jede Person kann sie für
+// sich ausschalten und weitere aufnehmen. Abgerufen werden alle Quellen, die jemand nutzt; das
+// Briefing entsteht aus allen.
 //
-//   GET  /api/state       eigene Votes, Team-Zahlen pro Artikel, Gemerkt, Vorschläge, Einstellungen
+//   GET  /api/state       eigene Votes und Quellen, Team-Zahlen pro Artikel, Gemerkt, Vorschläge
 //   POST /api/vote        {id, value: 1 | -1 | 0, source, domain, kind}
 //   POST /api/click       {id, source, domain, kind}
 //   POST /api/save        {id, item | null}
+//   POST /api/my-source   {source, on: true | false}   Quelle im eigenen Feed an- oder ausschalten
 //   POST /api/suggestion  {key, action: "accept" | "dismiss"}
-//   POST /api/config      {op, ...}  Quellen, Themen, Suchbegriffe, Regeln
+//   POST /api/config      {op, ...}  Quelle aufnehmen, Themen, Suchbegriffe, Regeln
 
 const WINDOW_DAYS = 45;          // Votes und Klicks, die für Zahlen und Reihenfolge zählen
 const DAY = 864e5;
@@ -23,8 +25,8 @@ const json = (data, status = 200) =>
 const iso = (offsetDays = 0) => new Date(Date.now() + offsetDays * DAY).toISOString();
 const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch (e) { return ""; } };
 const text = (v, max = 300) => String(v ?? "").trim().slice(0, max);
-const isAdmin = (env, me) => String(env.ADMIN_EMAILS || "").toLowerCase().split(",").map((e) => e.trim()).includes(me);
-const SOURCE_OPS = ["source_add", "source_remove"];
+// Ist eine Quelle im Feed dieser Person? Eigene Wahl vor Standard
+const inFeed = (q, mine) => (mine[q.name] === 1 ? true : mine[q.name] === -1 ? false : q.standard !== false);
 
 export async function onRequest(context) {
   const { request, env, params } = context;
@@ -42,6 +44,7 @@ export async function onRequest(context) {
     if (path === "vote") return json(await vote(env.DB, me, body));
     if (path === "click") return json(await click(env.DB, me, body));
     if (path === "save") return json(await save(env.DB, me, body));
+    if (path === "my-source") return json(await mySource(context, me, body));
     if (path === "suggestion") return json(await answerSuggestion(context, me, body));
     if (path === "config") return json(await editConfig(context, me, body));
     return json({ error: "Unbekannt" }, 404);
@@ -93,7 +96,7 @@ const b64text = (s) => new TextDecoder().decode(b64bytes(s));
 
 async function state(env, me) {
   const db = env.DB, since = iso(-WINDOW_DAYS);
-  const [counts, clicks, mine, saved, config] = await Promise.all([
+  const [counts, clicks, mine, saved, config, sources] = await Promise.all([
     db.prepare(`SELECT article_id, SUM(value > 0) AS up, SUM(value < 0) AS down,
                 SUM(CASE WHEN value > 0 AND user <> ?1 THEN 1 ELSE 0 END) AS team
                 FROM votes WHERE created_at >= ?2 GROUP BY article_id`).bind(me, since).all(),
@@ -101,6 +104,7 @@ async function state(env, me) {
     db.prepare("SELECT article_id, value FROM votes WHERE user = ?").bind(me).all(),
     db.prepare("SELECT data FROM saved WHERE user = ? ORDER BY created_at DESC").bind(me).all(),
     loadConfig(env),
+    mySources(db, me),
   ]);
   const articles = {};
   for (const r of counts.results) articles[r.article_id] = { up: r.up, down: r.down, team: r.team, clicks: 0 };
@@ -110,45 +114,50 @@ async function state(env, me) {
     articles,
     votes: Object.fromEntries(mine.results.map((r) => [r.article_id, r.value])),
     saved: saved.results.map((r) => JSON.parse(r.data)),
-    admin: isAdmin(env, me),
-    // Vorschläge betreffen Quellen und gehen deshalb nur an Admins
-    suggestions: config && isAdmin(env, me) ? await suggestions(db, config) : [],
+    sources,
+    suggestions: config ? await suggestions(db, config, me, sources) : [],
     autoRebuild: !!(env.GITHUB_TOKEN && env.GITHUB_REPO),
   };
 }
 
-// Vorschläge: Quellen, die das Team oft liest, aufnehmen; Quellen, die meist negativ ankommen
-// oder nie geöffnet werden, entfernen. Schwellen stehen in den Einstellungen unter «vorschlaege».
-async function suggestions(db, config) {
+async function mySources(db, me) {
+  const rows = await db.prepare("SELECT source, value FROM user_sources WHERE user = ?").bind(me).all();
+  return Object.fromEntries(rows.results.map((r) => [r.source, r.value]));
+}
+
+// Vorschläge für die eigene Quellenwahl: Websites, deren Suchfunde ich oft öffne oder hochvote,
+// aufnehmen; Quellen, die ich meist negativ bewerte oder nie öffne, ausschalten.
+// Schwellen stehen in den Einstellungen unter «vorschlaege».
+async function suggestions(db, config, me, mine) {
   const rules = config.vorschlaege || {};
   const minAdd = +(rules.aufnehmen_ab_artikeln ?? 3);
-  const minVotes = +(rules.entfernen_ab_votes ?? 5);
+  const minVotes = +(rules.entfernen_ab_votes ?? 3);
   const idleDays = +(rules.entfernen_ohne_klick_tage ?? 60);
   const since = iso(-30);
   const [dismissed, interest, verdict, lastClicks, first] = await Promise.all([
-    db.prepare("SELECT key FROM dismissed WHERE until > ?").bind(iso()).all(),
-    // Suchfunde, die geöffnet oder hochgevotet wurden, nach Domain
+    db.prepare("SELECT key FROM dismissed WHERE user = ? AND until > ?").bind(me, iso()).all(),
+    // Suchfunde, die ich geöffnet oder hochgevotet habe, nach Domain
     db.prepare(`SELECT domain, MAX(source) AS name, COUNT(DISTINCT article_id) AS n FROM (
-                  SELECT article_id, domain, source FROM clicks WHERE kind = 'entdecken' AND created_at >= ?1
+                  SELECT article_id, domain, source FROM clicks WHERE user = ?1 AND kind = 'entdecken' AND created_at >= ?2
                   UNION ALL
-                  SELECT article_id, domain, source FROM votes WHERE kind = 'entdecken' AND value > 0 AND created_at >= ?1)
-                GROUP BY domain HAVING n >= ?2 ORDER BY n DESC`).bind(since, minAdd).all(),
+                  SELECT article_id, domain, source FROM votes WHERE user = ?1 AND kind = 'entdecken' AND value > 0 AND created_at >= ?2)
+                GROUP BY domain HAVING n >= ?3 ORDER BY n DESC`).bind(me, since, minAdd).all(),
     db.prepare(`SELECT source, COUNT(*) AS n, SUM(value) AS total FROM votes
-                WHERE kind = 'feed' AND created_at >= ? GROUP BY source`).bind(since).all(),
-    db.prepare("SELECT source, MAX(created_at) AS last FROM clicks WHERE kind = 'feed' GROUP BY source").all(),
-    db.prepare("SELECT MIN(created_at) AS first FROM clicks").first(),
+                WHERE user = ? AND kind = 'feed' AND created_at >= ? GROUP BY source`).bind(me, since).all(),
+    db.prepare("SELECT source, MAX(created_at) AS last FROM clicks WHERE user = ? AND kind = 'feed' GROUP BY source").bind(me).all(),
+    db.prepare("SELECT MIN(created_at) AS first FROM clicks WHERE user = ?").bind(me).first(),
   ]);
   const skip = new Set(dismissed.results.map((r) => r.key));
   const ignored = (config.suchen?.ignorieren || []).map((d) => String(d).toLowerCase());
   const active = (config.quellen || []).filter((q) => q.aktiv !== false);
-  const knownHosts = new Set(active.map((q) => hostOf(q.url)));
+  const myHosts = new Set(active.filter((q) => inFeed(q, mine)).map((q) => hostOf(q.url)));
   const out = [];
 
   for (const r of interest.results) {
     const key = "add:" + r.domain;
-    if (skip.has(key) || knownHosts.has(r.domain) || ignored.some((d) => r.domain === d || r.domain.endsWith("." + d))) continue;
+    if (skip.has(key) || myHosts.has(r.domain) || ignored.some((d) => r.domain === d || r.domain.endsWith("." + d))) continue;
     out.push({ key, kind: "add", domain: r.domain, name: r.name,
-      text: `Im Team ${r.n} Artikel von ${r.name} geöffnet oder hochgevotet – als feste Quelle aufnehmen?` });
+      text: `Du hast ${r.n} Artikel von ${r.name} geöffnet oder hochgevotet – in deinen Feed aufnehmen?` });
   }
 
   const byVerdict = Object.fromEntries(verdict.results.map((r) => [r.source, r]));
@@ -156,17 +165,17 @@ async function suggestions(db, config) {
   const usedLongEnough = first?.first && first.first < iso(-idleDays);
   for (const q of active) {
     const key = "remove:" + q.name;
-    if (skip.has(key)) continue;
+    if (skip.has(key) || !inFeed(q, mine)) continue;
     const v = byVerdict[q.name];
     if (v && v.n >= minVotes && v.total < 0) {
       out.push({ key, kind: "remove", source: q.name,
-        text: `${q.name}: ${v.n} Bewertungen in 30 Tagen, überwiegend negativ – als Quelle entfernen?` });
+        text: `Du hast ${q.name} zuletzt meist negativ bewertet – aus deinem Feed nehmen?` });
       continue;
     }
     const recent = q.seit && q.seit > iso(-idleDays);
     if (usedLongEnough && !recent && !(lastClick[q.name] > iso(-idleDays))) {
       out.push({ key, kind: "remove", source: q.name,
-        text: `${q.name} wurde seit ${idleDays} Tagen von niemandem geöffnet – als Quelle entfernen?` });
+        text: `Du hast ${q.name} seit ${idleDays} Tagen nicht geöffnet – aus deinem Feed nehmen?` });
     }
   }
   return out.slice(0, 3);
@@ -213,6 +222,31 @@ async function save(db, me, body) {
   return { ok: true };
 }
 
+async function setMySource(db, me, name, value) {
+  await db.prepare(`INSERT INTO user_sources (user, source, value, created_at) VALUES (?, ?, ?, ?)
+                    ON CONFLICT (user, source) DO UPDATE SET value = excluded.value, created_at = excluded.created_at`)
+    .bind(me, name, value, iso()).run();
+}
+
+// Quelle im eigenen Feed an- oder ausschalten. Eine selbst aufgenommene Quelle, die niemand mehr
+// nutzt, wird nicht mehr abgerufen; schaltet sie jemand wieder an, läuft sie wieder.
+async function mySource(context, me, body) {
+  const db = context.env.DB, config = await loadConfig(context.env);
+  const q = (config?.quellen || []).find((s) => s.name === body.source);
+  if (!q) throw fail("Quelle unbekannt", 404);
+  const on = !!body.on;
+  await setMySource(db, me, q.name, on ? 1 : -1);
+  if (q.standard === false) {
+    const users = await db.prepare("SELECT COUNT(*) AS n FROM user_sources WHERE source = ? AND value = 1").bind(q.name).first();
+    const wanted = users.n > 0;
+    if (wanted === (q.aktiv === false)) {
+      if (wanted) delete q.aktiv; else q.aktiv = false;
+      await storeConfig(context, me, config, "", wanted);
+    }
+  }
+  return { ok: true, message: on ? `${q.name} ist in deinem Feed.` : `${q.name} ist aus deinem Feed.` };
+}
+
 // ---------- Einstellungen ----------
 
 // Die Einstellungen liegen in D1. Vor der ersten Änderung gibt es dort noch nichts: dann gilt
@@ -228,14 +262,14 @@ async function loadConfig(env) {
   }
 }
 
-async function storeConfig(context, me, config, summary) {
+async function storeConfig(context, me, config, summary, rebuildWanted = true) {
   const { env } = context;
   await env.DB.prepare(`INSERT INTO config (key, value, updated_at, updated_by) VALUES ('main', ?, ?, ?)
                         ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at, updated_by = excluded.updated_by`)
     .bind(JSON.stringify(config), iso(), me).run();
   // Neuen Abruf anstossen, damit die Änderung in wenigen Minuten sichtbar ist (optional)
   let rebuild = false;
-  if (env.GITHUB_TOKEN && env.GITHUB_REPO) {
+  if (rebuildWanted && env.GITHUB_TOKEN && env.GITHUB_REPO) {
     const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/actions/workflows/build.yml/dispatches`, {
       method: "POST",
       headers: { authorization: `Bearer ${env.GITHUB_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "radar" },
@@ -257,7 +291,6 @@ function keywords(value) {
 }
 
 async function editConfig(context, me, body) {
-  if (SOURCE_OPS.includes(body.op) && !isAdmin(context.env, me)) throw fail("Quellen aufnehmen und entfernen dürfen nur Admins.", 403);
   const config = await loadConfig(context.env);
   if (!config) throw fail("Noch keine Einstellungen vorhanden – zuerst einen Abruf laufen lassen.", 409);
   config.quellen ||= []; config.themen ||= []; config.suchen ||= {}; config.suchen.begriffe ||= [];
@@ -265,23 +298,24 @@ async function editConfig(context, me, body) {
   let summary;
   switch (body.op) {
     case "source_add": {
+      // Jede Person darf aufnehmen; die Quelle landet in ihrem Feed, für andere bleibt sie aus,
+      // bis sie sie selbst anschalten
       const url = text(body.url, 500);
       if (!/^https?:\/\//.test(url)) throw fail("Keine gültige URL");
       const host = hostOf(url);
       const existing = config.quellen.find((q) => q.url === url || hostOf(q.url) === host);
-      if (existing && existing.aktiv !== false) throw fail(`${host} ist bereits eine Quelle (${existing.name}).`, 409);
-      if (existing) { delete existing.aktiv; summary = `${existing.name} ist wieder aktiv.`; break; }
+      if (existing) {
+        await setMySource(context.env.DB, me, existing.name, 1);
+        if (existing.aktiv !== false) return { ok: true, message: `${existing.name} ist in deinem Feed.`, rebuild: false };
+        delete existing.aktiv;
+        summary = `${existing.name} ist in deinem Feed und wird wieder abgerufen.`;
+        break;
+      }
       const cats = config.kategorien || [];
       const name = text(body.name, 80) || host;
-      config.quellen.push({ name, url, kategorie: cats.includes(body.kategorie) ? body.kategorie : "News", seit: today });
+      config.quellen.push({ name, url, kategorie: cats.includes(body.kategorie) ? body.kategorie : "News", seit: today, standard: false, von: me });
+      await setMySource(context.env.DB, me, name, 1);
       summary = `${name} aufgenommen. Den Feed sucht der nächste Abruf.`;
-      break;
-    }
-    case "source_remove": {
-      const q = config.quellen.find((s) => s.name === body.name);
-      if (!q) throw fail("Quelle unbekannt", 404);
-      q.aktiv = false;
-      summary = `${q.name} entfernt.`;
       break;
     }
     case "topic_save": {
@@ -327,14 +361,11 @@ async function editConfig(context, me, body) {
 
 async function answerSuggestion(context, me, body) {
   const db = context.env.DB, key = text(body.key, 300);
-  if (!isAdmin(context.env, me)) throw fail("Vorschläge zu Quellen beantworten dürfen nur Admins.", 403);
   if (!/^(add|remove):/.test(key)) throw fail("Vorschlag unbekannt");
-  if (body.action === "dismiss") {
-    await db.prepare("INSERT OR REPLACE INTO dismissed (key, until) VALUES (?, ?)").bind(key, iso(90)).run();
-    return { ok: true, message: "Ausgeblendet für 90 Tage." };
-  }
-  await db.prepare("INSERT OR REPLACE INTO dismissed (key, until) VALUES (?, ?)").bind(key, iso(3650)).run();
+  const until = body.action === "dismiss" ? iso(90) : iso(3650);
+  await db.prepare("INSERT OR REPLACE INTO dismissed (user, key, until) VALUES (?, ?, ?)").bind(me, key, until).run();
+  if (body.action === "dismiss") return { ok: true, message: "Ausgeblendet für 90 Tage." };
   const [kind, value] = [key.slice(0, key.indexOf(":")), key.slice(key.indexOf(":") + 1)];
   if (kind === "add") return editConfig(context, me, { op: "source_add", url: "https://" + value, name: text(body.name, 80) || value, kategorie: "News" });
-  return editConfig(context, me, { op: "source_remove", name: value });
+  return mySource(context, me, { source: value, on: false });
 }

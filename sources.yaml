@@ -5,7 +5,12 @@
 #   name:            Anzeigename auf der Karte und im Quellen-Filter
 #   url:             RSS- oder Atom-Feed-URL
 #   kategorie:       eine der Kategorien unten
-#   aktiv:           optional – false blendet die Quelle aus, ohne sie zu löschen
+#   aktiv:           optional – false: wird nicht mehr abgerufen
+#   standard:        optional – false: nur im Feed von Personen, die sie selbst anschalten
+#                    (so legt Radar Quellen an, die jemand in der App aufnimmt)
+#
+# Jede Person wählt im Tab «Quellen» selbst, welche Quellen in ihrem Feed stehen. Abgerufen
+# werden alle aktiven Quellen; das Briefing entsteht aus allen.
 #
 # Pro Quelle gibt es bewusst keine Sonderregeln: Was im Feed erscheint, bestimmen die
 # Regeln unten (für alle Quellen gleich) und der Themenkatalog. Liefert eine Quelle damit
@@ -111,11 +116,11 @@ gewichtung:
   schub_min: -0.3
   schub_max: 0.5
 
-# Vorschläge oben im Feed
+# Vorschläge oben im Feed, für jede Person aus ihrem eigenen Verhalten
 vorschlaege:
-  aufnehmen_ab_artikeln: 3        # Suchfunde einer Website, die das Team in 30 Tagen geöffnet oder hochgevotet hat
-  entfernen_ab_votes: 5           # Quelle mit so vielen Votes in 30 Tagen und negativem Saldo
-  entfernen_ohne_klick_tage: 60   # Quelle, die so lange niemand geöffnet hat
+  aufnehmen_ab_artikeln: 3        # Suchfunde einer Website, die ich in 30 Tagen geöffnet oder hochgevotet habe
+  entfernen_ab_votes: 3           # Quelle, die ich in 30 Tagen so oft bewertet habe, mit negativem Saldo
+  entfernen_ohne_klick_tage: 60   # Quelle, die ich so lange nicht geöffnet habe
 
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
