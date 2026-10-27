@@ -5,16 +5,11 @@
 #   name:            Anzeigename auf der Karte und im Quellen-Filter
 #   url:             RSS- oder Atom-Feed-URL
 #   kategorie:       eine der Kategorien unten
-#   nur_kategorien:  optional – nur Artikel übernehmen, deren Feed-Kategorie
-#                    einem dieser Begriffe entspricht (Gross/klein egal)
-#   nur_begriffe:    optional – nur Artikel übernehmen, deren Titel oder Anriss einen
-#                    dieser Begriffe enthält (für breite Marketing-Medien, z.B. *paid)
-#   nur_themen:      optional – nur Beiträge, die ein Thema mit mindestens diesem Gewicht
-#                    treffen (1 = irgendein Thema, 2 = wichtige, 3 = sehr wichtige)
-#   min_woerter:     optional – Beiträge mit kürzerem Titel weglassen (z.B. Glossar-Einträge)
-#   ausschliessen:   optional – Beiträge, deren Titel einen dieser Begriffe enthält, weglassen
-#                    (Stellenanzeigen werden bei allen Quellen automatisch erkannt)
 #   aktiv:           optional – false blendet die Quelle aus, ohne sie zu löschen
+#
+# Pro Quelle gibt es bewusst keine Sonderregeln: Was im Feed erscheint, bestimmen die
+# Regeln unten (für alle Quellen gleich) und der Themenkatalog. Liefert eine Quelle damit
+# nichts Brauchbares, wird sie entfernt.
 #
 # Alle Quellen sind gratis: offene RSS-Feeds und Google News.
 
@@ -33,6 +28,18 @@ kategorien:
   - Community   # Foren wie Reddit – eigener Tab
   - Entdecken   # Treffer der Suchbegriffe unten – eigener Tab
 
+# Regeln für alle Quellen (auch für die Google-News-Suchen). In den Einstellungen änderbar.
+#   min_woerter:                Beiträge mit kürzerem Titel weglassen (z.B. Glossar-Einträge)
+#   mindest_gewicht:            nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
+#                               (0 = aus, 1 = irgendein Thema, 2 = wichtige, 3 = sehr wichtige)
+#   stellenanzeigen_ausblenden: «Working Student», «Internship», «(m/w/d)», Links auf /careers/ …
+#   ausschliessen:              Beiträge, deren Titel einen dieser Begriffe enthält, weglassen
+regeln:
+  min_woerter: 5
+  mindest_gewicht: 1
+  stellenanzeigen_ausblenden: true
+  ausschliessen: []
+
 # Themenkatalog: Jeder Beitrag erhält die Themen, deren Stichwörter in Titel oder Anriss
 # vorkommen (Gross/klein egal). Leerzeichen um ein Stichwort verhindern Teiltreffer,
 # z.B. " ki " trifft nicht "Kiosk". Themen erscheinen als Filter und als #Tags.
@@ -44,10 +51,10 @@ themen:
     stichwoerter: [google ads, performance max, pmax, demand gen, ai max, responsive search ad, " rsa ", search campaign, suchkampagne, broad match, keyword planner]
   - name: KI-Suche & ChatGPT Ads
     gewicht: 3
-    stichwoerter: [chatgpt, openai, ai overview, ai mode, gemini, perplexity, copilot, llm, " ki-", " ki ", agentic, generative ai, generative search]
+    stichwoerter: [chatgpt, openai, ai overview, ai mode, gemini, perplexity, copilot, " llm", ai search, ki-suche, generative search, agentic commerce, answer engine]
   - name: Gebote & Budgets
     gewicht: 2
-    stichwoerter: [bidding, bid strateg, gebot, auction, auktion, autobidding, troas, tcpa, target roas, target cpa, budget, cpc]
+    stichwoerter: [bidding, bid strateg, " gebote", gebotsstrateg, auction, auktion, autobidding, troas, tcpa, target roas, target cpa, " budget", " cpc"]
   - name: Tracking & Messung
     gewicht: 2
     stichwoerter: [tracking, consent, conversion, attribution, incrementality, measurement, messung, ga4, server-side, enhanced conversions, meridian, " mmm"]
@@ -62,50 +69,10 @@ themen:
     stichwoerter: [retail media, amazon ads, sponsored products, sponsored brands, commerce media]
   - name: Richtlinien & Recht
     gewicht: 1
-    stichwoerter: [policy, policies, richtlinie, dsgvo, gdpr, " dma", lawsuit, klage, antitrust, kartell, regulation, verified]
+    stichwoerter: [ads policy, advertising policy, policy update, policies, richtlinie, dsgvo, gdpr, " dma ", antitrust, kartell, lawsuit, regulation, verified]
   - name: Agentur & Strategie
     gewicht: 1
-    stichwoerter: [agency, agentur, client, kunde, strategy, strategie, hiring, career, pricing]
-
-# Begriffe, mit denen Beratungs-Feeds auf Marketing-Themen eingegrenzt werden
-marketing_begriffe: &marketing
-  - marketing
-  - advertising
-  - " ads "
-  - advertiser
-  - e-commerce
-  - ecommerce
-  - agentic commerce
-  - retail media
-  - personalization
-  - customer experience
-  - " search"
-
-# Begriffe, mit denen breite Marketing-Medien auf Paid Search eingeschränkt werden
-paid_begriffe: &paid
-  - google ads
-  - search ads
-  - suchmaschinenwerbung
-  - suchmaschinenmarketing
-  - paid search
-  - " sea "
-  - " sea-"
-  - performance max
-  - demand gen
-  - microsoft advertising
-  - bing ads
-  - google shopping
-  - shopping ads
-  - merchant center
-  - retail media
-  - amazon ads
-  - " ppc"
-  - chatgpt ads
-  - chatgpt-werbung
-  - werbung in chatgpt
-  - ai overviews
-  - ai max
-  - smart bidding
+    stichwoerter: [ppc agency, paid search agency, sea-agentur, in-house, inhouse, account audit, kontoaudit, client reporting]
 
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
@@ -165,13 +132,9 @@ quellen:
     url: https://www.seroundtable.com/index.xml
     kategorie: News
 
-  # PPC Land schreibt sehr viel über Werbung allgemein (Apple, Streaming, Recht) –
-  # nur Beiträge, die ein wichtiges Thema (Gewicht 2 oder 3) treffen
   - name: PPC Land
     url: https://ppc.land/rss/
     kategorie: News
-    nur_themen: 2
-    min_woerter: 5   # Glossar-Einträge ("Broad match") haben nur 2–4 Wörter
 
   - name: Search Engine Journal (PPC)
     url: https://www.searchenginejournal.com/category/paid-media/feed/
@@ -180,12 +143,10 @@ quellen:
   - name: AdExchanger
     url: https://www.adexchanger.com/feed/
     kategorie: News
-    nur_begriffe: *paid
 
   - name: Semrush Blog
     url: https://www.semrush.com/blog/feed/
     kategorie: News
-    nur_begriffe: *paid
 
   # --- Studien ---
   - name: Optmyzr Blog
@@ -204,11 +165,9 @@ quellen:
     url: https://blog.adnabu.com/feed/
     kategorie: Studien
 
-  # Beratungen und Verbände: breit, deshalb auf Marketing/Werbung eingegrenzt
   - name: McKinsey Insights
     url: https://www.mckinsey.com/insights/rss
     kategorie: Studien
-    nur_begriffe: *marketing
 
   - name: IAB
     url: https://www.iab.com/feed/
@@ -218,9 +177,6 @@ quellen:
   - name: BCG
     url: https://news.google.com/rss/search?q=site:bcg.com+(marketing+OR+advertising+OR+%22generative+AI%22+OR+search)+when:30d&hl=en-US&gl=US&ceid=US:en
     kategorie: Studien
-    nur_begriffe: *marketing
-    # Stellenanzeigen auf bcg.com tragen diese Muster im Titel
-    ausschliessen: [" at bcg", "bcg x", "senior manager", "specialist", "senior analyst", " manager in ", " intern "]
 
   # --- DACH ---
   # Bloofusion bietet aktuell keinen RSS-Feed an (blog.bloofusion.de leitet auf
@@ -231,46 +187,37 @@ quellen:
     kategorie: DACH
     aktiv: false
 
-  # Breite Medien – nur Artikel mit Paid-Search-Bezug (*paid, siehe oben)
   - name: OnlineMarketing.de
     url: https://onlinemarketing.de/feed
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: W&V
     url: https://www.wuv.de/feed/rss
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: ADZINE
     url: https://www.adzine.de/rss/
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: t3n
     url: https://t3n.de/rss.xml
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: Horizont
     url: https://www.horizont.net/news/feed/
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: persoenlich.com (CH)
     url: https://www.persoenlich.com/rss/news.xml
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: Netzwoche (CH)
     url: https://www.netzwoche.ch/rss.xml
     kategorie: DACH
-    nur_begriffe: *paid
 
   - name: Werbewoche / m&k (CH)
     url: https://www.markt-kom.com/de/feed/
     kategorie: DACH
-    nur_begriffe: *paid
 
   # --- Community ---
   # Reddit begrenzt anonyme Abrufe; fällt der Feed aus, steht das im Footer.

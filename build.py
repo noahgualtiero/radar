@@ -149,10 +149,6 @@ def entry_image(entry) -> str | None:
     return None
 
 
-def entry_tags(entry) -> set[str]:
-    return {(t.get("term") or "").strip().lower() for t in entry.get("tags", [])}
-
-
 def search_sources(config: dict) -> list[dict]:
     """Macht aus jedem Suchbegriff eine Google-News-Suche, die wie eine Quelle abgerufen wird."""
     days = int(config.get("zeitraum_tage", 7))
@@ -168,31 +164,27 @@ def search_sources(config: dict) -> list[dict]:
     return sources
 
 
-def passes_filters(source: dict, title: str, teaser: str, link: str) -> bool:
-    """nur_begriffe, min_woerter, ausschliessen und der Stellenanzeigen-Filter einer Quelle."""
-    terms = [t.lower() for t in source.get("nur_begriffe") or []]
-    if terms and not any(t in f"{title} {teaser}".lower() for t in terms):
+def passes_rules(rules: dict, title: str, link: str) -> bool:
+    """Regeln für alle Quellen gleich: Mindestlänge des Titels, Stellenanzeigen, ausgeschlossene Begriffe.
+    Die Themen-Regel (mindest_gewicht) greift später, nach der Themenzuordnung."""
+    if len(title.split()) < int(rules.get("min_woerter") or 0):
         return False
-    if len(title.split()) < int(source.get("min_woerter", 0)):
+    if rules.get("stellenanzeigen_ausblenden", True) and (JOB_TITLE.search(title) or JOB_LINK.search(link)):
         return False
-    excluded = [t.lower() for t in source.get("ausschliessen") or []]
-    return not (JOB_TITLE.search(title) or JOB_LINK.search(link) or any(t in title.lower() for t in excluded))
+    return not any(t.lower() in title.lower() for t in rules.get("ausschliessen") or [])
 
 
-def parse_source(source: dict, seen_at: str) -> list[dict]:
+def parse_source(source: dict, seen_at: str, rules: dict) -> list[dict]:
     feed = feedparser.parse(fetch(source["url"]))
     if not feed.entries:
         reason = feed.get("bozo_exception") or "keine Einträge im Feed"
         raise ValueError(str(reason))
 
-    wanted = {c.lower() for c in source.get("nur_kategorien") or []}
     items = []
     for entry in feed.entries:
         link = entry.get("link")
         title = strip_html(entry.get("title", ""))
         if not link or not title:
-            continue
-        if wanted and not (wanted & entry_tags(entry)):
             continue
         # Aggregatoren (z.B. Google News) nennen den Publisher separat und hängen
         # " - Quellname" an den Titel
@@ -201,7 +193,7 @@ def parse_source(source: dict, seen_at: str) -> list[dict]:
         if publisher and title.endswith(f" - {publisher}"):
             title = title[: -len(publisher) - 3]
         teaser = snippet(entry.get("summary") or (entry.get("content") or [{}])[0].get("value", ""))
-        if not passes_filters(source, title, teaser, link):
+        if not passes_rules(rules, title, link):
             continue
         if normalize_title(teaser).startswith(normalize_title(title)):
             teaser = ""
@@ -242,12 +234,11 @@ def load_previous(location: str | None) -> list[dict]:
         return []
 
 
-def merge(previous: list[dict], fresh: list[dict], feeds: dict[str, dict]) -> list[dict]:
+def merge(previous: list[dict], fresh: list[dict], active_feeds: set[str], rules: dict) -> list[dict]:
     by_id: dict[str, dict] = {}
     for item in previous:
-        # Bestand nur von aktiven Quellen und mit deren aktuellen Filtern (geänderte Filter wirken sofort)
-        feed = feeds.get(item.get("feed", item.get("source")))
-        if feed and passes_filters(feed, item["title"], item.get("snippet", ""), item["link"]):
+        # Bestand nur von aktiven Quellen und nach den aktuellen Regeln (geänderte Regeln wirken sofort)
+        if item.get("feed", item.get("source")) in active_feeds and passes_rules(rules, item["title"], item["link"]):
             by_id[item["id"]] = item
     for item in fresh:
         old = by_id.get(item["id"])
@@ -506,7 +497,6 @@ def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
             "topic_share": round(100 * sum(1 for i in hits if i["topics"]) / len(hits)) if hits else None,
             "studies": sum(1 for i in hits if i.get("study")),
             "latest": max((i["published"] for i in hits), default=None),
-            "filtered": bool(source.get("nur_begriffe")),
             "host": domain_of(source["url"]),
         })
     return rows
@@ -533,6 +523,7 @@ def main() -> int:
     config = yaml.safe_load((ROOT / "sources.yaml").read_text(encoding="utf-8"))
     sources = [s for s in config.get("quellen") or [] if s.get("aktiv", True) and s.get("url")]
     searches = config.get("suchen") or {}
+    rules = config.get("regeln") or {}
     feeds = sources + search_sources(searches)
 
     seen_at = now_utc().isoformat()
@@ -544,25 +535,24 @@ def main() -> int:
             time.sleep(8)  # Reddit drosselt schnelle Folgeabrufe (HTTP 429)
         last_host = host
         try:
-            items = parse_source(source, seen_at)
+            items = parse_source(source, seen_at, rules)
             fresh.extend(items)
             print(f"ok    {source['name']}: {len(items)} Artikel")
         except Exception as exc:
             errors.append({"source": source["name"], "error": str(exc)[:160]})
             print(f"FEHLER {source['name']}: {exc}", file=sys.stderr)
 
-    items = merge(load_previous(args.previous), fresh, {f["name"]: f for f in feeds})
+    items = merge(load_previous(args.previous), fresh, {f["name"] for f in feeds}, rules)
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
     tag_topics(items, topics)
-    mark_studies(items)
-    add_cover_images(items)
     weights = {t["name"]: int(t.get("gewicht", 1)) for t in topics}
     for item in items:
         item["weight"] = max((weights.get(t, 1) for t in item["topics"]), default=0)
-    # nur_themen: Quelle liefert nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
-    min_weight = {f["name"]: int(f["nur_themen"]) for f in feeds if f.get("nur_themen")}
-    items = [i for i in items if i["weight"] >= min_weight.get(i.get("feed"), 0)]
+    # Themen-Regel für alle Quellen: nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
+    items = [i for i in items if i["weight"] >= int(rules.get("mindest_gewicht") or 0)]
+    mark_studies(items)
+    add_cover_images(items)
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -596,6 +586,7 @@ def main() -> int:
         repo=repo,
         site_url=f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/" if "/" in repo else "",
         categories=[c for c in config.get("kategorien", []) if c != DISCOVER],
+        rules=rules,
         password_hash=(config.get("zugang") or {}).get("passwort_sha256", ""),
     )
     (out / "index.html").write_text(page, encoding="utf-8")

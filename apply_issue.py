@@ -7,6 +7,7 @@ Die Formulare in den Einstellungen der Seite öffnen ein Issue, dessen Titel die
     Quelle entfernen: <Name>   name                        Quelle deaktivieren (aktiv: false)
     Thema: <Name>              name, gewicht, stichwoerter, entfernen
     Suchbegriff: <Begriff>     begriff, sprache, entfernen
+    Regeln: für alle Quellen   min_woerter, mindest_gewicht, stellenanzeigen_ausblenden, ausschliessen
 
 Die Action settings.yml ruft das Skript mit ISSUE_TITLE und ISSUE_BODY auf. Kommentare und
 Verweise (*paid, *marketing) in sources.yaml bleiben erhalten. Das Ergebnis geht nach
@@ -129,6 +130,27 @@ def edit_search(data, body: str, title_value: str) -> None:
     raise Result("ok", f"Suchbegriff {term} ({lang}) hinzugefügt.", f"Suchbegriff hinzugefügt: {term}")
 
 
+def edit_rules(data, body: str, title_value: str) -> None:
+    rules = data.setdefault("regeln", CommentedMap())
+    changes = []
+    for key, low, high in (("min_woerter", 0, 30), ("mindest_gewicht", 0, 3)):
+        raw = field(body, key)
+        if raw.isdigit() and low <= int(raw) <= high:
+            rules[key] = int(raw)
+            changes.append(f"{key} {raw}")
+    raw = field(body, "stellenanzeigen_ausblenden").lower()
+    if raw in ("ja", "nein"):
+        rules["stellenanzeigen_ausblenden"] = raw == "ja"
+        changes.append(f"Stellenanzeigen ausblenden: {raw}")
+    if re.search(r"^\s*ausschliessen\s*:", body, re.I | re.M):
+        words = [w.strip() for w in re.split(r"[,\n;]", field(body, "ausschliessen")) if w.strip()]
+        rules["ausschliessen"] = flow(words)
+        changes.append(f"{len(words)} ausgeschlossene Begriffe")
+    if not changes:
+        raise Result("fehler", "Keine gültigen Regel-Werte gefunden.")
+    raise Result("ok", "Regeln aktualisiert: " + ", ".join(changes) + ".", "Regeln aktualisiert")
+
+
 def flow(words: list[str]) -> CommentedSeq:
     seq = CommentedSeq(words)
     seq.fa.set_flow_style()
@@ -140,6 +162,7 @@ ACTIONS = [
     ("quelle", add_source),
     ("thema", edit_topic),
     ("suchbegriff", edit_search),
+    ("regeln", edit_rules),
 ]
 
 

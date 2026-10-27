@@ -96,6 +96,7 @@ In den Einstellungen (Zahnrad) lassen sich ohne Code ändern:
 | Quelle entfernen | «Entfernen» in der Quellen-Tabelle; setzt `aktiv: false` (erneut aufnehmen macht sie wieder aktiv) |
 | Thema anlegen oder ändern | Name, Gewicht, Stichwörter; «Bearbeiten» füllt das Formular mit dem bestehenden Thema |
 | Thema entfernen | «Entfernen» in der Themen-Tabelle |
+| Regeln für alle Quellen | Mindestlänge, Themen-Schwelle, Stellenanzeigen, ausgeschlossene Begriffe |
 | Suchbegriff hinzufügen oder entfernen | Begriff und Ausgabe (USA oder Schweiz) |
 
 Jeder Knopf öffnet auf GitHub einen vorbereiteten Auftrag (Issue); dort auf «Create»
@@ -125,22 +126,10 @@ das Formular vor.
    oben in der Datei.
 3. Speichern und committen. Die Seite wird automatisch neu gebaut.
 
-Weitere Felder pro Quelle:
-
-- `nur_begriffe: *paid` – nur Beiträge mit Paid-Search-Bezug (für breite Medien wie t3n)
-- `nur_begriffe: *marketing` – nur Marketing-Themen (für Beratungen wie McKinsey)
-- `nur_themen: 2` – nur Beiträge, die ein Thema mit Gewicht 2 oder 3 treffen
-  (Qualitätsfilter für Quellen mit viel Nebensächlichem, z.B. PPC Land)
-- `min_woerter: 5` – Beiträge mit kürzeren Titeln weglassen (z.B. Glossar-Einträge)
-- `ausschliessen: [...]` – Beiträge mit diesen Begriffen im Titel weglassen
-- `aktiv: false` – Quelle vorübergehend ausblenden
-
-Stellenanzeigen («Working Student», «Internship», «(m/w/d)», Links auf /careers/ …) werden
-bei allen Quellen automatisch weggelassen. Geänderte Filter wirken beim nächsten Lauf auch
-auf den gespeicherten Bestand.
-
-Breite Medien liefern im Feed nur ihre neuesten Artikel. Gefilterte Quellen füllen sich
-deshalb mit jedem Lauf.
+Pro Quelle gibt es **keine Sonderregeln**. Ausser `aktiv: false` (Quelle vorübergehend
+ausblenden) hat eine Quelle nur Name, URL und Kategorie. Was erscheint, bestimmen die
+Regeln für alle Quellen und der Themenkatalog. Liefert eine Quelle damit nichts
+Brauchbares, wird sie entfernt.
 
 **Newsletter:** Mit [Kill the Newsletter](https://kill-the-newsletter.com) eine
 Newsletter-Adresse erzeugen, den Newsletter mit dieser Adresse abonnieren und den
@@ -148,6 +137,22 @@ angezeigten Atom-Feed als Quelle aufnehmen. Jede Ausgabe erscheint dann als Beit
 
 **LinkedIn:** Profile oder Seiten bei [RSS.app](https://rss.app) in einen Feed umwandeln und
 mit `kategorie: LinkedIn` eintragen.
+
+## Regeln für alle Quellen
+
+Unter `regeln:` in `sources.yaml`, in den Einstellungen änderbar. Sie gelten für jede
+Quelle gleich, auch für die Google-News-Suchen:
+
+| Regel | Standard | Wirkung |
+|---|---|---|
+| `min_woerter` | 5 | Beiträge mit kürzerem Titel fallen weg (z.B. Glossar-Einträge) |
+| `mindest_gewicht` | 1 | Nur Beiträge, die ein Thema treffen (0 = aus, 2 = ab «wichtig», 3 = nur «sehr wichtig») |
+| `stellenanzeigen_ausblenden` | ja | «Working Student», «Internship», «(m/w/d)», Links auf /careers/ … |
+| `ausschliessen` | – | Beiträge mit diesen Begriffen im Titel fallen weg |
+
+Geänderte Regeln wirken beim nächsten Lauf auch auf den gespeicherten Bestand. Weil die
+Themen-Regel am Katalog hängt, sind präzise Stichwörter entscheidend: ein zu breites
+Stichwort («ai», «strategy») lässt Fremdes durch, ein fehlendes lässt Passendes weg.
 
 ## Themenkatalog
 

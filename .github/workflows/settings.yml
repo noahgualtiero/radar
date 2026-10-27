@@ -1,7 +1,7 @@
 name: Einstellungen übernehmen
 
 # Ausgelöst von den Formularen in den Einstellungen der Seite: Sie öffnen ein Issue mit dem
-# Titel «Quelle: …», «Quelle entfernen: …», «Thema: …» oder «Suchbegriff: …».
+# Titel «Quelle: …», «Quelle entfernen: …», «Thema: …», «Suchbegriff: …» oder «Regeln: …».
 # Nur Issues des Repo-Inhabers werden verarbeitet.
 on:
   issues:
@@ -19,7 +19,8 @@ jobs:
         startsWith(github.event.issue.title, 'Quelle:') ||
         startsWith(github.event.issue.title, 'Quelle entfernen:') ||
         startsWith(github.event.issue.title, 'Thema:') ||
-        startsWith(github.event.issue.title, 'Suchbegriff:'))
+        startsWith(github.event.issue.title, 'Suchbegriff:') ||
+        startsWith(github.event.issue.title, 'Regeln:'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

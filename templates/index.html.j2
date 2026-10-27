@@ -188,6 +188,11 @@ main { grid-area: main; min-width: 0; padding-bottom: 60px; }
 .form input:focus, .form select:focus { outline: 2px solid var(--accent); border-color: transparent; }
 .form .row { display: flex; gap: 10px; flex-wrap: wrap; }
 .form .row > * { flex: 1 1 160px; }
+.form label { font-size: .85rem; color: var(--label2); font-weight: 500; }
+.form label input, .form label select { margin-top: 4px; }
+.form label input[type=number] { width: 90px; }
+.form .check { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: .93rem; }
+.form .check input { width: auto; margin: 0; }
 .btn { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 9px 16px; font-weight: 600; cursor: pointer; }
 .btn.plain { background: var(--fill); color: var(--text); }
 
@@ -473,7 +478,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
           <tbody>
           {% for s in stats %}
             <tr data-source="{{ s.name }}">
-              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.category }} · {{ s.host }}{% if s.filtered %} · gefiltert{% endif %}</span></td>
+              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.category }} · {{ s.host }}</span></td>
               <td class="num">{{ s.count }}</td>
               <td class="num">{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</td>
               <td>{% if s.latest %}<time datetime="{{ s.latest }}">{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.</time>{% else %}–{% endif %}</td>
@@ -483,6 +488,24 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
           {% endfor %}
           </tbody>
         </table></div>
+      </div>
+
+      <div class="card admin">
+        <h2>Regeln für alle Quellen</h2>
+        <p class="lead">Gelten für jede Quelle gleich, auch für die Google-News-Suchen. Liefert eine Quelle damit nichts
+          Brauchbares, besser entfernen statt eine Ausnahme machen.</p>
+        <form class="form" id="rulesForm">
+          <div class="row">
+            <label>Titel mindestens (Wörter)<br><input type="number" id="ruleWords" min="0" max="30" value="{{ rules.min_woerter or 0 }}"></label>
+            <label>Nur Beiträge mit Thema<br><select id="ruleWeight">
+              {% for v, label in [(0, "aus (alle Beiträge)"), (1, "irgendein Thema"), (2, "ab «wichtig»"), (3, "nur «sehr wichtig»")] %}
+              <option value="{{ v }}"{% if (rules.mindest_gewicht or 0) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="ruleJobs"{% if rules.stellenanzeigen_ausblenden is not sameas false %} checked{% endif %}> Stellenanzeigen ausblenden</label>
+          <input type="text" id="ruleExclude" value="{{ (rules.ausschliessen or [])|join(', ') }}" placeholder="Begriffe im Titel ausschliessen, mit Komma getrennt (z.B. webinar, podcast)">
+          <div><button class="btn" type="submit">Regeln auf GitHub speichern</button></div>
+        </form>
       </div>
 
       <div class="card admin">
@@ -894,6 +917,11 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     var name = $("topicName").value.trim();
     openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + $("topicWeight").value + "\nstichwoerter: " + $("topicWords").value.trim());
     $("topicForm").reset();
+  });
+  $("rulesForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    openIssue("Regeln: für alle Quellen", "min_woerter: " + $("ruleWords").value + "\nmindest_gewicht: " + $("ruleWeight").value
+      + "\nstellenanzeigen_ausblenden: " + ($("ruleJobs").checked ? "ja" : "nein") + "\nausschliessen: " + $("ruleExclude").value.trim());
   });
   $("searchForm").addEventListener("submit", function (e) {
     e.preventDefault();
