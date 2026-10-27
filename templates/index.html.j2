@@ -623,12 +623,12 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
               <div><span>Feed</span><b>{{ s.host }}</b></div>
             </div>
             <div class="row-actions">
-              <button class="btn plain danger" type="button" data-op="source_remove" data-name="{{ s.name }}" data-confirm="{{ s.name }} als Quelle entfernen?">Quelle entfernen</button>
+              <button class="btn plain danger admin-only" type="button" hidden data-op="source_remove" data-name="{{ s.name }}" data-confirm="{{ s.name }} als Quelle entfernen?">Quelle entfernen</button>
             </div>
           </div>
         </details>
         {% endfor %}
-        <details class="row" id="addSource">
+        <details class="row admin-only" id="addSource" hidden>
           <summary><span class="plus">+</span><div class="row-main"><b>Quelle aufnehmen</b><span>Website, Blog oder Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
           <div class="row-body">
             <form class="form flat" id="sourceForm">
@@ -643,7 +643,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
         </details>
       </div>
       <p class="group-note">Die Reihenfolge im Feed richtet sich nach Aktualität, Daumen und geöffneten Artikeln des Teams.
-        Radar schlägt oben im Feed vor, Quellen aufzunehmen oder zu entfernen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
+        Quellen aufnehmen und entfernen können nur Admins; ihnen schlägt Radar oben im Feed auch Quellen vor.
+        Den Feed einer neuen Website sucht der nächste Abruf.</p>
 
       <h3 class="group-title">Regeln für alle Quellen</h3>
       <form class="card group" id="rulesForm">
@@ -926,7 +927,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   }
 
   function renderAdmin() {
-    $("me").textContent = server.online ? server.me : "offline";
+    $("me").textContent = server.online ? server.me + (server.admin ? " (Admin)" : "") : "offline";
+    $$(".admin-only").forEach(function (el) { el.hidden = !server.admin; });
     $$("#admin details[data-source]").forEach(function (row) {
       var name = row.dataset.source, up = 0, down = 0, clicks = 0;
       posts.forEach(function (p) {

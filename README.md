@@ -78,7 +78,7 @@ Die KI läuft über die OpenAI-API (`ai.py`). Ihre Einstellungen stehen unter `k
 |---|---|---|
 | Einordnen: Typ und Relevanz 1–5 | jeder neue Beitrag einmal, 50 pro Aufruf | `gpt-5.4-nano` |
 | Briefing | einmal pro Tag, aus den 25 relevantesten Beiträgen des Vortags | `gpt-5.4-mini` |
-| Websuche nach Studien, Kennzahlen, Best Practices | alle 7 Tage | `gpt-5.4-mini` mit Websuche |
+| Websuche nach Studien, Kennzahlen, Best Practices | alle 7 Tage (`websuche_alle_tage`, 0 = aus) | `gpt-5.4-mini` mit Websuche |
 
 **Keine Erfindungen:** Die KI arbeitet nur mit dem, was in den Beiträgen steht.
 
@@ -103,6 +103,11 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 **Wann eine Änderung wirkt:**
 - Ist `GITHUB_TOKEN` gesetzt (siehe unten), stösst jede Änderung sofort einen neuen Abruf an.
 - Sonst wirkt sie beim nächsten regulären Lauf.
+
+**Wer was ändern darf:**
+- Quellen aufnehmen und entfernen, auch über die Vorschläge: nur die Admins aus `ADMIN_EMAILS`.
+  Nur sie sehen die Vorschläge und die Knöpfe dazu, und die API lehnt solche Änderungen von anderen ab.
+- Themen, Suchbegriffe und Regeln: alle Angemeldeten.
 
 **Regeln:** Sie gelten für alle Quellen gleich:
 - Mindestlänge des Titels
@@ -170,6 +175,7 @@ Secrets*, Umgebung Production)
 |---|---|
 | `ACCESS_TEAM_DOMAIN` | z.B. `standout.cloudflareaccess.com` (unter *Zero Trust → Settings*) |
 | `ACCESS_AUD` | AUD-Tag aus Schritt 5 |
+| `ADMIN_EMAILS` | wer Quellen aufnehmen und entfernen darf, z.B. `noah.kaech@standout.ch` (mehrere mit Komma) |
 | `GITHUB_REPO` | optional: `noahgualtiero/radar` |
 | `GITHUB_TOKEN` (Secret) | optional: Fine-grained Token, nur für dieses Repo, mit *Actions: Read and write*. Damit stösst eine Änderung in Radar sofort einen Abruf an |
 
@@ -195,7 +201,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ```
 
 ```bash
-printf 'DEV_USER=ich@lokal.test\n' > .dev.vars && npx wrangler@4.149.0 d1 execute radar --local --file schema.sql
+printf 'DEV_USER=ich@lokal.test\nADMIN_EMAILS=ich@lokal.test\n' > .dev.vars && npx wrangler@4.149.0 d1 execute radar --local --file schema.sql
 ```
 
 ```bash

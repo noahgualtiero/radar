@@ -4,6 +4,9 @@
 // (Cf-Access-Jwt-Assertion) mit der E-Mail. Ohne gültiges Token gibt es keine Antwort.
 // Lokal (wrangler pages dev) ersetzt DEV_USER aus .dev.vars die Anmeldung.
 //
+// Quellen aufnehmen und entfernen (auch über Vorschläge) dürfen nur die Admins aus ADMIN_EMAILS
+// (Komma-Liste). Ist die Variable leer, darf es niemand.
+//
 //   GET  /api/state       eigene Votes, Team-Zahlen pro Artikel, Gemerkt, Vorschläge, Einstellungen
 //   POST /api/vote        {id, value: 1 | -1 | 0, source, domain, kind}
 //   POST /api/click       {id, source, domain, kind}
@@ -20,6 +23,8 @@ const json = (data, status = 200) =>
 const iso = (offsetDays = 0) => new Date(Date.now() + offsetDays * DAY).toISOString();
 const hostOf = (url) => { try { return new URL(url).hostname.replace(/^www\./, "").toLowerCase(); } catch (e) { return ""; } };
 const text = (v, max = 300) => String(v ?? "").trim().slice(0, max);
+const isAdmin = (env, me) => String(env.ADMIN_EMAILS || "").toLowerCase().split(",").map((e) => e.trim()).includes(me);
+const SOURCE_OPS = ["source_add", "source_remove"];
 
 export async function onRequest(context) {
   const { request, env, params } = context;
@@ -105,7 +110,9 @@ async function state(env, me) {
     articles,
     votes: Object.fromEntries(mine.results.map((r) => [r.article_id, r.value])),
     saved: saved.results.map((r) => JSON.parse(r.data)),
-    suggestions: config ? await suggestions(db, config) : [],
+    admin: isAdmin(env, me),
+    // Vorschläge betreffen Quellen und gehen deshalb nur an Admins
+    suggestions: config && isAdmin(env, me) ? await suggestions(db, config) : [],
     autoRebuild: !!(env.GITHUB_TOKEN && env.GITHUB_REPO),
   };
 }
@@ -250,6 +257,7 @@ function keywords(value) {
 }
 
 async function editConfig(context, me, body) {
+  if (SOURCE_OPS.includes(body.op) && !isAdmin(context.env, me)) throw fail("Quellen aufnehmen und entfernen dürfen nur Admins.", 403);
   const config = await loadConfig(context.env);
   if (!config) throw fail("Noch keine Einstellungen vorhanden – zuerst einen Abruf laufen lassen.", 409);
   config.quellen ||= []; config.themen ||= []; config.suchen ||= {}; config.suchen.begriffe ||= [];
@@ -319,6 +327,7 @@ async function editConfig(context, me, body) {
 
 async function answerSuggestion(context, me, body) {
   const db = context.env.DB, key = text(body.key, 300);
+  if (!isAdmin(context.env, me)) throw fail("Vorschläge zu Quellen beantworten dürfen nur Admins.", 403);
   if (!/^(add|remove):/.test(key)) throw fail("Vorschlag unbekannt");
   if (body.action === "dismiss") {
     await db.prepare("INSERT OR REPLACE INTO dismissed (key, until) VALUES (?, ?)").bind(key, iso(90)).run();

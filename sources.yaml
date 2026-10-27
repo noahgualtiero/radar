@@ -92,7 +92,7 @@ ki:
     gpt-5.4-nano: [0.20, 1.25]
     gpt-5.4-mini: [0.75, 4.50]
   websuche_usd_pro_aufruf: 0.01
-  websuche_alle_tage: 7
+  websuche_alle_tage: 7          # 0 = keine KI-Websuche (Google-News-Suchen laufen trotzdem)
   einordnung_max_pro_lauf: 300
   briefing_artikel: 25            # so viele relevanteste Beiträge bekommt die KI fürs Briefing
   entdecken_mindest_relevanz: 3   # Suchfunde darunter erscheinen nicht in «Entdecken»

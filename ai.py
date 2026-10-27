@@ -188,6 +188,8 @@ class AI:
     def websearch_due(self) -> bool:
         last = self.state.get("last_websearch")
         days = float(self.cfg.get("websuche_alle_tage", 7))
+        if days <= 0:  # 0 schaltet die Websuche ab
+            return False
         if not last:
             return True
         return (datetime.now(timezone.utc) - datetime.fromisoformat(last)).total_seconds() >= days * 86400 - 3600
