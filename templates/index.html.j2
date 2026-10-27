@@ -186,23 +186,70 @@ svg { flex: none; }
 .btn { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 9px 18px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
 .btn.plain { background: var(--fill); color: var(--text); }
 
-/* Einstellungen */
-.admin { padding: 18px 20px; }
-.admin h2 { font-size: 1.08rem; font-weight: 700; margin: 0 0 4px; }
-.admin .lead { color: var(--label2); font-size: .86rem; margin: 0 0 12px; }
-.admin .form { padding: 0; }
-.table { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-size: .87rem; }
-th, td { text-align: left; padding: 9px 10px 9px 0; border-bottom: 1px solid var(--sep); vertical-align: top; }
-th { color: var(--label2); font-weight: 600; font-size: .76rem; white-space: nowrap; }
-.num { text-align: right; }
-.link.danger { color: var(--red); }
-.actions-cell { white-space: nowrap; }
-.actions-cell .link + .link { margin-left: 12px; }
-.vote-up { color: var(--green); font-weight: 600; } .vote-down { color: var(--red); font-weight: 600; }
-.hits { margin: 6px 0 0; padding-left: 18px; font-size: .85rem; }
-.admin ul.plain { list-style: none; padding: 0; margin: 0; font-size: .93rem; }
-.admin ul.plain li { display: flex; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--sep); }
+/* Briefing: die drei wichtigsten Punkte */
+.points { margin: 4px 0 14px; border-top: 1px solid var(--sep); }
+.points-title { font-size: .74rem; font-weight: 650; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 4px; }
+.point { display: flex; gap: 12px; padding: 10px 0; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--sep); }
+.point:last-child { border-bottom: 0; }
+.point img { width: 26px; height: 26px; border-radius: 7px; flex: none; background: var(--fill); margin-top: 2px; }
+.point b { display: block; font-size: .95rem; font-weight: 650; line-height: 1.35; }
+.point .why { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .88rem; color: var(--text); opacity: .8; margin-top: 2px; line-height: 1.45; }
+.point .src { display: block; font-size: .76rem; color: var(--label2); margin-top: 3px; }
+.point:hover b { text-decoration: underline; }
+
+/* Einstellungen: gruppierte Listen wie in den iOS-Einstellungen */
+.group-title { font-size: .76rem; font-weight: 650; color: var(--label2); text-transform: uppercase; letter-spacing: .06em; margin: 26px 6px 8px; display: flex; gap: 6px; }
+#admin .group-title:first-child { margin-top: 4px; }
+.group { padding: 0; overflow: hidden; margin-bottom: 6px; }
+.group-note { font-size: .8rem; color: var(--label2); margin: 0 6px 6px; line-height: 1.45; }
+.row { border-top: 1px solid var(--sep); }
+.group > .row:first-child, .group > .setting:first-child { border-top: 0; }
+.row > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 11px 14px; min-height: 58px; cursor: pointer; }
+.row > summary::-webkit-details-marker { display: none; }
+.row > summary:hover { background: var(--hover); }
+.row.line { display: flex; align-items: center; gap: 10px; padding: 10px 14px; min-height: 52px; }
+.row.line input { flex: 1; min-width: 0; background: var(--fill); border: 0; border-radius: 10px; padding: 9px 12px; font-size: 16px; }
+.fav { width: 32px; height: 32px; border-radius: 8px; flex: none; background: var(--fill); object-fit: cover; }
+.plus { width: 32px; height: 32px; border-radius: 8px; flex: none; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 1.2rem; font-weight: 600; }
+.row .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--label3); margin: 0 10px; flex: none; }
+.row .dot.w2 { background: var(--orange); } .row .dot.w3 { background: var(--red); }
+.row-main { flex: 1; min-width: 0; }
+.row-main b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; font-size: .95rem; line-height: 1.3; overflow-wrap: anywhere; }
+.row-main > span { display: block; font-size: .8rem; color: var(--label2); }
+.chev { width: 16px; height: 16px; color: var(--label3); flex: none; transition: transform .2s; }
+details[open] > summary .chev { transform: rotate(90deg); }
+.row-body { padding: 2px 14px 16px 58px; }
+.votes { display: flex; gap: 2px; }
+.vote { width: 36px; height: 36px; border-radius: 50%; border: 0; background: none; color: var(--label3); display: grid; place-items: center; cursor: pointer; }
+.vote:hover { background: var(--fill); color: var(--text); }
+.vote svg { width: 19px; height: 19px; }
+.vote[data-vote="1"][aria-pressed="true"] { color: var(--green); background: rgba(31,157,85,.12); }
+.vote[data-vote="-1"][aria-pressed="true"] { color: var(--orange); background: rgba(232,137,12,.12); }
+.vote[data-vote="1"][aria-pressed="true"] svg path, .vote[data-vote="-1"][aria-pressed="true"] svg path { fill: currentColor; }
+.row.is-muted .row-main b { color: var(--label2); text-decoration: line-through; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin: 0 0 14px; }
+.facts span { display: block; font-size: .76rem; color: var(--label2); }
+.facts b { font-size: .92rem; font-weight: 600; overflow-wrap: anywhere; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.danger { color: var(--red); }
+.hits { margin: 0 0 12px; padding-left: 18px; font-size: .88rem; line-height: 1.45; }
+.hits li { margin: 4px 0; }
+.x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--fill); color: var(--label2); cursor: pointer; flex: none; }
+.x:hover { color: var(--red); }
+.setting { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 14px; min-height: 52px; border-top: 1px solid var(--sep); font-size: .95rem; }
+.setting.stack { flex-direction: column; align-items: stretch; gap: 8px; }
+.setting.end { justify-content: flex-end; }
+.setting .ctl { display: flex; align-items: center; gap: 8px; color: var(--label2); font-size: .9rem; }
+.setting input[type=number] { width: 70px; text-align: center; }
+.setting input[type=number], .setting select, .setting textarea, .form.flat input, .form.flat select, .form.flat textarea {
+  background: var(--fill); border: 0; border-radius: 10px; padding: 8px 10px; font-size: 16px; color: var(--text); }
+.setting textarea, .form.flat textarea { width: 100%; font: inherit; font-size: 16px; line-height: 1.45; resize: vertical; field-sizing: content; min-height: 42px; }
+.form.flat { padding: 0; display: grid; gap: 10px; }
+.form.flat .row2 { display: flex; gap: 10px; flex-wrap: wrap; } .form.flat .row2 > * { flex: 1 1 140px; }
+.switch { appearance: none; -webkit-appearance: none; width: 50px; height: 30px; border-radius: 999px; background: var(--fill); position: relative; cursor: pointer; flex: none; transition: background .2s; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); transition: transform .2s; }
+.switch:checked { background: var(--green); }
+.switch:checked::after { transform: translateX(20px); }
 
 /* Tab-Leiste unten (Handy), durchscheinend */
 .tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--glass); border-top: 1px solid var(--sep);
@@ -215,7 +262,7 @@ th { color: var(--label2); font-weight: 600; font-size: .76rem; white-space: now
 
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 28px; z-index: 30; background: rgba(28,28,30,.92); color: #fff;
   -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-radius: 14px; padding: 11px 16px; font-size: .9rem; font-weight: 500;
-  display: flex; gap: 16px; align-items: center; box-shadow: var(--shadow-lg); white-space: nowrap; }
+  display: flex; gap: 16px; align-items: center; box-shadow: var(--shadow-lg); width: max-content; max-width: calc(100vw - 32px); }
 .toast button { background: none; border: 0; color: #64d2ff; font-weight: 700; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
 
@@ -252,6 +299,7 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 520px) {
+  .row-body { padding-left: 14px; }
   .actions .lbl { display: none; }
   .card { border-radius: 16px; }
   .brief-text { font-size: 1.05rem; }
@@ -343,7 +391,18 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     <section class="card hero" id="briefing">
       <p class="eyebrow">Briefing · {{ briefing.label }}</p>
       <p class="brief-text">{{ briefing.text }}</p>
-      <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Schlagzeilen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
+      {% if briefing.points %}
+      <div class="points">
+        <p class="points-title">Das Wichtigste</p>
+        {% for pt in briefing.points %}
+        <a class="point" href="{{ pt.link }}" target="_blank" rel="noopener nofollow external">
+          <img src="https://www.google.com/s2/favicons?domain={{ pt.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+          <div><b>{{ pt.title }}</b>{% if pt.why %}<span class="why">{{ pt.why }}</span>{% endif %}<span class="src">{{ pt.source }}</span></div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <p class="brief-by">{% if briefing.by == "ki" %}Von KI zusammengefasst aus {{ briefing.total }} Beiträgen.{% else %}Automatisch zusammengestellt aus {{ briefing.total }} Beiträgen.{% endif %}</p>
       {% if briefing.topics or trends %}
       <div class="chip-row">
         {% for t in trends %}<button class="chip trend" type="button" data-q="{{ t.term }}" title="Im Trend: {{ t.count }} Beiträge von {{ t.sources }} Quellen in den letzten 3 Tagen">↗ {{ t.term }}</button>{% endfor %}
@@ -419,150 +478,152 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
 
     {# ---------- Einstellungen ---------- #}
     <section id="admin" hidden>
-      <div class="card admin">
-        <h2>Quelle aufnehmen</h2>
-        <p class="lead">Link zu einer Seite oder einem Artikel eingeben. Der Knopf öffnet GitHub mit einem vorbereiteten Auftrag;
-          dort auf «Create» klicken. Eine Action sucht den Feed, trägt die Quelle in <code>sources.yaml</code> ein und baut die Seite neu.
-          Nach etwa 3 Minuten ist sie im Feed, das Ergebnis steht als Kommentar im Auftrag.</p>
-        <form class="form" id="sourceForm">
-          <input type="url" id="srcUrl" placeholder="https://… Seite, Blog oder Feed" required>
-          <div class="row">
-            <select id="srcCat" aria-label="Kategorie">{% for c in categories %}<option{% if c == "News" %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
-            <input type="text" id="srcName" placeholder="Name (optional)">
+      {# Quellen: Zeile mit Bewertung, Tippen öffnet Details und Aktionen #}
+      <h3 class="group-title">Quellen <span class="n">{{ stats|length }}</span></h3>
+      <div class="card group">
+        {% for s in stats %}
+        <details class="row" data-source="{{ s.name }}">
+          <summary>
+            <img class="fav" src="https://www.google.com/s2/favicons?domain={{ s.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}<span class="muted-flag" hidden> · stumm</span></span></div>
+            <div class="votes">
+              <button class="vote" type="button" data-vote="-1" aria-pressed="false" aria-label="Weniger von {{ s.name }}" title="Weniger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V3h4v11h-4zm0 0-4 8a3 3 0 0 1-3-3v-4H4.5a2 2 0 0 1-2-2.3l1.4-8A2 2 0 0 1 5.9 3H17"/></svg></button>
+              <button class="vote" type="button" data-vote="1" aria-pressed="false" aria-label="Mehr von {{ s.name }}" title="Mehr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zm0 0 4-8a3 3 0 0 1 3 3v4h5.5a2 2 0 0 1 2 2.3l-1.4 8A2 2 0 0 1 18.1 21H7"/></svg></button>
+            </div>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          </summary>
+          <div class="row-body">
+            <div class="facts">
+              <div><span>Themen-Treffer</span><b>{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</b></div>
+              <div><span>Letzter Beitrag</span><b>{% if s.latest %}{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.{% else %}–{% endif %}</b></div>
+              <div><span>Gemerkt</span><b class="c-saved">0</b></div>
+              <div><span>Feed</span><b>{{ s.host }}</b></div>
+            </div>
+            <div class="row-actions">
+              <button class="btn plain" type="button" data-mute="{{ s.name }}">Stummschalten</button>
+              <button class="btn plain danger" type="button" data-issue="Quelle entfernen: {{ s.name }}" data-body="name: {{ s.name }}" data-confirm="{{ s.name }} entfernen?">Quelle entfernen</button>
+            </div>
           </div>
-          <div><button class="btn" type="submit">Auf GitHub aufnehmen</button></div>
-        </form>
-      </div>
-
-      <div class="card admin">
-        <h2>Quellen</h2>
-        <p class="lead">Feste Quellen, letzte {{ max_age_days }} Tage. «Themen» = Anteil der Beiträge mit Themen-Treffer.
-          Bewertung und Gemerkt stammen aus diesem Browser.</p>
-        <div class="table"><table>
-          <thead><tr><th>Quelle</th><th class="num">Beiträge</th><th class="num">Themen</th><th>Letzter</th><th>Bewertung</th><th class="num">Gemerkt</th><th></th></tr></thead>
-          <tbody>
-          {% for s in stats %}
-            <tr data-source="{{ s.name }}">
-              <td><strong>{{ s.name }}</strong><br><span class="n">{{ s.category }} · {{ s.host }}</span></td>
-              <td class="num">{{ s.count }}</td>
-              <td class="num">{{ s.topic_share ~ " %" if s.topic_share is not none else "–" }}</td>
-              <td>{% if s.latest %}<time datetime="{{ s.latest }}">{{ s.latest[8:10] }}.{{ s.latest[5:7] }}.</time>{% else %}–{% endif %}</td>
-              <td class="c-vote">–</td><td class="num c-saved">0</td>
-              <td><button class="link danger" type="button" data-issue="Quelle entfernen: {{ s.name }}" data-body="name: {{ s.name }}" data-confirm="{{ s.name }} entfernen?">Entfernen</button></td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table></div>
-      </div>
-
-      <div class="card admin">
-        <h2>Regeln für alle Quellen</h2>
-        <p class="lead">Gelten für jede Quelle gleich, auch für die Google-News-Suchen. Liefert eine Quelle damit nichts
-          Brauchbares, besser entfernen statt eine Ausnahme machen.</p>
-        <form class="form" id="rulesForm">
-          <div class="row">
-            <label>Titel mindestens (Wörter)<br><input type="number" id="ruleWords" min="0" max="30" value="{{ rules.min_woerter or 0 }}"></label>
-            <label>Nur Beiträge mit Thema<br><select id="ruleWeight">
-              {% for v, label in [(0, "aus (alle Beiträge)"), (1, "irgendein Thema"), (2, "ab «wichtig»"), (3, "nur «sehr wichtig»")] %}
-              <option value="{{ v }}"{% if (rules.mindest_gewicht or 0) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}
-            </select></label>
+        </details>
+        {% endfor %}
+        <details class="row" id="addSource">
+          <summary><span class="plus">+</span><div class="row-main"><b>Quelle aufnehmen</b><span>Seite, Blog oder Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
+          <div class="row-body">
+            <form class="form flat" id="sourceForm">
+              <input type="url" id="srcUrl" placeholder="https://…" required>
+              <div class="row2">
+                <select id="srcCat" aria-label="Kategorie">{% for c in categories %}<option{% if c == "News" %} selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+                <input type="text" id="srcName" placeholder="Name (optional)">
+              </div>
+              <button class="btn" type="submit">Auf GitHub aufnehmen</button>
+            </form>
           </div>
-          <label class="check"><input type="checkbox" id="ruleJobs"{% if rules.stellenanzeigen_ausblenden is not sameas false %} checked{% endif %}> Stellenanzeigen ausblenden</label>
-          <textarea id="ruleExclude" rows="1" placeholder="Begriffe im Titel ausschliessen, mit Komma getrennt (z.B. webinar, podcast)">{{ (rules.ausschliessen or [])|join(', ') }}</textarea>
-          <div><button class="btn" type="submit">Regeln auf GitHub speichern</button></div>
-        </form>
+        </details>
       </div>
+      <p class="group-note">Daumen hoch rückt eine Quelle im Feed nach oben, Daumen runter nach unten. Stummgeschaltete Quellen
+        erscheinen gar nicht. Gespeichert in diesem Browser. Aufnehmen und Entfernen öffnen einen Auftrag auf GitHub («Create» klicken),
+        nach etwa 3 Minuten ist die Änderung da.</p>
 
-      <div class="card admin">
-        <h2>Themen</h2>
-        <p class="lead">Ein Beitrag erhält ein Thema, wenn eines der Stichwörter in Titel oder Anriss steht. Das Gewicht steuert
-          Briefing und Reihenfolge (3 = sehr wichtig). Leerzeichen um ein Stichwort verhindern Teiltreffer (« ki »).</p>
-        <div class="table"><table>
-          <thead><tr><th>Thema</th><th>Gewicht</th><th>Stichwörter</th><th></th></tr></thead>
-          <tbody>
-          {% for t in topic_defs %}
-            <tr>
-              <td><strong>{{ t.name }}</strong><br><span class="n">{{ topic_counts[t.name] }} Beiträge</span></td>
-              <td>{{ ["", "normal", "wichtig", "sehr wichtig"][t.gewicht or 1] }}</td>
-              <td class="n">{{ t.stichwoerter|join(", ") }}</td>
-              <td class="actions-cell">
-                <button class="link" type="button" data-edit-topic="{{ t.name }}" data-weight="{{ t.gewicht or 1 }}" data-words="{{ t.stichwoerter|join(', ') }}">Bearbeiten</button>
-                <button class="link danger" type="button" data-issue="Thema: {{ t.name }}" data-body="name: {{ t.name }}&#10;entfernen: ja" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table></div>
-        <form class="form" id="topicForm" style="margin-top:14px">
-          <div class="row">
-            <input type="text" id="topicName" placeholder="Thema, z.B. YouTube" required>
-            <select id="topicWeight" aria-label="Gewicht"><option value="1">normal</option><option value="2">wichtig</option><option value="3">sehr wichtig</option></select>
+      {# Regeln für alle Quellen #}
+      <h3 class="group-title">Regeln für alle Quellen</h3>
+      <form class="card group" id="rulesForm">
+        <label class="setting"><span>Titel mindestens</span><span class="ctl"><input type="number" id="ruleWords" min="0" max="30" value="{{ rules.min_woerter or 0 }}"> Wörter</span></label>
+        <label class="setting"><span>Nur Beiträge mit Thema</span>
+          <select id="ruleWeight">
+            {% for v, label in [(0, "aus"), (1, "irgendein Thema"), (2, "ab «wichtig»"), (3, "nur «sehr wichtig»")] %}
+            <option value="{{ v }}"{% if (rules.mindest_gewicht or 0) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select></label>
+        <label class="setting"><span>Stellenanzeigen ausblenden</span><input class="switch" type="checkbox" id="ruleJobs"{% if rules.stellenanzeigen_ausblenden is not sameas false %} checked{% endif %}></label>
+        <div class="setting stack"><span>Begriffe im Titel ausschliessen</span>
+          <textarea id="ruleExclude" rows="1" placeholder="z.B. webinar, podcast">{{ (rules.ausschliessen or [])|join(', ') }}</textarea></div>
+        <div class="setting end"><button class="btn" type="submit">Regeln speichern</button></div>
+      </form>
+      <p class="group-note">Gelten für jede Quelle gleich. Liefert eine Quelle damit nichts Brauchbares, besser entfernen statt eine Ausnahme machen.</p>
+
+      {# Themen: Tippen öffnet die Bearbeitung #}
+      <h3 class="group-title">Themen</h3>
+      <div class="card group">
+        {% for t in topic_defs %}
+        <details class="row">
+          <summary>
+            <span class="dot w{{ t.gewicht or 1 }}"></span>
+            <div class="row-main"><b>{{ t.name }}</b><span>{{ ["", "normal", "wichtig", "sehr wichtig"][t.gewicht or 1] }} · {{ topic_counts[t.name] }} {{ "Beitrag" if topic_counts[t.name] == 1 else "Beiträge" }}</span></div>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          </summary>
+          <div class="row-body">
+            <form class="form flat topic-form" data-name="{{ t.name }}">
+              <select name="gewicht" aria-label="Gewicht">{% for v, label in [(1, "normal"), (2, "wichtig"), (3, "sehr wichtig")] %}<option value="{{ v }}"{% if (t.gewicht or 1) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+              <textarea name="stichwoerter" rows="2" aria-label="Stichwörter">{{ t.stichwoerter|join(", ") }}</textarea>
+              <div class="row-actions">
+                <button class="btn" type="submit">Speichern</button>
+                <button class="btn plain danger" type="button" data-issue="Thema: {{ t.name }}" data-body="name: {{ t.name }}&#10;entfernen: ja" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
+              </div>
+            </form>
           </div>
-          <textarea id="topicWords" rows="2" placeholder="Stichwörter mit Komma getrennt, z.B. youtube, video ads, ctv"></textarea>
-          <div><button class="btn" type="submit">Thema auf GitHub speichern</button> <span class="n">Neu oder bestehendes ändern (gleicher Name)</span></div>
+        </details>
+        {% endfor %}
+        <details class="row">
+          <summary><span class="plus">+</span><div class="row-main"><b>Thema hinzufügen</b><span>Name, Gewicht, Stichwörter</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
+          <div class="row-body">
+            <form class="form flat topic-form" data-name="">
+              <input type="text" name="name" placeholder="Name, z.B. YouTube" required>
+              <select name="gewicht" aria-label="Gewicht"><option value="1">normal</option><option value="2">wichtig</option><option value="3">sehr wichtig</option></select>
+              <textarea name="stichwoerter" rows="2" placeholder="Stichwörter mit Komma, z.B. youtube, video ads, ctv" required></textarea>
+              <button class="btn" type="submit">Thema anlegen</button>
+            </form>
+          </div>
+        </details>
+      </div>
+      <p class="group-note">Ein Beitrag erhält ein Thema, wenn eines der Stichwörter in Titel oder Anriss steht. Leerzeichen um ein
+        Stichwort verhindern Teiltreffer (« ki » trifft nicht «Kiosk»).</p>
+
+      {# Suchbegriffe #}
+      <h3 class="group-title">Suchbegriffe für Vorschläge</h3>
+      <div class="card group">
+        {% for b in search_defs %}
+        <div class="row line"><div class="row-main"><b>{{ b }}</b></div>
+          <button class="x" type="button" data-issue="Suchbegriff: {{ b }}" data-body="begriff: {{ b }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b }} entfernen?" aria-label="Entfernen">✕</button></div>
+        {% endfor %}
+        <form class="row line" id="searchForm">
+          <input type="text" id="searchTerm" placeholder='Neuer Begriff, z.B. "Consent Mode" Google' required>
+          <button class="btn" type="submit">Hinzufügen</button>
         </form>
       </div>
-
-      <div class="card admin">
-        <h2>Suchbegriffe für Vorschläge</h2>
-        <p class="lead">Mit diesen Begriffen sucht Radar in Google News nach Seiten, die noch keine Quelle sind
-          (Liste «Vorschläge für neue Quellen»), jeweils in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz.
-          «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
-        <ul class="plain">
-          {% for b in search_defs %}
-          <li><span>{{ b }}</span>
-            <button class="link danger" type="button" data-issue="Suchbegriff: {{ b }}" data-body="begriff: {{ b }}&#10;entfernen: ja" data-confirm="Suchbegriff {{ b }} entfernen?">Entfernen</button></li>
-          {% endfor %}
-        </ul>
-        <form class="form" id="searchForm" style="margin-top:14px">
-          <input type="text" id="searchTerm" placeholder='z.B. "Consent Mode" Google' required>
-          <div><button class="btn" type="submit">Suchbegriff auf GitHub hinzufügen</button></div>
-        </form>
-      </div>
-
-      <div class="card admin">
-        <h2>Stummgeschaltete Quellen</h2>
-        <ul class="plain" id="mutedList"></ul>
-        <p class="lead" id="mutedEmpty">Keine. Über «⋯» bei einem Beitrag lässt sich eine Quelle stummschalten.</p>
-      </div>
+      <p class="group-note">Gesucht wird in Google News in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz.
+        «…» sucht die genaue Phrase, OR verbindet Alternativen.</p>
 
       {% if unknown %}
-      <div class="card admin">
-        <h2>Vorschläge für neue Quellen</h2>
-        <p class="lead">Seiten, die bei den Google-News-Suchbegriffen auftauchen und noch keine feste Quelle sind, häufigste zuerst.</p>
-        <div class="table"><table>
-          <thead><tr><th>Seite</th><th class="num">Treffer</th><th>Zuletzt</th><th></th></tr></thead>
-          <tbody>
-          {% for u in unknown[:40] %}
-            <tr><td><a href="https://{{ u.domain }}" target="_blank" rel="noopener nofollow external">{{ u.domain }}</a>
-                <details><summary class="n">Artikel zeigen</summary><ul class="hits">
-                  {% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener nofollow external">{{ a.title }}</a></li>{% endfor %}
-                </ul></details></td>
-              <td class="num">{{ u.count }}</td>
-              <td><time datetime="{{ u.latest }}">{{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</time></td>
-              <td><button class="link" type="button" data-suggest="https://{{ u.domain }}">Aufnehmen</button></td></tr>
-          {% endfor %}
-          </tbody>
-        </table></div>
+      <h3 class="group-title">Vorschläge für neue Quellen</h3>
+      <div class="card group">
+        {% for u in unknown[:25] %}
+        <details class="row">
+          <summary>
+            <img class="fav" src="https://www.google.com/s2/favicons?domain={{ u.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div class="row-main"><b>{{ u.domain }}</b><span>{{ u.count }} Treffer · zuletzt {{ u.latest[8:10] }}.{{ u.latest[5:7] }}.</span></div>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+          </summary>
+          <div class="row-body">
+            <ul class="hits">{% for a in u.articles %}<li><a href="{{ a.link }}" target="_blank" rel="noopener nofollow external">{{ a.title }}</a></li>{% endfor %}</ul>
+            <div class="row-actions"><button class="btn plain" type="button" data-suggest="https://{{ u.domain }}">Als Quelle aufnehmen</button></div>
+          </div>
+        </details>
+        {% endfor %}
       </div>
       {% endif %}
 
-      <div class="card admin">
-        <h2>Darstellung</h2>
-        <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Automatisch</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div>
-      </div>
+      <h3 class="group-title">Darstellung</h3>
+      <div class="card group"><div class="setting"><span>Farbschema</span>
+        <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div></div></div>
 
-      <div class="card admin">
-        <h2>Letzter Lauf</h2>
-        <p class="lead">Stand: <time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time> · {{ stats|length }} feste Quellen.
-          Läuft automatisch alle 3 Stunden.</p>
-        {% if repo %}<p><a class="btn" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Jetzt aktualisieren</a>
-          <span class="n">öffnet GitHub, dort «Run workflow»</span></p>{% endif %}
-        {% if errors %}
-        <ul class="plain">{% for e in errors %}<li><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></li>{% endfor %}</ul>
-        {% else %}<p class="lead">Alle Quellen erreichbar.</p>{% endif %}
-        <p class="lead">Briefing-Text: {% if briefing.by == "ki" %}von der KI (GitHub Models).{% else %}automatisch zusammengestellt{% if briefing.note %} – KI nicht verfügbar: {{ briefing.note }}{% endif %}.{% endif %}</p>
+      <h3 class="group-title">Letzter Lauf</h3>
+      <div class="card group">
+        <div class="setting"><span>Stand</span><span class="n"><time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time></span></div>
+        <div class="setting"><span>Briefing</span><span class="n">{% if briefing.by == "ki" %}von der KI{% else %}automatisch{% endif %}</span></div>
+        {% if briefing.by != "ki" and briefing.note %}<div class="setting stack"><span class="n">KI nicht verfügbar: {{ briefing.note }}</span></div>{% endif %}
+        {% for e in errors %}<div class="setting stack"><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></div>{% endfor %}
+        {% if repo %}<div class="setting end"><a class="btn plain" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Jetzt aktualisieren</a></div>{% endif %}
       </div>
+      <p class="group-note">Läuft automatisch alle 3 Stunden. «Jetzt aktualisieren» öffnet GitHub, dort «Run workflow».</p>
     </section>
 
     <footer>Inhalte gehören den jeweiligen Quellen.</footer>
@@ -632,8 +693,17 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   store.set("psn-last-visit", new Date().toISOString());
   function isNew(p) { return !!lastVisit && p.dataset.seen > lastVisit; }
 
-  // Im Browser gespeichert: Bewertung je Quelle (+1 mehr, -1 stumm), Gemerkt, Blog-Ideen
+  // Im Browser gespeichert: Bewertung je Quelle (1 = mehr, -1 = weniger, -2 = stumm), Gemerkt, Blog-Ideen
+  var MUTED = -2;
   var votes = store.get("psn-votes", {});
+  if (store.get("psn-votes-version", 1) < 2) {  // früher bedeutete -1 «stumm»
+    Object.keys(votes).forEach(function (k) { if (votes[k] < 0) votes[k] = MUTED; });
+    store.set("psn-votes", votes); store.set("psn-votes-version", 2);
+  }
+  function setVote(src, value) {
+    if (value) votes[src] = value; else delete votes[src];
+    store.set("psn-votes", votes); render();
+  }
   var lists = { favs: store.get("psn-favs", {}), blog: store.get("psn-blog", {}) };
 
   function snapshot(post) {
@@ -656,11 +726,12 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   };
 
   function score(p) {
-    return new Date(p.dataset.published).getTime() + (votes[p.dataset.source] > 0 ? BOOST : 0) + (+p.dataset.weight || 0) * WEIGHT_SHIFT;
+    var v = votes[p.dataset.source] || 0;
+    return new Date(p.dataset.published).getTime() + (v === 1 ? BOOST : v === -1 ? -BOOST : 0) + (+p.dataset.weight || 0) * WEIGHT_SHIFT;
   }
   function matches(p) {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
-    return TABS[state.tab](p) && !(votes[p.dataset.source] < 0)
+    return TABS[state.tab](p) && votes[p.dataset.source] !== MUTED
       && (!state.topic || p.dataset.topics.split("|").indexOf(state.topic) !== -1)
       && (!state.source || p.dataset.source === state.source)
       && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; });
@@ -697,24 +768,16 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   }
 
   function renderAdmin() {
-    $$("#admin tr[data-source]").forEach(function (tr) {
-      var name = tr.dataset.source, v = votes[name] || 0, cell = tr.querySelector(".c-vote");
-      cell.textContent = v > 0 ? "▲ mehr" : v < 0 ? "stumm" : "–";
-      cell.className = "c-vote " + (v > 0 ? "vote-up" : v < 0 ? "vote-down" : "");
-      tr.querySelector(".c-saved").textContent = ["favs", "blog"].reduce(function (sum, l) {
+    $$("#admin details[data-source]").forEach(function (row) {
+      var name = row.dataset.source, v = votes[name] || 0;
+      row.querySelectorAll(".vote").forEach(function (b) { b.setAttribute("aria-pressed", +b.dataset.vote === v ? "true" : "false"); });
+      row.classList.toggle("is-muted", v === MUTED);
+      row.querySelector(".muted-flag").hidden = v !== MUTED;
+      row.querySelector("[data-mute]").textContent = v === MUTED ? "Wieder anzeigen" : "Stummschalten";
+      row.querySelector(".c-saved").textContent = ["favs", "blog"].reduce(function (sum, l) {
         return sum + Object.keys(lists[l]).filter(function (id) { return lists[l][id].source === name; }).length;
       }, 0);
     });
-    var muted = Object.keys(votes).filter(function (n) { return votes[n] < 0; }).sort(), ul = $("mutedList");
-    ul.innerHTML = "";
-    muted.forEach(function (name) {
-      var li = document.createElement("li"), b = document.createElement("button");
-      li.appendChild(document.createTextNode(name));
-      b.className = "link"; b.type = "button"; b.textContent = "Zurückholen";
-      b.addEventListener("click", function () { delete votes[name]; store.set("psn-votes", votes); render(); });
-      li.appendChild(b); ul.appendChild(li);
-    });
-    $("mutedEmpty").hidden = muted.length > 0;
   }
 
   function render() {
@@ -819,31 +882,26 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     closeMenus();
     var src = post.dataset.source, menu = document.createElement("div");
     menu.className = "menu";
-    var boost = document.createElement("button"), mute = document.createElement("button");
-    boost.type = mute.type = "button";
-    boost.textContent = votes[src] > 0 ? "«Mehr von " + src + "» aufheben" : "Mehr von " + src + " anzeigen";
-    mute.textContent = src + " stummschalten";
-    boost.addEventListener("click", function () {
-      if (votes[src] > 0) delete votes[src]; else votes[src] = 1;
-      store.set("psn-votes", votes); closeMenus(); render();
-      toast(votes[src] > 0 ? src + " erscheint weiter oben" : "Zurückgesetzt");
-    });
-    mute.addEventListener("click", function () {
-      var before = votes[src];
-      votes[src] = -1; store.set("psn-votes", votes); closeMenus(); render();
-      toast(src + " stummgeschaltet", function () {
-        if (before === undefined) delete votes[src]; else votes[src] = before;
-        store.set("psn-votes", votes); render();
+    [[1, "Mehr von " + src, "Mehr von " + src + " – aufheben", src + " erscheint weiter oben"],
+     [-1, "Weniger von " + src, "Weniger von " + src + " – aufheben", src + " erscheint weiter unten"],
+     [MUTED, src + " stummschalten", null, src + " stummgeschaltet"]].forEach(function (opt) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = votes[src] === opt[0] && opt[2] ? opt[2] : opt[1];
+      b.addEventListener("click", function () {
+        var before = votes[src] || 0, next = before === opt[0] ? 0 : opt[0];
+        closeMenus(); setVote(src, next);
+        toast(next ? opt[3] : "Zurückgesetzt", function () { setVote(src, before); });
       });
+      menu.appendChild(b);
     });
-    menu.appendChild(boost); menu.appendChild(mute);
     anchor.parentNode.appendChild(menu);
   }
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest(".menu") && !e.target.closest("[data-act=menu]")) closeMenus();
     var suggest = e.target.closest("[data-suggest]");
-    if (suggest) { $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
+    if (suggest) { $("addSource").open = true; $("srcUrl").value = suggest.dataset.suggest; $("srcUrl").scrollIntoView({ block: "center" }); $("srcUrl").focus(); return; }
     var qBtn = e.target.closest("[data-q]");
     if (qBtn) { $("q").value = $("qSide").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", source: "", tab: "feed", admin: false }); return; }
     var topicBtn = e.target.closest("[data-topic]");
@@ -897,14 +955,20 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
     openIssue("Quelle: " + url, "url: " + url + "\nkategorie: " + $("srcCat").value + "\nname: " + $("srcName").value.trim());
     $("sourceForm").reset();
   });
-  $("topicForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var name = $("topicName").value.trim();
-    openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + $("topicWeight").value + "\nstichwoerter: " + $("topicWords").value.trim());
-    $("topicForm").reset();
+  // Jedes Thema hat sein eigenes Formular; das leere Formular legt ein neues Thema an
+  $$(".topic-form").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = form.dataset.name || form.elements.name.value.trim();
+      openIssue("Thema: " + name, "name: " + name + "\ngewicht: " + form.elements.gewicht.value + "\nstichwoerter: " + form.elements.stichwoerter.value.trim());
+    });
   });
+  // Textfelder wachsen mit dem Inhalt (Rückfall für Browser ohne field-sizing)
   function autosize(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
-  $$(".form textarea").forEach(function (t) { t.addEventListener("input", function () { autosize(t); }); });
+  $$("#admin textarea").forEach(function (t) { t.addEventListener("input", function () { autosize(t); }); });
+  $$("#admin details").forEach(function (d) {
+    d.addEventListener("toggle", function () { if (d.open) d.querySelectorAll("textarea").forEach(autosize); });
+  });
   $("rulesForm").addEventListener("submit", function (e) {
     e.preventDefault();
     openIssue("Regeln: für alle Quellen", "min_woerter: " + $("ruleWords").value + "\nmindest_gewicht: " + $("ruleWeight").value
@@ -919,11 +983,19 @@ html.locked .gate { display: grid; place-items: center; min-height: 100vh; paddi
   document.querySelector("#admin").addEventListener("click", function (e) {
     var issue = e.target.closest("[data-issue]");
     if (issue && confirm(issue.dataset.confirm)) openIssue(issue.dataset.issue, issue.dataset.body);
-    var edit = e.target.closest("[data-edit-topic]");
-    if (edit) {
-      $("topicName").value = edit.dataset.editTopic; $("topicWeight").value = edit.dataset.weight; $("topicWords").value = edit.dataset.words;
-      autosize($("topicWords"));
-      $("topicName").scrollIntoView({ block: "center" }); $("topicWords").focus();
+    // Daumen in der Quellen-Zeile: ohne die Zeile auf- oder zuzuklappen
+    var vote = e.target.closest(".vote");
+    if (vote) {
+      e.preventDefault();
+      var src = vote.closest("[data-source]").dataset.source, v = +vote.dataset.vote;
+      setVote(src, votes[src] === v ? 0 : v);
+      toast(votes[src] === 1 ? src + ": mehr davon" : votes[src] === -1 ? src + ": weniger davon" : src + ": zurückgesetzt");
+    }
+    var mute = e.target.closest("[data-mute]");
+    if (mute) {
+      var name = mute.dataset.mute;
+      setVote(name, votes[name] === MUTED ? 0 : MUTED);
+      toast(votes[name] === MUTED ? name + " stummgeschaltet" : name + " wieder sichtbar");
     }
   });
 

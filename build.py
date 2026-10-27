@@ -517,26 +517,32 @@ def fallback_summary(day, pool: list[dict], topics: list[dict]) -> str:
     return text
 
 
-def ai_summary(day, pool: list[dict]) -> tuple[str | None, str]:
-    """Kurzes Briefing über GitHub Models (gratis in GitHub Actions).
-    Gibt (Text, Hinweis) zurück; der Hinweis erklärt, warum es keinen KI-Text gab."""
+def ai_briefing(day, pool: list[dict]) -> tuple[dict | None, str]:
+    """Briefing über GitHub Models (gratis in GitHub Actions): Lauftext plus die drei wichtigsten
+    Beiträge mit je einem Satz, warum sie relevant sind. Gibt (Ergebnis, Hinweis) zurück; der Hinweis
+    erklärt, warum es kein KI-Ergebnis gab."""
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         return None, "kein GITHUB_TOKEN (lokaler Lauf)"
     if not pool:
         return None, "keine Beiträge am Vortag"
-    lines = [f"- {i['title']} ({i['source']}; Themen: {', '.join(i['topics']) or '–'})" for i in pool[:40]]
+    candidates = pool[:40]
+    lines = [f"[{n}] {i['title']} — {i['snippet'][:220]} ({i['source']}; {i['category']})"
+             for n, i in enumerate(candidates, 1)]
     payload = {
         "model": MODEL,
         "temperature": 0.2,
+        "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": (
-                "Du schreibst ein kurzes Morgen-Briefing für Paid-Search-Spezialisten in der Schweiz. "
-                "Schreibe Schweizer Hochdeutsch (ss statt ß), sachlich, ohne Wertungen und ohne Floskeln. "
-                "3 bis 4 Sätze Fliesstext, keine Aufzählung, keine Überschrift. Fasse zusammen, was passiert ist, "
-                "und nenne die wichtigsten Entwicklungen zuerst. Verwende nur, was in den Schlagzeilen steht; "
-                "erfinde nichts dazu und nenne keine Zahlen, die nicht in den Schlagzeilen stehen.")},
-            {"role": "user", "content": f"Schlagzeilen vom {german_date(day)}:\n" + "\n".join(lines)},
+                "Du schreibst das Morgen-Briefing für Paid-Search-Spezialisten in einer Schweizer Agentur. "
+                "Schreibe Schweizer Hochdeutsch (ss statt ß), sachlich, konkret, ohne Floskeln. "
+                "Verwende nur, was in den Beiträgen steht; erfinde nichts und nenne keine Zahlen, die dort nicht stehen. "
+                "Antworte als JSON: {\"text\": \"3 bis 4 Sätze Fliesstext: was ist passiert, wichtigste Entwicklung zuerst\", "
+                "\"punkte\": [{\"nr\": Nummer des Beitrags, \"warum\": \"ein Satz, was das für Google-Ads-, "
+                "Microsoft-Ads- oder Shopping-Kampagnen bedeutet oder worauf man achten sollte\"}]}. "
+                "Wähle genau 3 Punkte, bevorzugt offizielle Ankündigungen und neue Funktionen oder Änderungen.")},
+            {"role": "user", "content": f"Beiträge vom {german_date(day)}:\n" + "\n".join(lines)},
         ],
     }
     req = urllib.request.Request(MODELS_URL, data=json.dumps(payload).encode(), method="POST", headers={
@@ -544,35 +550,57 @@ def ai_summary(day, pool: list[dict]) -> tuple[str | None, str]:
     })
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
-            text = json.loads(resp.read())["choices"][0]["message"]["content"].strip()
-        return (text.replace("ß", "ss") or None), ""
+            content = json.loads(resp.read())["choices"][0]["message"]["content"]
+        answer = json.loads(content)
+        points = []
+        for point in answer.get("punkte") or []:
+            nr = int(point.get("nr", 0))
+            if 1 <= nr <= len(candidates):
+                points.append({**article_ref(candidates[nr - 1]), "why": str(point.get("warum", "")).replace("ß", "ss")})
+        text = str(answer.get("text", "")).replace("ß", "ss").strip()
+        if text:
+            return {"text": text, "points": points[:3]}, ""
+        reason = "leere Antwort"
     except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", "ignore")[:300]
-        reason = f"HTTP {exc.code}: {detail}"
+        reason = f"HTTP {exc.code}: {exc.read().decode('utf-8', 'ignore')[:300]}"
     except Exception as exc:
         reason = str(exc)[:300]
     print(f"Hinweis: KI-Briefing nicht verfügbar ({reason})", file=sys.stderr)
     return None, reason
 
 
+def article_ref(item: dict) -> dict:
+    return {k: item[k] for k in ("title", "link", "source", "domain", "category")}
+
+
+def fallback_points(pool: list[dict]) -> list[dict]:
+    """Ohne KI: die drei wichtigsten Beiträge (offizielle zuerst, je Quelle einer) mit ihrem Anriss."""
+    points = []
+    for item in pick_articles(pool, n=3):
+        teaser = item["snippet"]
+        if len(teaser) > 160:
+            teaser = teaser[:160].rsplit(" ", 1)[0] + " …"
+        points.append({**article_ref(item), "why": teaser})
+    return points
+
+
 def build_briefing(items: list[dict], weights: dict[str, int], previous: dict | None) -> dict:
-    """Briefing für den Vortag: Lauftext, Themen, wichtigste Beiträge. Der KI-Text wird pro Tag
-    nur einmal erzeugt und danach aus dem bisherigen Stand übernommen."""
+    """Briefing für den Vortag: Lauftext, die drei wichtigsten Beiträge, Themen. Das KI-Ergebnis wird
+    pro Tag nur einmal erzeugt und danach aus dem bisherigen Stand übernommen."""
     data = yesterday_topics(items, weights)
     day = datetime.fromisoformat(data["date"]).date()
     pool = [i for i in items if i["category"] not in (DISCOVER, COMMUNITY) and local_date(i) == day]
-    pool.sort(key=lambda i: (i.get("weight", 0), i["published"]), reverse=True)
+    pool.sort(key=lambda i: (i.get("weight", 0), i["category"] == "Offiziell", i["published"]), reverse=True)
     old = previous or {}
     note = ""
     if old.get("date") == data["date"] and old.get("by") == "ki":
-        text, by = old["text"], "ki"
+        result, by = {"text": old["text"], "points": old.get("points") or []}, "ki"
     else:
-        text, note = ai_summary(day, pool)
-        by = "ki" if text else "auto"
-        text = text or fallback_summary(day, pool, data["topics"])
-    top = pick_articles(pool, n=5)
-    return {"date": data["date"], "label": german_date(day), "text": text, "by": by, "note": note,
-            "total": len(pool), "topics": data["topics"], "top": top}
+        result, note = ai_briefing(day, pool)
+        by = "ki" if result else "auto"
+        result = result or {"text": fallback_summary(day, pool, data["topics"]), "points": fallback_points(pool)}
+    return {"date": data["date"], "label": german_date(day), "text": result["text"], "points": result["points"],
+            "by": by, "note": note, "total": len(pool), "topics": data["topics"]}
 
 
 def community_topics(items: list[dict]) -> list[tuple[str, int]]:
@@ -593,6 +621,7 @@ def source_stats(sources: list[dict], items: list[dict]) -> list[dict]:
             "studies": sum(1 for i in hits if i.get("study")),
             "latest": max((i["published"] for i in hits), default=None),
             "host": domain_of(source["url"]),
+            "domain": Counter(i["domain"] for i in hits).most_common(1)[0][0] if hits else domain_of(source["url"]),
         })
     return rows
 
@@ -656,7 +685,7 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     generated = now_utc().isoformat()
     (out / "items.json").write_text(
-        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "by", "note")}, "items": items},
+        json.dumps({"generated": generated, "briefing": {k: briefing[k] for k in ("date", "text", "points", "by", "note")}, "items": items},
                    ensure_ascii=False, indent=1),
         encoding="utf-8",
     )

@@ -20,18 +20,20 @@ Ruhige, moderne Oberfläche (Schrift Inter):
 
 | Tab | Inhalt |
 |---|---|
-| **Feed** (Start) | Oben die Briefing-Karte zum Vortag (Lauftext, Trend-Begriffe und Themen als Chips), darunter die Beiträge der festen Quellen |
+| **Feed** (Start) | Oben die Briefing-Karte zum Vortag (Lauftext, «Das Wichtigste» mit drei Beiträgen, Trend-Begriffe und Themen als Chips), darunter die Beiträge der festen Quellen |
 | **Studien** | Beiträge aus Studien-Quellen (Optmyzr, Smarter Ecommerce, Brainlabs, IAB …) und alle Beiträge fester Quellen, die nach Studie, Umfrage, Benchmark oder Report klingen |
 | **Community** | Reddit r/PPC und r/googleads, oben die häufigsten Themen der Woche |
 | **Gemerkt** | Umschalter «Gemerkt / Blog-Ideen», dazu «+ Link» zum Ablegen fremder Artikel und «Kopieren» |
-| **Einstellungen** | Quellen, Regeln, Themen, Suchbegriffe, Darstellung, letzter Lauf |
+| **Einstellungen** | Gruppierte Listen: Quellen (mit Daumen hoch/runter), Regeln, Themen, Suchbegriffe, Vorschläge, Darstellung, letzter Lauf |
 
-**Briefing-Text:** In der GitHub Action schreibt eine KI über
+**Briefing:** In der GitHub Action wertet eine KI über
 [GitHub Models](https://github.com/marketplace/models) (gratis Kontingent, Modell
-`openai/gpt-4.1-mini`) 3–4 Sätze aus den Schlagzeilen des Vortages – nur aus den
-Schlagzeilen, ohne Erfindungen. Der Text entsteht einmal pro Tag und wird danach
-wiederverwendet. Ist die KI nicht erreichbar (oder lokal), steht ein automatisch
-zusammengesetzter Text da. Unter dem Text steht, welche Variante es ist.
+`openai/gpt-4.1-mini`) Titel und Anriss der Beiträge des Vortages aus. Sie schreibt 3–4 Sätze
+Lauftext und wählt die drei wichtigsten Beiträge mit je einem Satz, was sie für Google-Ads-,
+Microsoft-Ads- oder Shopping-Kampagnen bedeuten – nur aus den Beiträgen, ohne Erfindungen.
+Das Ergebnis entsteht einmal pro Tag. Ohne KI (lokal oder bei einem Fehler) stehen ein
+zusammengesetzter Text und die drei wichtigsten Beiträge (offizielle zuerst) mit ihrem Anriss
+da. Ob die KI lief und warum nicht, steht in den Einstellungen unter «Letzter Lauf».
 
 **Themen:** Ein Tipp auf ein Thema filtert den aktuellen Tab. Ein Tipp auf den
 Quellennamen in einem Beitrag zeigt nur diese Quelle.
@@ -71,8 +73,12 @@ Unter jedem Beitrag:
 
 - **Merken** – legt den Beitrag unter «Gemerkt» ab.
 - **Blog-Idee** – legt ihn unter «Gemerkt → Blog-Ideen» ab.
-- **⋯** – «Mehr von [Quelle]» rückt deren Beiträge nach oben; «[Quelle] stummschalten»
-  blendet sie aus (mit «Rückgängig»; zurückholen in den Einstellungen).
+- **⋯** – «Mehr von [Quelle]» (2 Tage nach oben), «Weniger von [Quelle]» (2 Tage nach unten)
+  oder «[Quelle] stummschalten» (ausgeblendet), jeweils mit «Rückgängig».
+
+Dieselbe Bewertung geht in den Einstellungen direkt in der Quellen-Zeile: Daumen hoch = mehr,
+Daumen runter = weniger; ein Tipp auf die Zeile zeigt Kennzahlen, «Stummschalten» und
+«Quelle entfernen».
 
 Der Titel öffnet das Original, **#Thema** filtert auf dieses Thema.
 
