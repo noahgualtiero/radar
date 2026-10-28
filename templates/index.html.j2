@@ -287,6 +287,7 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .toast button { background: none; border: 0; color: #64d2ff; font-weight: 700; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
 footer p { margin: 0 0 8px; }
+#admin footer { margin: 0 6px; padding-top: 0; }
 .imprint summary { cursor: pointer; font-weight: 600; color: var(--label2); list-style: none; padding: 6px 0; }
 .imprint summary::-webkit-details-marker { display: none; }
 .imprint summary::after { content: " ›"; }
@@ -772,10 +773,8 @@ html, body { overflow-x: clip; }
         {% endif %}
       </div>
       <p class="group-note">Neue Beiträge alle 3 Stunden, KI-Websuche einmal pro Woche.</p>
-      </div>
-    </section>
-
-    {# Erklärung der Funktionen: ganz unten, aufklappbar #}
+      <h3 class="group-title">Über Radar</h3>
+      {# Über Radar: nur in den Einstellungen (Allgemein), aufklappbar #}
     <footer id="footer">
       <p>Inhalte gehören den jeweiligen Quellen.</p>
       <details class="imprint">
@@ -807,6 +806,9 @@ html, body { overflow-x: clip; }
           Werkzeug von Standout. Fragen: <a href="mailto:noah.kaech@standout.ch">noah.kaech@standout.ch</a></p>
       </details>
     </footer>
+      </div>
+    </section>
+
   </main>
   </div>
 </div>
