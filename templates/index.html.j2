@@ -12,8 +12,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Radar</title>
 <meta name="description" content="Newsradar für Paid Search: Neuigkeiten, Studien und Trends aus ausgewählten Quellen.">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="favicon-16.png" type="image/png" sizes="16x16">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Radar">
@@ -505,7 +506,7 @@ html, body { overflow-x: clip; }
 <div class="app">
   {# ---------- Navigation links (Desktop) ---------- #}
   <aside class="rail">
-    <a class="brand" href="./" aria-label="Radar" title="Radar"><img src="logo.svg" alt=""><b class="lbl">Radar</b></a>
+    <a class="brand" href="./" aria-label="Radar" title="Radar"><img src="favicon.svg" alt=""><b class="lbl">Radar</b></a>
     <nav class="nav" aria-label="Bereiche">
       {% for key, label, icon in tabs if key != "sources" %}
       <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}" title="{{ label }}">{{ icon }}<span class="lbl">{{ label }}</span>{% if key == "saved" %}<span class="badge-dot" id="nSavedSide"></span>{% endif %}</button>

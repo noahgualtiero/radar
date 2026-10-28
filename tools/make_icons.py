@@ -3,7 +3,7 @@
     pip install Pillow && python tools/make_icons.py
 
 Schreibt nach static/: apple-touch-icon.png (180, iOS rundet selbst ab), icon-192.png,
-icon-512.png, favicon-32.png und og.png (1200×630 für Link-Vorschauen).
+icon-512.png, favicon-32.png, favicon-16.png (vereinfacht) und og.png (1200×630 für Link-Vorschauen).
 """
 
 from __future__ import annotations
@@ -49,6 +49,26 @@ def icon(size: int) -> Image.Image:
     return Image.alpha_composite(base, layer).resize((size, size), Image.LANCZOS)
 
 
+def small_icon(size: int) -> Image.Image:
+    """Vereinfachtes Logo für kleine Grössen, wie static/favicon.svg: ein kräftiger Ring, dicker Strahl,
+    grosse Punkte. Die feinen Ringe des grossen Logos verschwinden unter 32 px."""
+    s = size * SS
+    base = gradient(s, s).convert("RGBA")
+    layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    u = s / 64
+    cx = cy = 32 * u
+    draw.ellipse([cx - 20 * u, cy - 20 * u, cx + 20 * u, cy + 20 * u], outline=(255, 255, 255, 153), width=round(5 * u))
+    draw.line([(cx, cy), (49.32 * u, 22 * u)], fill=(255, 255, 255, 255), width=round(6.5 * u))
+    for x, y, r in ((49.32, 22, 3.25), (32, 32, 6), (41, 45, 5)):
+        draw.ellipse([(x - r) * u, (y - r) * u, (x + r) * u, (y + r) * u], fill=(255, 255, 255, 255))
+    mask = Image.new("L", (s, s), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, s - 1, s - 1], radius=round(14.5 * u), fill=255)
+    out = Image.alpha_composite(base, layer)
+    out.putalpha(mask)
+    return out.resize((size, size), Image.LANCZOS)
+
+
 def font(size: int, bold: bool) -> ImageFont.FreeTypeFont:
     for path, index in (("/System/Library/Fonts/Helvetica.ttc", 1 if bold else 0),
                         ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 0)):
@@ -72,6 +92,7 @@ if __name__ == "__main__":
     icon(180).convert("RGB").save(OUT / "apple-touch-icon.png")
     icon(192).save(OUT / "icon-192.png")
     icon(512).save(OUT / "icon-512.png")
-    icon(32).save(OUT / "favicon-32.png")
+    small_icon(32).save(OUT / "favicon-32.png")
+    small_icon(16).save(OUT / "favicon-16.png")
     og().save(OUT / "og.png", optimize=True)
     print("Icons geschrieben nach", OUT)

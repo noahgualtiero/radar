@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Vereinfachtes Logo für kleine Grössen (Browser-Tab, Leiste): ein kräftiger Ring, dicker Strahl,
+       grosser Punkt; ohne feine Ringe und Fächer, die unter 32 px verschwinden -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="1" stop-color="#5E5CE6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14.5" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="5"/>
+  <path d="M32 32 L49.32 22" stroke="#fff" stroke-width="6.5" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="6" fill="#fff"/>
+  <circle cx="41" cy="45" r="5" fill="#fff"/>
+</svg>
