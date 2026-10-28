@@ -177,7 +177,7 @@ Secrets*, Umgebung Production)
 | Name | Wert |
 |---|---|
 | `ACCESS_TEAM_DOMAIN` | z.B. `standout.cloudflareaccess.com` (unter *Zero Trust → Settings*) |
-| `ACCESS_AUD` | AUD-Tag aus Schritt 5 |
+| `ACCESS_AUD` | optional: AUD-Tag der Application. Ohne gilt jede gültige Anmeldung des Teams |
 | `GITHUB_REPO` | optional: `noahgualtiero/radar` |
 | `GITHUB_TOKEN` (Secret) | optional: Fine-grained Token, nur für dieses Repo, mit *Actions: Read and write*. Damit stösst eine Änderung in Radar sofort einen Abruf an |
 

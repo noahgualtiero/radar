@@ -66,11 +66,14 @@ let certCache = { at: 0, keys: [] };
 async function currentUser(request, env) {
   if (env.DEV_USER) return env.DEV_USER.toLowerCase();
   const token = request.headers.get("cf-access-jwt-assertion");
-  if (!token || !env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) throw new Error("kein Access-Token");
+  if (!token || !env.ACCESS_TEAM_DOMAIN) throw new Error("kein Access-Token");
   const [h, p, s] = token.split(".");
   const header = JSON.parse(b64text(h)), payload = JSON.parse(b64text(p));
+  // Mit ACCESS_AUD gilt nur das Token dieser Application; ohne genügt ein gültiges Token des Teams
   const aud = [].concat(payload.aud || []);
-  if (!aud.includes(env.ACCESS_AUD) || payload.exp * 1000 < Date.now()) throw new Error("Token ungültig");
+  if ((env.ACCESS_AUD && !aud.includes(env.ACCESS_AUD)) || payload.exp * 1000 < Date.now()) throw new Error("Token ungültig");
+  const issuer = "https://" + env.ACCESS_TEAM_DOMAIN.replace(/^https?:\/\//, "");
+  if (payload.iss && payload.iss !== issuer) throw new Error("Token von fremdem Team");
   const key = (await accessKeys(env.ACCESS_TEAM_DOMAIN)).find((k) => k.kid === header.kid);
   if (!key) throw new Error("Schlüssel unbekannt");
   const pub = await crypto.subtle.importKey("jwk", key, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
