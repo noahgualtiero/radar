@@ -122,7 +122,8 @@ vorschlaege:
   entfernen_ohne_klick_tage: 60   # Quelle, die ich so lange nicht geöffnet habe
 
 # Suchen für «Entdecken»: Radar sucht zu jedem Thema oben automatisch in Google News (gratis),
-# mit den ersten typischen Begriffen des Themas. Dazu kommen diese festen Zusatzsuchen. Treffer
+# mit den ersten typischen Begriffen des Themas: einmal nach Neuigkeiten, einmal nach Studien und
+# Kennzahlen. Dazu kommen diese festen Zusatzsuchen. Treffer
 # von Seiten, die schon Quelle sind, werden ausgeblendet. Ausgaben unter regionen (DE, AT, CH;
 # möglich auch US, UK, IE); die englischsprachigen Fachmedien sind ohnehin feste Quellen.
 # Ein Eintrag ist Text oder name (Anzeige) plus q (Suchanfrage wie bei Google: "…", OR).
@@ -130,8 +131,6 @@ suchen:
   zeitraum_tage: 7
   regionen: [DE, AT, CH]
   begriffe:
-    - name: Studien und Benchmarks
-      q: '("Google Ads" OR PPC OR "paid search" OR "retail media") (study OR benchmark OR survey OR report OR Studie OR Umfrage)'
     - name: Beratungen (McKinsey, BCG, Gartner, Forrester, Think with Google)
       q: '(site:mckinsey.com OR site:bcg.com OR site:gartner.com OR site:forrester.com OR site:thinkwithgoogle.com) (advertising OR "paid search" OR "retail media" OR "digital marketing" OR Werbung)'
     - 'Suchmaschinenwerbung OR SEA-Kampagne'

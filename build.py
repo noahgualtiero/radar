@@ -158,12 +158,18 @@ def entry_image(entry) -> str | None:
     return None
 
 
-def topic_query(topic: dict) -> str:
-    """Google-News-Suche zu einem Thema: die ersten typischen Begriffe mit OR, sonst der Name."""
+STUDY_TERMS = "(study OR studie OR survey OR umfrage OR benchmark OR report OR statistik OR daten OR zahlen)"
+
+
+def topic_queries(topic: dict) -> list[str]:
+    """Zwei Google-News-Suchen pro Thema aus den ersten typischen Begriffen (sonst dem Namen): Neuigkeiten
+    mit Werbe-Kontext (damit «tracking» oder «shopping» nicht ins Leere laufen) und immer auch Studien und
+    Kennzahlen dazu."""
     words = [w.strip() for w in topic.get("stichwoerter") or [] if len(w.strip()) >= 4][:4]
     words = words or [topic["name"]]
-    # Mit Werbe-Kontext, damit allgemeine Begriffe wie «tracking» oder «shopping» nicht ins Leere laufen
-    return "(" + " OR ".join(f'"{w}"' if " " in w else w for w in words) + ") (Ads OR Advertising OR Werbung OR Marketing OR Google)"
+    terms = "(" + " OR ".join(f'"{w}"' if " " in w else w for w in words) + ")"
+    context = " (Ads OR Advertising OR Werbung OR Marketing OR Google)"
+    return [terms + context, terms + context + " " + STUDY_TERMS]
 
 
 def search_sources(config: dict, topics: list[dict]) -> list[dict]:
@@ -171,7 +177,7 @@ def search_sources(config: dict, topics: list[dict]) -> list[dict]:
     Begriffen) und die festen Zusatzsuchen aus sources.yaml (z.B. Studien, Beratungen)."""
     days = int(config.get("zeitraum_tage", 7))
     sources = []
-    queries = [topic_query(t) for t in topics] + [
+    queries = [q for t in topics for q in topic_queries(t)] + [
         e.get("q") or e.get("name") if isinstance(e, dict) else e for e in config.get("begriffe") or []]
     for term in dict.fromkeys(queries):
         # Jeder Begriff läuft in den gewählten Ausgaben (Standard DACH); doppelte Treffer werden zusammengeführt
