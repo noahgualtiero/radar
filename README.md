@@ -28,7 +28,7 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 | **Feed** | Die eigenen Quellen. Oben Themen-Chips. Gelegentlich erscheint ein Vorschlag |
 | **Entdecken** | Suchfunde (Google News pro Thema, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
-| **Gemerkt** | Chips «Meine» (persönlich, auf allen Geräten gleich) und «Im Team» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
+| **Gemerkt** | Chips «Meine gemerkten» (persönlich, auf allen Geräten gleich) und «Vom Team gemerkt» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
 | **Einstellungen** (Zahnrad) | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
 Bei jedem Beitrag gibt es vier Aktionen:
@@ -108,7 +108,7 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 - Die Quellen aus `sources.yaml` sind Standard: für alle an, jede Person kann sie für sich ausschalten.
 - Wer eine Quelle «nur für mich» aufnimmt, hat sie im eigenen Feed; für die anderen bleibt sie aus, bis sie sie anschalten. «Für alle» macht sie zur Standardquelle.
 - Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
-- Das Briefing sowie «Im Team», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
+- Das Briefing sowie «Vom Team gemerkt», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
 
 **Gemeinsam für alle:** die Themen. Die Einstellungen haben drei Bereiche: Quellen, Themen, Allgemein.
 
