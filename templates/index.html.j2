@@ -456,6 +456,12 @@ html, body { overflow-x: clip; }
 .chip[aria-pressed="true"] .n { color: #fff; opacity: .8; }
 .tabbar button[aria-selected="true"], .tabbar button[aria-selected="true"] span, .tabbar button[aria-selected="true"] svg { color: var(--accent); }
 .rail .nav button[aria-selected="true"] { color: var(--accent); }
+/* Desktop: Chips etwas kleiner, damit die Beiträge im Vordergrund stehen */
+@media (min-width: 901px) {
+  .top .chip { font-size: .8rem; padding: 6px 12px; }
+  .top .chips { gap: 6px; row-gap: 6px; }
+  .top .search-chip svg { width: 13px; height: 13px; }
+}
 /* Chips ohne Anzahl: ruhiger und kompakter */
 .top .chip .n { display: none; }
 /* Desktop: Chips oben über die ganze Breite der Inhaltsspalte */
@@ -498,11 +504,13 @@ html, body { overflow-x: clip; }
   <aside class="rail">
     <a class="brand" href="./" aria-label="Radar" title="Radar"><img src="logo.svg" alt=""><b class="lbl">Radar</b></a>
     <nav class="nav" aria-label="Bereiche">
-      {% for key, label, icon in tabs %}
+      {% for key, label, icon in tabs if key != "sources" %}
       <button type="button" data-tab="{{ key }}" aria-selected="{{ 'true' if loop.first else 'false' }}" title="{{ label }}">{{ icon }}<span class="lbl">{{ label }}</span>{% if key == "saved" %}<span class="badge-dot" id="nSavedSide"></span>{% endif %}</button>
       {% endfor %}
     </nav>
     <div class="rail-foot nav">
+      {# Desktop: Quellen und Einstellungen als Zahnrad unten, beim Einklappen #}
+      <button type="button" data-tab="sources" aria-selected="false" title="Einstellungen">{{ ico_gear }}<span class="lbl">Einstellungen</span></button>
       <button type="button" id="railToggle" title="Leiste einklappen" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M9 4v16"/></svg><span class="lbl">Einklappen</span></button>
     </div>
   </aside>
