@@ -288,6 +288,9 @@ async function storeConfig(context, me, config, summary, rebuildWanted = true) {
   return { ok: true, message: summary, rebuild };
 }
 
+// Suchbegriff: Text oder {name, q}
+const termName = (t) => (typeof t === "string" ? t : t.name || t.q);
+
 // Kommagetrennte Liste; ein Wort in Anführungszeichen behält seine Leerzeichen (" rsa " trifft nicht "Versa")
 function keywords(value) {
   const out = [];
@@ -353,12 +356,12 @@ async function editConfig(context, me, body) {
     case "search_add": {
       const term = text(body.term, 200);
       if (!term) throw fail("Begriff fehlt");
-      if (!config.suchen.begriffe.includes(term)) config.suchen.begriffe.push(term);
+      if (!config.suchen.begriffe.some((t) => termName(t) === term)) config.suchen.begriffe.push(term);
       summary = `Suchbegriff ${term} hinzugefügt.`;
       break;
     }
     case "search_remove":
-      config.suchen.begriffe = config.suchen.begriffe.filter((t) => t !== body.term);
+      config.suchen.begriffe = config.suchen.begriffe.filter((t) => termName(t) !== body.term);
       summary = `Suchbegriff ${body.term} entfernt.`;
       break;
     case "rules_save":

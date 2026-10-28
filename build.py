@@ -162,7 +162,8 @@ def search_sources(config: dict) -> list[dict]:
     """Macht aus jedem Suchbegriff eine Google-News-Suche, die wie eine Quelle abgerufen wird."""
     days = int(config.get("zeitraum_tage", 7))
     sources = []
-    for term in config.get("begriffe") or []:
+    for entry in config.get("begriffe") or []:
+        term = entry.get("q") or entry.get("name") if isinstance(entry, dict) else entry
         # Jeder Begriff läuft in den gewählten Ausgaben (Standard DACH); doppelte Treffer werden zusammengeführt
         for lang in config.get("regionen") or ["DE", "AT", "CH"]:
             locale = LOCALES.get(lang)
@@ -855,7 +856,7 @@ def main() -> int:
         items=shown,
         topics=[t["name"] for t in topics],
         topic_defs=topics,
-        search_defs=searches.get("begriffe") or [],
+        search_defs=[e.get("name") or e.get("q") if isinstance(e, dict) else e for e in searches.get("begriffe") or []],
         weights=weights,
         briefings=briefings,
         stories=story_clusters(items, weights),

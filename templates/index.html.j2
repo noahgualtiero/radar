@@ -401,15 +401,15 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 @media (max-width: 900px) {
   .app, html.rail-collapsed .app { grid-template-columns: minmax(0, 1fr); }
   .content { padding: 0 0 calc(80px + env(safe-area-inset-bottom)); max-width: none; }
-  /* Chip-Reihe ganz oben; gleitet beim Runterscrollen weg und ist beim Hochscrollen sofort wieder da */
-  .top { display: flex; position: sticky; top: 0; z-index: 20; margin: 0 0 8px; padding: calc(30px + env(safe-area-inset-top)) 0 10px;
-    background: var(--bg); border-bottom: 1px solid var(--sep); transition: transform .22s ease; }
-  .top.away { transform: translateY(-100%); }
+  /* Chip-Reihe ganz oben auf der Seite; scrollt normal mit, ohne Ein- und Ausklappen */
+  .top { display: flex; position: static; margin: 0 0 8px; padding: calc(30px + env(safe-area-inset-top)) 0 10px;
+    background: var(--bg); border-bottom: 1px solid var(--sep); }
   .top.searching { padding: 8px 16px 10px; }
   .top .chips { padding: 0 14px 2px; }
   .hero, .active-filter, .list-head, #admin, #listFeed, .empty, footer, .seen-line, .trend-now, .month, .profile-seg { margin-left: 12px; margin-right: 12px; }
   .trend-now { margin-top: 8px; }
   #briefingView, #admin { margin-top: calc(34px + env(safe-area-inset-top)); }
+  .admin-seg { margin-left: 0; margin-right: 0; }
   .hero { margin-top: 10px; }
   .post.card { margin: 0 0 22px; padding: 6px 0 14px; }
   .hero { margin-bottom: 28px; }
@@ -439,6 +439,16 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 .actions .cnt { font-size: .86rem; font-weight: 650; min-width: 0; }
 .actions .cnt:empty { display: none; }
 
+/* Beschriftete Felder und Kennzeichnung «Für alle» / «Persönlich» */
+.form.flat label.field { font-size: .8rem; font-weight: 600; color: var(--text); margin-bottom: -4px; }
+.form.flat label.field span { font-weight: 400; color: var(--label2); margin-left: 4px; }
+.scope { font-weight: 600; }
+.admin-seg { display: flex; width: 100%; margin: 0 0 18px; }
+.admin-seg button { flex: 1; padding: 7px 4px; font-size: .86rem; }
+.pane .group-title:first-child { margin-top: 18px; }
+.hint { font-size: .85rem; color: var(--label2); margin: 0 0 6px; overflow-wrap: anywhere; }
+.scope.all { color: var(--label2); }
+.scope.own { color: var(--purple); }
 /* Schalter «in meinem Feed» in der Quellen-Zeile */
 .toggle { width: 50px; height: 30px; border-radius: 999px; border: 0; background: var(--fill); position: relative; cursor: pointer; flex: none; padding: 0; transition: background .2s; }
 .toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.2); transition: transform .2s; }
@@ -650,13 +660,21 @@ html, body { overflow-x: clip; }
 
     {# ---------- Quellen und Einstellungen ---------- #}
     <section id="admin" hidden>
+      {# Umschalter: immer nur ein Bereich der Einstellungen #}
+      <div class="seg admin-seg" id="adminSeg">
+        <button type="button" data-pane="quellen" aria-pressed="true">Quellen</button>
+        <button type="button" data-pane="inhalte" aria-pressed="false">Inhalte</button>
+        <button type="button" data-pane="suchen" aria-pressed="false">Suchen</button>
+        <button type="button" data-pane="allgemein" aria-pressed="false">Allgemein</button>
+      </div>
+      <div class="pane" data-pane="quellen">
       <h3 class="group-title">Quellen <span class="n">{{ stats|length }}</span></h3>
       <div class="card group">
         {% for s in stats %}
         <details class="row" data-source="{{ s.name }}" data-standard="{{ 1 if s.standard else 0 }}">
           <summary>
             <img class="fav" src="https://www.google.com/s2/favicons?domain={{ s.domain }}&amp;sz=64" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-            <div class="row-main"><b>{{ s.name }}</b><span>{{ s.category }} · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}{% if not s.standard %} · aufgenommen{% if s.by %} von {{ s.by }}{% endif %}{% endif %}<span class="eng"></span></span></div>
+            <div class="row-main"><b>{{ s.name }}</b><span><span class="scope {{ 'all' if s.standard else 'own' }}" data-by="{{ s.by }}">{{ "Für alle" if s.standard else "Persönlich" }}</span> · {{ s.count }} {{ "Beitrag" if s.count == 1 else "Beiträge" }}<span class="eng"></span></span></div>
             <button class="toggle" type="button" role="switch" aria-checked="false" aria-label="{{ s.name }} in meinem Feed" title="In meinem Feed"></button>
             <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
           </summary>
@@ -691,23 +709,21 @@ html, body { overflow-x: clip; }
           </div>
         </details>
       </div>
-      <p class="group-note">Der Schalter bestimmt, was in <b>deinem</b> Feed steht; andere sehen ihre eigene Auswahl.
-        Eine neue Quelle nimmst du «nur für mich» auf (andere können sie anschalten) oder «für alle» (bei allen an,
-        jede Person kann sie für sich ausschalten). Das Briefing und unter
-        Gemerkt «Im Team», «Meistgelesen» und «Top bewertet» berücksichtigen alle Quellen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
+      <p class="group-note">Der Schalter gilt nur für deinen Feed. «Für alle» ist bei allen an, «Persönlich» nur bei der
+        Person, die sie aufgenommen hat.</p>
 
+      </div>
+      <div class="pane" data-pane="inhalte" hidden>
       <h3 class="group-title">Was angezeigt wird</h3>
       <form class="card group" id="rulesForm">
-        {% set rel_labels = [(1, "alles"), (2, "ab «am Rand»"), (3, "ab «nützlich»"), (4, "ab «wichtig»"), (5, "nur «muss man wissen»")] %}
+        {% set rel_labels = [(1, "Alle Beiträge"), (2, "Mit Bezug zu Paid Search"), (3, "Nützliche und wichtigere"), (4, "Nur wichtige"), (5, "Nur Pflichtlektüre")] %}
         <label class="setting"><span>Feed</span>
           <select id="relFeed">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.feed_mindest_relevanz or 2) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
         <label class="setting"><span>Entdecken</span>
           <select id="relDiscover">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.entdecken_mindest_relevanz or 3) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
         <div class="setting end"><button class="btn" type="submit">Speichern</button></div>
       </form>
-      <p class="group-note">Die KI bewertet jeden Beitrag mit einer Relevanz von 1 (kein Bezug zu Paid Search) bis 5
-        (muss man diese Woche wissen). Hier legst du fest, ab welcher Stufe ein Beitrag erscheint. Stellenanzeigen und
-        sehr kurze Einträge (z.B. Glossar) blendet Radar immer aus.</p>
+      <p class="group-note">Die KI bewertet jeden Beitrag. Hier legst du fest, was angezeigt wird. Gilt für alle.</p>
 
       <h3 class="group-title">Themen</h3>
       <div class="card group">
@@ -720,8 +736,10 @@ html, body { overflow-x: clip; }
           </summary>
           <div class="row-body">
             <form class="form flat topic-form" data-name="{{ t.name }}">
+              <label class="field">Gewicht</label>
               <select name="gewicht" aria-label="Gewicht">{% for v, label in [(1, "normal"), (2, "wichtig"), (3, "sehr wichtig")] %}<option value="{{ v }}"{% if (t.gewicht or 1) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-              <textarea name="stichwoerter" rows="2" aria-label="Stichwörter" placeholder="Beispiele, worum es geht (optional)">{% for w in t.stichwoerter %}{{ ('"' ~ w ~ '"') if w != w.strip() else w }}{{ ", " if not loop.last }}{% endfor %}</textarea>
+              <label class="field">Typische Begriffe <span>optional – helfen der KI, das Thema zu erkennen</span></label>
+              <textarea name="stichwoerter" rows="2" aria-label="Typische Begriffe" placeholder="z.B. performance max, pmax, demand gen">{{ t.stichwoerter|map("trim")|join(", ") }}</textarea>
               <div class="row-actions">
                 <button class="btn" type="submit">Speichern</button>
                 <button class="btn plain danger" type="button" data-op="topic_remove" data-name="{{ t.name }}" data-confirm="Thema {{ t.name }} entfernen?">Entfernen</button>
@@ -731,26 +749,28 @@ html, body { overflow-x: clip; }
         </details>
         {% endfor %}
         <details class="row">
-          <summary><span class="plus">+</span><div class="row-main"><b>Thema hinzufügen</b><span>Name, Gewicht, Beispiele</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
+          <summary><span class="plus">+</span><div class="row-main"><b>Thema hinzufügen</b><span>Erscheint als Chip oben im Feed</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
           <div class="row-body">
             <form class="form flat topic-form" data-name="">
               <input type="text" name="name" placeholder="Name, z.B. YouTube" required>
+              <label class="field">Gewicht</label>
               <select name="gewicht" aria-label="Gewicht"><option value="1">normal</option><option value="2">wichtig</option><option value="3">sehr wichtig</option></select>
-              <textarea name="stichwoerter" rows="2" placeholder="Beispiele mit Komma (optional), z.B. youtube, video ads, ctv"></textarea>
+              <label class="field">Typische Begriffe <span>optional – helfen der KI, das Thema zu erkennen</span></label>
+              <textarea name="stichwoerter" rows="2" placeholder="z.B. youtube, video ads, ctv"></textarea>
               <button class="btn" type="submit">Thema anlegen</button>
             </form>
           </div>
         </details>
       </div>
-      <p class="group-note">Die KI ordnet jeden Beitrag den passenden Themen zu. Die Beispiele helfen ihr dabei und
-        dienen als Ersatz, falls die KI einmal nicht läuft; einfach Wörter mit Komma, keine Suchsyntax. Der Punkt zeigt
-        das Gewicht: grau normal, orange wichtig, rot sehr wichtig. Wichtige Themen rücken im Feed etwas nach oben
-        und zählen im Briefing mehr.</p>
+      <p class="group-note">Themen sind die Chips oben im Feed; die KI ordnet die Beiträge zu. Punkt: grau normal,
+        orange wichtig, rot sehr wichtig – wichtige rücken weiter nach oben.</p>
 
-      <h3 class="group-title">Suchbegriffe für Entdecken</h3>
+      </div>
+      <div class="pane" data-pane="suchen" hidden>
+      <h3 class="group-title">Suchen für Entdecken</h3>
       <div class="card group">
         {% for b in search_defs %}
-        <div class="row line"><div class="row-main"><b>{{ b }}</b></div>
+        <div class="row line"><div class="row-main"><b>{{ b|replace('"', '') }}</b></div>
           <button class="x" type="button" data-op="search_remove" data-term="{{ b }}" data-confirm="Suchbegriff {{ b }} entfernen?" aria-label="Entfernen">✕</button></div>
         {% endfor %}
         <form class="row line" id="searchForm">
@@ -758,25 +778,29 @@ html, body { overflow-x: clip; }
           <button class="btn" type="submit">Hinzufügen</button>
         </form>
       </div>
-      <p class="group-note">Gesucht wird gratis in Google News für Deutschland, Österreich und die Schweiz, dazu einmal
-        pro Woche eine KI-Websuche. Einfach Wörter eingeben; «…» sucht die genaue Phrase, OR verbindet Alternativen. Die KI ordnet jeden Fund ein; in «Entdecken» erscheint, was relevant genug ist.</p>
+      <p class="group-note">Radar sucht diese Begriffe gratis in Google News (Schweiz, Deutschland, Österreich). Die Funde
+        erscheinen in Entdecken.</p>
 
+      </div>
+      <div class="pane" data-pane="allgemein" hidden>
       <h3 class="group-title">Darstellung</h3>
       <div class="card group"><div class="setting"><span>Farbschema</span>
         <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div></div></div>
 
-      <h3 class="group-title">Letzter Lauf</h3>
+      <h3 class="group-title">Status</h3>
       <div class="card group">
-        <div class="setting"><span>Stand</span><span class="n"><time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time></span></div>
+        <div class="setting"><span>Zuletzt aktualisiert</span><span class="n"><time id="generated" datetime="{{ generated }}">{{ generated[:16]|replace("T", " ") }} UTC</time></span></div>
         <div class="setting"><span>Angemeldet</span><span class="n" id="me">–</span></div>
-        <div class="setting"><span>KI diesen Monat</span><span class="n">{{ "%.2f"|format(ai_cost.spent) }} von {{ "%.2f"|format(ai_cost.budget) }} USD · {{ ai_cost.calls }} Aufrufe</span></div>
+        <div class="setting"><span>KI diesen Monat</span><span class="n">{{ "%.2f"|format(ai_cost.spent) }} / {{ "%.0f"|format(ai_cost.budget) }} USD</span></div>
         <div class="setting"><span>Letzte KI-Websuche</span><span class="n">{% if ai_cost.last_websearch %}{{ ai_cost.last_websearch[8:10] }}.{{ ai_cost.last_websearch[5:7] }}.{{ ai_cost.last_websearch[0:4] }}{% else %}noch keine{% endif %}</span></div>
-        <div class="setting"><span>Einstellungen aus</span><span class="n">{{ config_origin }}</span></div>
-        {% for k, v in notes.items() %}<div class="setting stack"><span>{{ k }}</span><span class="n">{{ v }}</span></div>{% endfor %}
-        {% for e in errors %}<div class="setting stack"><span>{{ e.source }}</span><span class="n">{{ e.error }}</span></div>{% endfor %}
-        {% if repo %}<div class="setting end"><a class="btn plain" href="https://github.com/{{ repo }}/actions/workflows/build.yml" target="_blank" rel="noopener nofollow external">Abruf auf GitHub</a></div>{% endif %}
+        {% if notes or errors %}
+        <details class="row"><summary><div class="row-main"><b>Hinweise</b><span>{{ (notes|length) + (errors|length) }} beim letzten Abruf</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></summary>
+          <div class="row-body">{% for k, v in notes.items() %}<p class="hint"><b>{{ k }}:</b> {{ v }}</p>{% endfor %}{% for e in errors %}<p class="hint"><b>{{ e.source }}:</b> {{ e.error }}</p>{% endfor %}</div>
+        </details>
+        {% endif %}
       </div>
-      <p class="group-note">Läuft automatisch alle 3 Stunden; Änderungen hier stossen einen Abruf an.</p>
+      <p class="group-note">Neue Beiträge alle 3 Stunden, KI-Websuche einmal pro Woche.</p>
+      </div>
     </section>
 
     {# Erklärung der Funktionen: ganz unten, aufklappbar #}
@@ -1042,6 +1066,12 @@ html, body { overflow-x: clip; }
       var on = inMyFeed(name);
       row.querySelector(".toggle").setAttribute("aria-checked", on ? "true" : "false");
       row.querySelector(".toggle-me").textContent = on ? "Für mich ausblenden" : "Für mich anzeigen";
+      // Persönliche Quellen: von wem (ich oder jemand aus dem Team)
+      var scope = row.querySelector(".scope.own");
+      if (scope) {
+        var mine = server.online && scope.dataset.by && server.me.split("@")[0] === scope.dataset.by;
+        scope.textContent = mine ? "Persönlich · von dir" : scope.dataset.by ? "Persönlich · von " + scope.dataset.by : "Persönlich";
+      }
       row.classList.toggle("is-off", !on);
     });
   }
@@ -1170,14 +1200,6 @@ html, body { overflow-x: clip; }
       openSearch();
     }
   });
-  // Chip-Reihe: beim Runterscrollen ausblenden, bei jeder Bewegung nach oben sofort zeigen
-  var lastY = window.scrollY;
-  window.addEventListener("scroll", function () {
-    var y = window.scrollY, top = $("top");
-    if (y < lastY || y < 60 || top.classList.contains("searching")) top.classList.remove("away");
-    else if (y > lastY + 4) top.classList.add("away");
-    lastY = y;
-  }, { passive: true });
   $("clearFilter").addEventListener("click", function () { go({ topic: "", source: "" }); });
 
   // Hinweis unten mit "Rückgängig"
@@ -1298,6 +1320,14 @@ html, body { overflow-x: clip; }
   $("searchForm").addEventListener("submit", function (e) {
     e.preventDefault();
     change({ op: "search_add", term: $("searchTerm").value.trim() }, function () { $("searchForm").reset(); });
+  });
+  // Einstellungen: Bereich wählen
+  $$("#adminSeg button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      $$("#adminSeg button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      $$("#admin .pane").forEach(function (p) { p.hidden = p.dataset.pane !== b.dataset.pane; });
+      window.scrollTo(0, 0);
+    });
   });
   $("admin").addEventListener("click", function (e) {
     // Schalter in der Quellen-Zeile (ohne die Zeile auf- oder zuzuklappen) oder Knopf «Für mich ausblenden»
