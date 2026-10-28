@@ -86,6 +86,8 @@ class AI:
             payload["tools"] = [{"type": "web_search"}]
         else:
             payload["text"] = {"format": {"type": "json_object"}}
+            # OpenAI verlangt das Wort «JSON» in der Eingabe selbst, nicht nur in den Anweisungen
+            payload["input"] = prompt + "\n\nAntworte als JSON."
         try:
             data = self._post(payload)
         except urllib.error.HTTPError as exc:
