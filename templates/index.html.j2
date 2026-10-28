@@ -456,6 +456,8 @@ html, body { overflow-x: clip; }
 .chip[aria-pressed="true"] .n { color: #fff; opacity: .8; }
 .tabbar button[aria-selected="true"], .tabbar button[aria-selected="true"] span, .tabbar button[aria-selected="true"] svg { color: var(--accent); }
 .rail .nav button[aria-selected="true"] { color: var(--accent); }
+/* Chips ohne Anzahl: ruhiger und kompakter */
+.top .chip .n { display: none; }
 /* Desktop: Chips oben über die ganze Breite der Inhaltsspalte */
 @media (min-width: 901px) {
   .top { width: calc(100vw - var(--rail-w) - 48px); margin-left: calc(50% - (100vw - var(--rail-w) - 48px) / 2); }
@@ -465,7 +467,6 @@ html, body { overflow-x: clip; }
   .top .chips { margin: 0; padding: 0 12px 2px; gap: 6px; row-gap: 6px; }
   /* Kleinere Chips, damit mehr nebeneinander Platz haben */
   .top .chip { font-size: .78rem; padding: 5px 10px; gap: 4px; }
-  .top .chip .n { margin-left: 2px; }
   .top .search-chip svg { width: 13px; height: 13px; }
 }
 /* Ziehen zum Aktualisieren: Inhalt rutscht nach unten, Chips bleiben oben, dazwischen die Ladeanzeige */
