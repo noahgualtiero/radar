@@ -110,13 +110,13 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 - Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
 - Das Briefing sowie «Im Team», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
 
-**Gemeinsam für alle:** Themen und was angezeigt wird. Die Einstellungen haben drei Bereiche: Quellen, Themen, Allgemein.
+**Gemeinsam für alle:** die Themen. Die Einstellungen haben drei Bereiche: Quellen, Themen, Allgemein.
 
 **Suchen:** Zu jedem Thema sucht Radar automatisch gratis in Google News (Schweiz, Deutschland, Österreich), mit den ersten typischen Begriffen des Themas. Dazu kommen feste Zusatzsuchen aus `sources.yaml` (Studien, Beratungen). Eigene Suchbegriffe pflegt man nicht mehr.
 
-**Was angezeigt wird:** Die KI bewertet jeden Beitrag mit einer Relevanz von 1 bis 5. Unter
-Einstellungen legt man fest, ab welcher Stufe Beiträge im Feed (Standard 2) und in Entdecken
-(Standard 3) erscheinen. Immer und für alle Quellen gleich gilt: Stellenanzeigen und sehr kurze
+**Was angezeigt wird:** Die KI bewertet jeden Beitrag mit einer Relevanz von 1 bis 5. Im Feed
+erscheint alles ab 2 (mit Bezug zu Paid Search), in Entdecken ab 3 (nützlich). Fest voreingestellt
+in `sources.yaml` unter `regeln`. Immer und für alle Quellen gleich gilt: Stellenanzeigen und sehr kurze
 Titel (z.B. Glossar-Einträge) fallen weg. Sonderregeln pro Quelle gibt es bewusst nicht.
 
 **Themen:** Die KI ordnet jedem Beitrag 0 bis 3 Themen zu. Die Stichwörter pro Thema sind nur

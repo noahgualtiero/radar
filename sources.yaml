@@ -30,7 +30,7 @@ kategorien:
   - Community   # Foren wie Reddit – erscheint im Tab «Entdecken» als Diskussion
   - Entdecken   # Treffer der Suchbegriffe und der KI-Websuche – Tab «Entdecken»
 
-# Was angezeigt wird. In Radar unter Einstellungen → «Was angezeigt wird» änderbar.
+# Was angezeigt wird (fest voreingestellt, nur hier änderbar).
 #   feed_mindest_relevanz:      Feed zeigt Beiträge ab dieser KI-Relevanz (1 = alles … 5 = nur «muss man wissen»)
 #   entdecken_mindest_relevanz: dasselbe für Suchfunde in «Entdecken»
 # Immer, für alle Quellen gleich: Stellenanzeigen ausblenden, Titel mit weniger als min_woerter Wörtern

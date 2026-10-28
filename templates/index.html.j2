@@ -755,17 +755,6 @@ html, body { overflow-x: clip; }
 
       </div>
       <div class="pane" data-pane="allgemein" hidden>
-      <h3 class="group-title">Was angezeigt wird</h3>
-      <form class="card group" id="rulesForm">
-        {% set rel_labels = [(1, "Alle Beiträge"), (2, "Mit Bezug zu Paid Search"), (3, "Nützliche und wichtigere"), (4, "Nur wichtige"), (5, "Nur Pflichtlektüre")] %}
-        <label class="setting"><span>Feed</span>
-          <select id="relFeed">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.feed_mindest_relevanz or 2) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <label class="setting"><span>Entdecken</span>
-          <select id="relDiscover">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.entdecken_mindest_relevanz or 3) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <div class="setting end"><button class="btn" type="submit">Speichern</button></div>
-      </form>
-      <p class="group-note">Die KI bewertet jeden Beitrag. Hier legst du fest, was angezeigt wird. Gilt für alle.</p>
-
       <h3 class="group-title">Darstellung</h3>
       <div class="card group"><div class="setting"><span>Farbschema</span>
         <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div></div></div>
@@ -1323,10 +1312,6 @@ html, body { overflow-x: clip; }
       change({ op: "topic_save", name: form.dataset.name || form.elements.name.value.trim(),
         gewicht: form.elements.gewicht.value, stichwoerter: form.elements.stichwoerter.value });
     });
-  });
-  $("rulesForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    change({ op: "rules_save", feed_mindest_relevanz: $("relFeed").value, entdecken_mindest_relevanz: $("relDiscover").value });
   });
   // Einstellungen: Bereich wählen
   $$("#adminSeg button").forEach(function (b) {
