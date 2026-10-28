@@ -49,9 +49,9 @@ def icon(size: int) -> Image.Image:
     return Image.alpha_composite(base, layer).resize((size, size), Image.LANCZOS)
 
 
-def small_icon(size: int) -> Image.Image:
-    """Vereinfachtes Logo für kleine Grössen, wie static/favicon.svg: ein kräftiger Ring, dicker Strahl,
-    grosse Punkte. Die feinen Ringe des grossen Logos verschwinden unter 32 px."""
+def small_icon(size: int, rounded: bool = True) -> Image.Image:
+    """Kräftiges Logo wie static/favicon.svg: ein Ring, dicker Strahl, grosse Punkte. Gilt für Favicon und
+    App-Icons; rounded=False für iOS und Manifest (das System rundet selbst ab)."""
     s = size * SS
     base = gradient(s, s).convert("RGBA")
     layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
@@ -65,7 +65,8 @@ def small_icon(size: int) -> Image.Image:
     mask = Image.new("L", (s, s), 0)
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, s - 1, s - 1], radius=round(14.5 * u), fill=255)
     out = Image.alpha_composite(base, layer)
-    out.putalpha(mask)
+    if rounded:
+        out.putalpha(mask)
     return out.resize((size, size), Image.LANCZOS)
 
 
@@ -89,9 +90,9 @@ def og() -> Image.Image:
 
 
 if __name__ == "__main__":
-    icon(180).convert("RGB").save(OUT / "apple-touch-icon.png")
-    icon(192).save(OUT / "icon-192.png")
-    icon(512).save(OUT / "icon-512.png")
+    small_icon(180, rounded=False).convert("RGB").save(OUT / "apple-touch-icon.png")
+    small_icon(192, rounded=False).save(OUT / "icon-192.png")
+    small_icon(512, rounded=False).save(OUT / "icon-512.png")
     small_icon(32).save(OUT / "favicon-32.png")
     small_icon(16).save(OUT / "favicon-16.png")
     og().save(OUT / "og.png", optimize=True)
