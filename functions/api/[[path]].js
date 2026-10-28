@@ -123,6 +123,9 @@ async function state(env, me) {
     saved: saved.results.map((r) => JSON.parse(r.data)),
     teamSaved: teamSaved.results.map((r) => Object.assign(JSON.parse(r.data), { team: r.n, saved: r.last })),
     sources,
+    // Quellen laut Einstellungen: neu aufgenommene erscheinen so sofort, nicht erst nach dem nächsten Abruf
+    sourceList: (config?.quellen || []).filter((q) => q.aktiv !== false && q.url)
+      .map((q) => ({ name: q.name, url: q.url, standard: q.standard !== false, by: (q.von || "").split("@")[0] })),
     suggestions: config ? await suggestions(db, config, me, sources) : [],
     autoRebuild: !!(env.GITHUB_TOKEN && env.GITHUB_REPO),
   };

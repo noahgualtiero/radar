@@ -663,8 +663,7 @@ html, body { overflow-x: clip; }
       {# Umschalter: immer nur ein Bereich der Einstellungen #}
       <div class="seg admin-seg" id="adminSeg">
         <button type="button" data-pane="quellen" aria-pressed="true">Quellen</button>
-        <button type="button" data-pane="inhalte" aria-pressed="false">Inhalte</button>
-        <button type="button" data-pane="suchen" aria-pressed="false">Suchen</button>
+        <button type="button" data-pane="themen" aria-pressed="false">Themen</button>
         <button type="button" data-pane="allgemein" aria-pressed="false">Allgemein</button>
       </div>
       <div class="pane" data-pane="quellen">
@@ -713,18 +712,7 @@ html, body { overflow-x: clip; }
         Person, die sie aufgenommen hat.</p>
 
       </div>
-      <div class="pane" data-pane="inhalte" hidden>
-      <h3 class="group-title">Was angezeigt wird</h3>
-      <form class="card group" id="rulesForm">
-        {% set rel_labels = [(1, "Alle Beiträge"), (2, "Mit Bezug zu Paid Search"), (3, "Nützliche und wichtigere"), (4, "Nur wichtige"), (5, "Nur Pflichtlektüre")] %}
-        <label class="setting"><span>Feed</span>
-          <select id="relFeed">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.feed_mindest_relevanz or 2) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <label class="setting"><span>Entdecken</span>
-          <select id="relDiscover">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.entdecken_mindest_relevanz or 3) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-        <div class="setting end"><button class="btn" type="submit">Speichern</button></div>
-      </form>
-      <p class="group-note">Die KI bewertet jeden Beitrag. Hier legst du fest, was angezeigt wird. Gilt für alle.</p>
-
+      <div class="pane" data-pane="themen" hidden>
       <h3 class="group-title">Themen</h3>
       <div class="card group">
         {% for t in topic_defs %}
@@ -762,27 +750,22 @@ html, body { overflow-x: clip; }
           </div>
         </details>
       </div>
-      <p class="group-note">Themen sind die Chips oben im Feed; die KI ordnet die Beiträge zu. Punkt: grau normal,
-        orange wichtig, rot sehr wichtig – wichtige rücken weiter nach oben.</p>
-
-      </div>
-      <div class="pane" data-pane="suchen" hidden>
-      <h3 class="group-title">Suchen für Entdecken</h3>
-      <div class="card group">
-        {% for b in search_defs %}
-        <div class="row line"><div class="row-main"><b>{{ b|replace('"', '') }}</b></div>
-          <button class="x" type="button" data-op="search_remove" data-term="{{ b }}" data-confirm="Suchbegriff {{ b }} entfernen?" aria-label="Entfernen">✕</button></div>
-        {% endfor %}
-        <form class="row line" id="searchForm">
-          <input type="text" id="searchTerm" placeholder='Neuer Begriff, z.B. Consent Mode' required>
-          <button class="btn" type="submit">Hinzufügen</button>
-        </form>
-      </div>
-      <p class="group-note">Radar sucht diese Begriffe gratis in Google News (Schweiz, Deutschland, Österreich). Die Funde
-        erscheinen in Entdecken.</p>
+      <p class="group-note">Themen sind die Chips oben im Feed. Die KI ordnet die Beiträge zu, und zu jedem Thema sucht
+        Radar in Google News nach neuen Funden für Entdecken. Punkt: grau normal, orange wichtig, rot sehr wichtig.</p>
 
       </div>
       <div class="pane" data-pane="allgemein" hidden>
+      <h3 class="group-title">Was angezeigt wird</h3>
+      <form class="card group" id="rulesForm">
+        {% set rel_labels = [(1, "Alle Beiträge"), (2, "Mit Bezug zu Paid Search"), (3, "Nützliche und wichtigere"), (4, "Nur wichtige"), (5, "Nur Pflichtlektüre")] %}
+        <label class="setting"><span>Feed</span>
+          <select id="relFeed">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.feed_mindest_relevanz or 2) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <label class="setting"><span>Entdecken</span>
+          <select id="relDiscover">{% for v, label in rel_labels %}<option value="{{ v }}"{% if (rules.entdecken_mindest_relevanz or 3) == v %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <div class="setting end"><button class="btn" type="submit">Speichern</button></div>
+      </form>
+      <p class="group-note">Die KI bewertet jeden Beitrag. Hier legst du fest, was angezeigt wird. Gilt für alle.</p>
+
       <h3 class="group-title">Darstellung</h3>
       <div class="card group"><div class="setting"><span>Farbschema</span>
         <div class="seg" id="themeSeg"><button type="button" data-theme="" aria-pressed="true">Auto</button><button type="button" data-theme="light" aria-pressed="false">Hell</button><button type="button" data-theme="dark" aria-pressed="false">Dunkel</button></div></div></div>
@@ -1052,16 +1035,44 @@ html, body { overflow-x: clip; }
     });
   }
 
+  // Quellen, die in den Einstellungen stehen, aber noch nicht abgerufen wurden (z.B. eben aufgenommen)
+  function addPendingSources() {
+    var known = {}, first = document.querySelector("#admin details[data-source]");
+    $$("#admin details[data-source]").forEach(function (r) { known[r.dataset.source] = true; });
+    (server.sourceList || []).forEach(function (q) {
+      if (known[q.name] || !first) return;
+      var row = first.cloneNode(true), host = "";
+      try { host = new URL(q.url).hostname.replace(/^www\./, ""); } catch (e) {}
+      row.open = false;
+      row.dataset.source = q.name; row.dataset.standard = q.standard ? "1" : "0";
+      STANDARD[q.name] = q.standard;
+      row.querySelector(".row-main b").textContent = q.name;
+      var sub = row.querySelector(".row-main > span"), scope = document.createElement("span"), eng = document.createElement("span");
+      scope.className = "scope " + (q.standard ? "all" : "own"); scope.dataset.by = q.by || ""; scope.textContent = q.standard ? "Für alle" : "Persönlich";
+      eng.className = "eng";
+      sub.textContent = "";
+      sub.append(scope, document.createTextNode(" · wird beim nächsten Abruf geholt"), eng);
+      row.querySelector(".fav").src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(host) + "&sz=64";
+      var facts = row.querySelector(".facts"); if (facts) facts.remove();
+      row.querySelector("[data-op=source_remove]").dataset.name = q.name;
+      row.querySelector("[data-op=source_remove]").dataset.confirm = q.name + " für alle entfernen?";
+      $("addSource").before(row);
+    });
+  }
+
   function renderAdmin() {
     $("me").textContent = server.online ? server.me : "offline";
+    addPendingSources();
     $$("#admin details[data-source]").forEach(function (row) {
       var name = row.dataset.source, up = 0, down = 0, clicks = 0;
       posts.forEach(function (p) {
         if (p.dataset.source !== name) return;
         var c = counts(p.dataset.id); up += c.up; down += c.down; clicks += c.clicks;
       });
-      row.querySelector(".f-votes").textContent = server.online ? "▲ " + up + "  ▼ " + down : "–";
-      row.querySelector(".f-clicks").textContent = server.online ? clicks : "–";
+      if (row.querySelector(".f-votes")) {
+        row.querySelector(".f-votes").textContent = server.online ? "▲ " + up + "  ▼ " + down : "–";
+        row.querySelector(".f-clicks").textContent = server.online ? clicks : "–";
+      }
       row.querySelector(".eng").textContent = up || down ? " · ▲ " + up + " ▼ " + down : "";
       var on = inMyFeed(name);
       row.querySelector(".toggle").setAttribute("aria-checked", on ? "true" : "false");
@@ -1289,7 +1300,7 @@ html, body { overflow-x: clip; }
   function change(body, done) {
     if (!server.online) { toast("Ändern geht nur in der Online-Version"); return; }
     api("config", body).then(function (d) {
-      toast(d.message + (d.rebuild ? " Radar baut neu, in ein paar Minuten sichtbar." : d.message.indexOf("Feed.") > 0 ? "" : " Wirkt beim nächsten Abruf."));
+      toast(d.message + (d.rebuild ? " In ein paar Minuten sichtbar." : /Abruf|Feed\./.test(d.message) ? "" : " Wirkt beim nächsten Abruf."));
       if (done) done();
       reloadState();
     }).catch(function (e) { toast(e.message); });
@@ -1316,10 +1327,6 @@ html, body { overflow-x: clip; }
   $("rulesForm").addEventListener("submit", function (e) {
     e.preventDefault();
     change({ op: "rules_save", feed_mindest_relevanz: $("relFeed").value, entdecken_mindest_relevanz: $("relDiscover").value });
-  });
-  $("searchForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    change({ op: "search_add", term: $("searchTerm").value.trim() }, function () { $("searchForm").reset(); });
   });
   // Einstellungen: Bereich wählen
   $$("#adminSeg button").forEach(function (b) {

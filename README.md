@@ -26,7 +26,7 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 | Tab | Inhalt |
 |---|---|
 | **Feed** | Die eigenen Quellen. Oben Themen-Chips. Gelegentlich erscheint ein Vorschlag |
-| **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
+| **Entdecken** | Suchfunde (Google News pro Thema, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
 | **Gemerkt** | Chips «Meine» (persönlich, auf allen Geräten gleich) und «Im Team» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
 | **Einstellungen** (Zahnrad) | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
@@ -110,7 +110,9 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 - Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
 - Das Briefing sowie «Im Team», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
 
-**Gemeinsam für alle:** Themen, Suchbegriffe und Regeln.
+**Gemeinsam für alle:** Themen und was angezeigt wird. Die Einstellungen haben drei Bereiche: Quellen, Themen, Allgemein.
+
+**Suchen:** Zu jedem Thema sucht Radar automatisch gratis in Google News (Schweiz, Deutschland, Österreich), mit den ersten typischen Begriffen des Themas. Dazu kommen feste Zusatzsuchen aus `sources.yaml` (Studien, Beratungen). Eigene Suchbegriffe pflegt man nicht mehr.
 
 **Was angezeigt wird:** Die KI bewertet jeden Beitrag mit einer Relevanz von 1 bis 5. Unter
 Einstellungen legt man fest, ab welcher Stufe Beiträge im Feed (Standard 2) und in Entdecken

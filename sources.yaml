@@ -121,31 +121,20 @@ vorschlaege:
   entfernen_ab_votes: 3           # Quelle, die ich in 30 Tagen so oft bewertet habe, mit negativem Saldo
   entfernen_ohne_klick_tage: 60   # Quelle, die ich so lange nicht geöffnet habe
 
-# Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
-# schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
-# Ein Begriff ist Text, oder name (Anzeige) plus q (Suchanfrage) für komplizierte Abfragen.
-# Suchanfrage wie bei Google: "…" für exakte Phrase, OR für Alternativen. Gesucht wird in den
-# Google-News-Ausgaben unter regionen (DE, AT, CH; möglich auch US, UK, IE). Die wichtigen
-# englischsprachigen Fachmedien sind ohnehin feste Quellen.
+# Suchen für «Entdecken»: Radar sucht zu jedem Thema oben automatisch in Google News (gratis),
+# mit den ersten typischen Begriffen des Themas. Dazu kommen diese festen Zusatzsuchen. Treffer
+# von Seiten, die schon Quelle sind, werden ausgeblendet. Ausgaben unter regionen (DE, AT, CH;
+# möglich auch US, UK, IE); die englischsprachigen Fachmedien sind ohnehin feste Quellen.
+# Ein Eintrag ist Text oder name (Anzeige) plus q (Suchanfrage wie bei Google: "…", OR).
 suchen:
   zeitraum_tage: 7
   regionen: [DE, AT, CH]
   begriffe:
-    - '"Google Ads"'
-    - '"Performance Max"'
-    - '"Demand Gen" Google'
-    - '"AI Max" Google'
-    - '"Smart Bidding"'
-    - '"Merchant Center"'
-    - '"Microsoft Advertising"'
-    - '"ChatGPT ads" OR "ChatGPT advertising"'
-    - '"paid search" OR "PPC campaign" OR "PPC advertising"'
-    - 'Suchmaschinenwerbung OR SEA-Kampagne'
-    # Studien und Kennzahlen, auch von Beratungen ohne eigenen Feed
     - name: Studien und Benchmarks
       q: '("Google Ads" OR PPC OR "paid search" OR "retail media") (study OR benchmark OR survey OR report OR Studie OR Umfrage)'
     - name: Beratungen (McKinsey, BCG, Gartner, Forrester, Think with Google)
       q: '(site:mckinsey.com OR site:bcg.com OR site:gartner.com OR site:forrester.com OR site:thinkwithgoogle.com) (advertising OR "paid search" OR "retail media" OR "digital marketing" OR Werbung)'
+    - 'Suchmaschinenwerbung OR SEA-Kampagne'
   ignorieren:   # Domains, deren Treffer nie angezeigt werden (Rauschen)
     - google.com
     - microsoft.com        # Konzern-News, Werbe-Themen kommen über den Ads-Blog

@@ -158,12 +158,22 @@ def entry_image(entry) -> str | None:
     return None
 
 
-def search_sources(config: dict) -> list[dict]:
-    """Macht aus jedem Suchbegriff eine Google-News-Suche, die wie eine Quelle abgerufen wird."""
+def topic_query(topic: dict) -> str:
+    """Google-News-Suche zu einem Thema: die ersten typischen Begriffe mit OR, sonst der Name."""
+    words = [w.strip() for w in topic.get("stichwoerter") or [] if len(w.strip()) >= 4][:4]
+    words = words or [topic["name"]]
+    # Mit Werbe-Kontext, damit allgemeine Begriffe wie «tracking» oder «shopping» nicht ins Leere laufen
+    return "(" + " OR ".join(f'"{w}"' if " " in w else w for w in words) + ") (Ads OR Advertising OR Werbung OR Marketing OR Google)"
+
+
+def search_sources(config: dict, topics: list[dict]) -> list[dict]:
+    """Google-News-Suchen, die wie Quellen abgerufen werden: eine pro Thema (aus seinen typischen
+    Begriffen) und die festen Zusatzsuchen aus sources.yaml (z.B. Studien, Beratungen)."""
     days = int(config.get("zeitraum_tage", 7))
     sources = []
-    for entry in config.get("begriffe") or []:
-        term = entry.get("q") or entry.get("name") if isinstance(entry, dict) else entry
+    queries = [topic_query(t) for t in topics] + [
+        e.get("q") or e.get("name") if isinstance(e, dict) else e for e in config.get("begriffe") or []]
+    for term in dict.fromkeys(queries):
         # Jeder Begriff läuft in den gewählten Ausgaben (Standard DACH); doppelte Treffer werden zusammengeführt
         for lang in config.get("regionen") or ["DE", "AT", "CH"]:
             locale = LOCALES.get(lang)
@@ -790,7 +800,7 @@ def main() -> int:
     resolve_feeds(sources, feed_cache)
     searches = config.get("suchen") or {}
     rules = config.get("regeln") or {}
-    feeds = [{**s, "url": s["feed"]} for s in sources] + search_sources(searches)
+    feeds = [{**s, "url": s["feed"]} for s in sources] + search_sources(searches, config.get("themen") or [])
 
     seen_at = now_utc().isoformat()
     fresh, errors = [], []
