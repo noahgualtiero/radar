@@ -288,7 +288,9 @@ details[open] > summary .chev { transform: rotate(90deg); }
 footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
 footer p { margin: 0 0 8px; }
 #admin footer { margin: 0 6px; padding-top: 0; }
-.imprint summary { cursor: pointer; font-weight: 600; color: var(--label2); list-style: none; padding: 6px 0; }
+.imprint summary { cursor: pointer; font-weight: 650; color: var(--accent); list-style: none; padding: 6px 0; font-size: .9rem; }
+.rights { margin-top: 16px !important; padding: 12px 14px; border-radius: 12px; background: var(--fill); color: var(--text);
+  font-size: .82rem; line-height: 1.45; border-left: 3px solid var(--accent); }
 .imprint summary::-webkit-details-marker { display: none; }
 .imprint summary::after { content: " ›"; }
 .imprint[open] summary::after { content: " ⌄"; }
@@ -776,7 +778,6 @@ html, body { overflow-x: clip; }
       <h3 class="group-title">Über Radar</h3>
       {# Über Radar: nur in den Einstellungen (Allgemein), aufklappbar #}
     <footer id="footer">
-      <p>Inhalte gehören den jeweiligen Quellen.</p>
       <details class="imprint">
         <summary>So funktioniert Radar</summary>
         <h4>Feed</h4>
@@ -805,6 +806,8 @@ html, body { overflow-x: clip; }
           nur mit Titeln und Anrissen und kann sich irren – massgebend ist der Originalartikel. Radar ist ein internes
           Werkzeug von Standout. Fragen: <a href="mailto:noah.kaech@standout.ch">noah.kaech@standout.ch</a></p>
       </details>
+      <p class="rights">Inhalte gehören den jeweiligen Quellen. Radar zeigt nur Titel, kurze Anrisse und Vorschaubilder
+        und verlinkt auf das Original.</p>
     </footer>
       </div>
     </section>
