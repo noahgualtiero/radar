@@ -287,13 +287,6 @@ details[open] > summary .chev { transform: rotate(90deg); }
 footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
 
 /* Nach unten ziehen zum Neuladen (nur in der App vom Home-Bildschirm, Browser können das selbst) */
-.ptr { position: fixed; left: 50%; top: calc(76px + env(safe-area-inset-top)); z-index: 25; width: 40px; height: 40px; margin-left: -20px;
-  border-radius: 50%; background: var(--card); box-shadow: var(--shadow-lg); display: grid; place-items: center; color: var(--label2);
-  opacity: 0; transform: translateY(-70px); pointer-events: none; transition: transform .25s ease, opacity .25s ease; }
-.ptr svg { width: 22px; height: 22px; }
-.ptr.ready { color: var(--accent); }
-.ptr.loading svg { animation: ptr-spin .7s linear infinite; }
-@keyframes ptr-spin { to { transform: rotate(360deg); } }
 
 /* App vom Home-Bildschirm: Streifen hinter der Statusleiste (Uhrzeit, Notch), damit beim Scrollen
    nichts durchscheint; im Browser ist der Abstand 0 und der Streifen unsichtbar */
@@ -451,6 +444,37 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 .suggestion { padding: 16px 18px; margin-bottom: 22px; background: var(--panel); border-color: var(--sep-soft); }
 .suggestion p { margin: 0 0 12px; font-size: .95rem; font-weight: 550; }
 @media (max-width: 900px) { #suggest { margin: 10px 12px 0; } }
+
+/* ===== Chips mehrzeilig, Akzentfarbe, Ziehen zum Aktualisieren ===== */
+:root { --rail-w: 236px; }
+html.rail-collapsed { --rail-w: 76px; }
+html, body { overflow-x: clip; }
+/* Alle Chips sichtbar, in mehreren Zeilen statt seitlich scrollbar */
+.top .chips, .chips { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
+/* Gewählter Chip und gewählter Tab in der Akzentfarbe */
+.chip[aria-pressed="true"], .chip.team[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.chip[aria-pressed="true"] .n { color: #fff; opacity: .8; }
+.tabbar button[aria-selected="true"], .tabbar button[aria-selected="true"] span, .tabbar button[aria-selected="true"] svg { color: var(--accent); }
+.rail .nav button[aria-selected="true"] { color: var(--accent); }
+/* Desktop: Chips oben über die ganze Breite der Inhaltsspalte */
+@media (min-width: 901px) {
+  .top { width: calc(100vw - var(--rail-w) - 48px); margin-left: calc(50% - (100vw - var(--rail-w) - 48px) / 2); }
+  .top .chips { justify-content: center; }
+}
+@media (max-width: 900px) {
+  .top .chips { margin: 0; padding: 0 14px 2px; }
+}
+/* Ziehen zum Aktualisieren: Inhalt rutscht nach unten, Chips bleiben oben, dazwischen die Ladeanzeige */
+.ptr { position: relative; height: 0; z-index: 1; pointer-events: none; }
+.ptr svg { position: absolute; left: 50%; top: 0; width: 28px; height: 28px; margin-left: -14px;
+  transform: translateY(calc(var(--pull, 0px) / 2 - 14px)); opacity: 0; fill: var(--label2); }
+.ptr svg rect { opacity: 0; }
+#briefingView, main { transform: translateY(var(--pull, 0px)); }
+.content.ptr-animate #briefingView, .content.ptr-animate main, .content.ptr-animate .ptr svg { transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+.content.pulling .ptr svg, .content.ptr-loading .ptr svg { opacity: 1; }
+.content.ptr-loading .ptr svg rect { opacity: calc(1 - var(--i) * .11); }
+.content.ptr-loading .ptr svg { animation: ptr-spin .8s steps(8) infinite; }
+@keyframes ptr-spin { from { transform: translateY(calc(var(--pull, 0px) / 2 - 14px)) rotate(0deg); } to { transform: translateY(calc(var(--pull, 0px) / 2 - 14px)) rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -504,6 +528,8 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     </div>
 
     {# ---------- Briefing-Feed: ein Briefing pro Tag, neueste zuerst ---------- #}
+    {# Ziehen zum Aktualisieren: Lücke unter den Chips mit Ladeanzeige wie in Safari #}
+    <div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24">{% for i in range(8) %}<rect x="11" y="2.5" width="2" height="5.5" rx="1" transform="rotate({{ i * 45 }} 12 12)" style="--i:{{ i }}"/>{% endfor %}</svg></div>
     <section id="briefingView" hidden>
       {% if trends %}
       <div class="trend-now"><span class="n">Jetzt im Trend</span>
@@ -731,7 +757,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
   </div>
 </nav>
 
-<div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg></div>
 <div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastUndo">Rückgängig</button></div>
 
 <script>
@@ -1203,39 +1228,56 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
     d.addEventListener("toggle", function () { if (d.open) d.querySelectorAll("textarea").forEach(autosize); });
   });
 
-  // Nach unten ziehen zum Neuladen: nur in der App vom Home-Bildschirm (dort fehlt es); ?ptr=1 zum Testen
+  // Nach unten ziehen zum Aktualisieren, wie in Safari: Der Inhalt rutscht nach unten, die Chips
+  // bleiben oben, in der Lücke erscheinen die Striche der Ladeanzeige. Loslassen lädt Team-Daten neu
+  // und, falls es einen neueren Abruf gibt, die Seite. Nur in der App vom Home-Bildschirm (im
+  // Browser macht das Safari selbst); ?ptr=1 zum Testen.
   (function () {
     var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
     if (!standalone && !/[?&]ptr=1/.test(location.search)) return;
-    var ptr = $("ptr"), icon = ptr.querySelector("svg"), startY = null, pull = 0, TRIGGER = 70, MAX = 110;
-    function place(offset, animate) {
-      ptr.style.transition = animate ? "" : "none";
-      ptr.style.transform = "translateY(" + (offset - 70) + "px)";
-      ptr.style.opacity = Math.min(offset / TRIGGER, 1);
+    var content = document.querySelector(".content"), ptr = $("ptr");
+    var spokes = Array.prototype.slice.call(ptr.querySelectorAll("rect"));
+    var startY = null, pull = 0, busy = false, TRIGGER = 80, REST = 64, MAX = 140;
+    function setPull(px, animate) {
+      content.classList.toggle("ptr-animate", !!animate);
+      content.style.setProperty("--pull", px + "px");
+    }
+    function refresh() {
+      return fetch(location.pathname, { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.text(); }).then(function (html) {
+        var m = html.match(/<time id="generated" datetime="([^"]+)"/);
+        if (m && m[1] !== $("generated").dateTime) { location.reload(); return new Promise(function () {}); }
+        return reloadState();
+      }).catch(function () {});
     }
     document.addEventListener("touchstart", function (e) {
-      startY = window.scrollY <= 0 ? e.touches[0].clientY : null;
+      startY = !busy && window.scrollY <= 0 && !$("top").classList.contains("searching") ? e.touches[0].clientY : null;
       pull = 0;
     }, { passive: true });
     document.addEventListener("touchmove", function (e) {
       if (startY === null) return;
-      pull = Math.min(Math.max(0, e.touches[0].clientY - startY) * 0.5, MAX);
-      place(pull, false);
-      icon.style.transform = "rotate(" + pull * 3 + "deg)";
-      ptr.classList.toggle("ready", pull >= TRIGGER);
+      var dy = e.touches[0].clientY - startY;
+      if (dy <= 0) { pull = 0; setPull(0); content.classList.remove("pulling"); return; }
+      // Gummiband: je weiter gezogen, desto zäher
+      pull = MAX * (1 - Math.exp(-dy / (MAX * 1.6)));
+      content.classList.add("pulling");
+      setPull(pull);
+      var shown = Math.min(8, Math.floor(pull / TRIGGER * 8));
+      spokes.forEach(function (r, i) { r.style.opacity = i < shown ? 1 - i * 0.09 : 0; });
     }, { passive: true });
     document.addEventListener("touchend", function () {
       if (startY === null) return;
       startY = null;
-      if (pull >= TRIGGER) {
-        place(TRIGGER, true);
-        icon.style.transform = "";
-        ptr.classList.add("loading");
-        setTimeout(function () { location.reload(); }, 250);
-      } else {
-        place(0, true);
-        ptr.classList.remove("ready");
-      }
+      content.classList.remove("pulling");
+      spokes.forEach(function (r) { r.style.opacity = ""; });
+      if (pull < TRIGGER) { setPull(0, true); return; }
+      busy = true;
+      setPull(REST, true);
+      content.classList.add("ptr-loading");
+      Promise.all([refresh(), new Promise(function (ok) { setTimeout(ok, 700); })]).then(function () {
+        content.classList.remove("ptr-loading");
+        setPull(0, true);
+        busy = false;
+      });
     });
   })();
 
