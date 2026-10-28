@@ -286,6 +286,13 @@ details[open] > summary .chev { transform: rotate(90deg); }
   display: flex; gap: 16px; align-items: center; box-shadow: var(--shadow-lg); width: max-content; max-width: calc(100vw - 32px); }
 .toast button { background: none; border: 0; color: #64d2ff; font-weight: 700; cursor: pointer; }
 footer { color: var(--label2); font-size: .8rem; padding: 8px 0 24px; }
+footer p { margin: 0 0 8px; }
+.imprint summary { cursor: pointer; font-weight: 600; color: var(--label2); list-style: none; padding: 6px 0; }
+.imprint summary::-webkit-details-marker { display: none; }
+.imprint summary::after { content: " ›"; }
+.imprint[open] summary::after { content: " ⌄"; }
+.imprint h4 { margin: 14px 0 4px; font-size: .82rem; color: var(--text); font-weight: 650; }
+.imprint p { line-height: 1.5; max-width: 60ch; }
 
 /* Nach unten ziehen zum Neuladen (nur in der App vom Home-Bildschirm, Browser können das selbst) */
 
@@ -766,7 +773,38 @@ html, body { overflow-x: clip; }
       <p class="group-note">Läuft automatisch alle 3 Stunden; Änderungen hier stossen einen Abruf an.</p>
     </section>
 
-    <footer>Inhalte gehören den jeweiligen Quellen.</footer>
+    {# Impressum und Hinweise: ganz unten, aufklappbar #}
+    <footer id="footer">
+      <p>Inhalte gehören den jeweiligen Quellen.</p>
+      <details class="imprint">
+        <summary>Impressum und Hinweise</summary>
+        <h4>Impressum</h4>
+        <p>Standout GmbH<br>Hirschengraben 43<br>6003 Luzern, Schweiz<br>
+          Kontakt: <a href="mailto:noah.kaech@standout.ch">noah.kaech@standout.ch</a></p>
+
+        <h4>Was ist Radar?</h4>
+        <p>Radar ist ein internes Werkzeug von Standout. Es sammelt Neuigkeiten, Studien und Diskussionen rund um
+          Paid Search aus öffentlich zugänglichen Quellen (RSS-Feeds und Google News) und zeigt sie an einem Ort.
+          Zugang haben nur angemeldete Personen.</p>
+
+        <h4>Inhalte und Urheberrecht</h4>
+        <p>Angezeigt werden Titel, kurze Anrisse und Vorschaubilder, wie sie die Quellen selbst in ihren Feeds
+          veröffentlichen, jeweils mit Link auf den Originalartikel. Alle Rechte daran liegen bei den jeweiligen
+          Quellen. Radar speichert keine vollständigen Artikel und zeigt keine Werbung. Wer als Rechteinhaber einen
+          Inhalt entfernt haben möchte, meldet sich unter der Kontaktadresse oben.</p>
+
+        <h4>KI-Zusammenfassungen</h4>
+        <p>Typ, Relevanz und das tägliche Briefing erstellt eine KI (OpenAI) automatisch aus Titeln und Anrissen.
+          Sie kann sich irren oder etwas verkürzt wiedergeben. Massgebend ist immer der verlinkte Originalartikel.</p>
+
+        <h4>Datenschutz</h4>
+        <p>Für die Anmeldung wird die E-Mail-Adresse über Cloudflare Access geprüft; dafür setzt Cloudflare ein
+          Anmelde-Cookie. Radar speichert pro Person die Bewertungen (Daumen), geöffnete Artikel, Gemerktes und die
+          Quellenwahl, um die Reihenfolge und Vorschläge zu berechnen. Andere sehen davon nur Summen, keine Namen.
+          Die Daten liegen bei Cloudflare (Datenbank D1). An OpenAI gehen nur Titel und Anrisse der Artikel, keine
+          Personendaten. Es gibt keine Analyse- oder Werbe-Cookies. Auskunft und Löschung über die Kontaktadresse.</p>
+      </details>
+    </footer>
   </main>
   </div>
 </div>
