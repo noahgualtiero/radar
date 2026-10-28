@@ -462,7 +462,11 @@ html, body { overflow-x: clip; }
   .top .chips { justify-content: center; }
 }
 @media (max-width: 900px) {
-  .top .chips { margin: 0; padding: 0 14px 2px; }
+  .top .chips { margin: 0; padding: 0 12px 2px; gap: 6px; row-gap: 6px; }
+  /* Kleinere Chips, damit mehr nebeneinander Platz haben */
+  .top .chip { font-size: .78rem; padding: 5px 10px; gap: 4px; }
+  .top .chip .n { margin-left: 2px; }
+  .top .search-chip svg { width: 13px; height: 13px; }
 }
 /* Ziehen zum Aktualisieren: Inhalt rutscht nach unten, Chips bleiben oben, dazwischen die Ladeanzeige */
 .ptr { position: relative; height: 0; z-index: 1; pointer-events: none; }
