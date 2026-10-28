@@ -530,6 +530,8 @@ html, body { overflow-x: clip; }
         <span class="chipset" data-for="saved">
           <button class="chip" type="button" data-saved="mine" aria-pressed="true">Meine</button>
           <button class="chip" type="button" data-saved="team" aria-pressed="false" title="Was andere aus dem Team gemerkt haben">Im Team</button>
+          <button class="chip" type="button" data-saved="clicks" aria-pressed="false" title="Am häufigsten geöffnet, letzte 30 Tage">Meistgelesen</button>
+          <button class="chip" type="button" data-saved="votes" aria-pressed="false" title="Die meisten Daumen hoch, letzte 30 Tage">Top bewertet</button>
         </span>
         <span class="chipset" data-for="discover">
           {% for t in types if type_counts[t] %}
@@ -901,7 +903,9 @@ html, body { overflow-x: clip; }
     feed: "Keine Beiträge für diese Auswahl.",
     discover: "Keine Funde für diese Auswahl.",
     saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag landet es hier.",
-    teamSaved: "Noch hat niemand aus dem Team etwas gemerkt."
+    teamSaved: "Noch hat niemand aus dem Team etwas gemerkt.",
+    clicks: "Noch keine geöffneten Artikel in den letzten 30 Tagen.",
+    votes: "Noch keine Daumen hoch in den letzten 30 Tagen."
   };
 
   function matches(p) {
@@ -1024,8 +1028,22 @@ html, body { overflow-x: clip; }
     } else if (isSaved) {
       // «Meine» oder «Im Team» (was andere gemerkt haben, mit Anzahl Personen); die Suche gilt für beide
       listFeed.innerHTML = "";
-      var teamView = state.savedView === "team", terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
-      var list = teamView ? (server.teamSaved || []) : Object.keys(saved).map(function (id) { return saved[id]; });
+      var view = state.savedView, teamView = view === "team", terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (view === "clicks" || view === "votes") {
+        // Meistgelesen / Top bewertet: alle Beiträge der letzten 30 Tage nach Klicks bzw. Daumen des Teams
+        var key = view === "clicks" ? "clicks" : "up";
+        posts.filter(function (p) { return counts(p.dataset.id)[key] > 0 && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; }); })
+          .sort(function (a, b) { return counts(b.dataset.id)[key] - counts(a.dataset.id)[key] || b.dataset.published.localeCompare(a.dataset.published); })
+          .slice(0, 30)
+          .forEach(function (live) {
+            var p = live.cloneNode(true), c = counts(live.dataset.id);
+            p.hidden = false;
+            p.querySelector(".sub").textContent = fmt(live.dataset.published) + " · " +
+              (view === "clicks" ? c.clicks + "× geöffnet" : c.up + " Daumen hoch");
+            paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++;
+          });
+      }
+      var list = view === "clicks" || view === "votes" ? [] : teamView ? (server.teamSaved || []) : Object.keys(saved).map(function (id) { return saved[id]; });
       list.slice().sort(function (a, b) { return (b.saved || "").localeCompare(a.saved || ""); })
         .filter(function (f) {
           var text = (f.title + " " + (f.snippet || "") + " " + f.source + " " + (f.topics || "").replace(/\|/g, " ")).toLowerCase();
@@ -1055,7 +1073,7 @@ html, body { overflow-x: clip; }
       if (lineAfter && !filtered && lineAfter !== lastShown) lineAfter.after(seenLine); else seenLine.remove();
     }
     $("empty").hidden = admin || brief || shown > 0;
-    $("empty").textContent = (isSaved && state.savedView === "team" ? EMPTY.teamSaved : EMPTY[tab]) || "";
+    $("empty").textContent = (isSaved ? EMPTY[{ mine: "saved", team: "teamSaved" }[state.savedView] || state.savedView] : EMPTY[tab]) || "";
   }
 
   // Direktlinks: #discover, #briefing, #saved, #sources öffnen den jeweiligen Tab
