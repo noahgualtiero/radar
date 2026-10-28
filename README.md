@@ -25,7 +25,7 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 
 | Tab | Inhalt |
 |---|---|
-| **Feed** | Die eigenen Quellen. Oben Themen-Chips und «Team-Tipps» (Artikel, die andere hochgevotet haben). Gelegentlich erscheint ein Vorschlag |
+| **Feed** | Die eigenen Quellen. Oben Themen-Chips. Gelegentlich erscheint ein Vorschlag |
 | **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
 | **Gemerkt** | Chips «Meine» (persönlich, auf allen Geräten gleich) und «Im Team» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
@@ -108,7 +108,7 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 - Die Quellen aus `sources.yaml` sind Standard: für alle an, jede Person kann sie für sich ausschalten.
 - Wer eine Quelle aufnimmt, hat sie im eigenen Feed. Für die anderen bleibt sie aus, bis sie sie selbst anschalten.
 - Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
-- Das Briefing und «Team-Tipps» berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
+- Das Briefing sowie «Im Team», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
 
 **Gemeinsam für alle:** Themen, Suchbegriffe und Regeln.
 

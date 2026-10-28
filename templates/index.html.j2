@@ -413,8 +413,6 @@ html.rail-collapsed #railToggle svg { transform: scaleX(-1); }
 /* Chips: Gruppen je Tab; auf breiten Bildschirmen umbrechen statt seitlich abschneiden */
 .chipset { display: contents; }
 .chipset[hidden] { display: none !important; }
-.chip.team { background: rgba(31,157,85,.12); color: var(--green); }
-.chip.team[aria-pressed="true"] { background: var(--green); color: #fff; }
 @media (min-width: 901px) {
   .top .chips { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
 }
@@ -452,7 +450,7 @@ html, body { overflow-x: clip; }
 /* Alle Chips sichtbar, in mehreren Zeilen statt seitlich scrollbar */
 .top .chips, .chips { flex-wrap: wrap; overflow: visible; row-gap: 8px; }
 /* Gewählter Chip und gewählter Tab in der Akzentfarbe */
-.chip[aria-pressed="true"], .chip.team[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.chip[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .chip[aria-pressed="true"] .n { color: #fff; opacity: .8; }
 .tabbar button[aria-selected="true"], .tabbar button[aria-selected="true"] span, .tabbar button[aria-selected="true"] svg { color: var(--accent); }
 .rail .nav button[aria-selected="true"] { color: var(--accent); }
@@ -527,7 +525,6 @@ html, body { overflow-x: clip; }
         <button class="chip search-chip open-search" type="button" title="Suchen (/)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4-4"/></svg>Suchen</button>
         <button class="chip" type="button" data-topic="" data-type="" aria-pressed="true" id="chipAll">Alle</button>
         <span class="chipset" data-for="feed">
-          <button class="chip team" type="button" data-team="1" aria-pressed="false" id="teamChip" hidden title="Artikel, die jemand anderes aus dem Team hochgevotet hat">Team-Tipps<span class="n" id="nTeam"></span></button>
           {% for t in topics if topic_counts[t] %}
           <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
           {% endfor %}
@@ -682,8 +679,8 @@ html, body { overflow-x: clip; }
         </details>
       </div>
       <p class="group-note">Der Schalter bestimmt, was in <b>deinem</b> Feed steht; andere sehen ihre eigene Auswahl.
-        Eine neue Quelle steht in deinem Feed, für andere bleibt sie aus, bis sie sie anschalten. Das Briefing und
-        «Team-Tipps» berücksichtigen alle Quellen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
+        Eine neue Quelle steht in deinem Feed, für andere bleibt sie aus, bis sie sie anschalten. Das Briefing und unter
+        Gemerkt «Im Team», «Meistgelesen» und «Top bewertet» berücksichtigen alle Quellen. Den Feed einer neuen Website sucht der nächste Abruf.</p>
 
       <h3 class="group-title">Regeln für alle Quellen</h3>
       <form class="card group" id="rulesForm">
@@ -898,10 +895,10 @@ html, body { overflow-x: clip; }
   }
 
   // ---------- Darstellung ----------
-  var state = { tab: "feed", topic: "", type: "", team: false, source: "", q: "", savedView: "mine" };
+  var state = { tab: "feed", topic: "", type: "", source: "", q: "", savedView: "mine" };
   var TABS = {
-    // Feed: eigene Quellen; «Team-Tipps» zeigt, was andere gut fanden, aus allen Quellen
-    feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && (state.team || inMyFeed(p.dataset.source)); },
+    // Feed: eigene Quellen (was das Team gut fand, steht unter Gemerkt → «Top bewertet»)
+    feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && inMyFeed(p.dataset.source); },
     discover: function (p) { return p.dataset.kind === "entdecken" || (p.dataset.cat === "Community" && inMyFeed(p.dataset.source)); }
   };
   var EMPTY = {
@@ -918,7 +915,6 @@ html, body { overflow-x: clip; }
     return TABS[state.tab](p)
       && (!state.topic || p.dataset.topics.split("|").indexOf(state.topic) !== -1)
       && (!state.type || p.dataset.type === state.type)
-      && (!state.team || counts(p.dataset.id).team > 0)
       && (!state.source || p.dataset.source === state.source)
       && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; });
   }
@@ -1006,7 +1002,7 @@ html, body { overflow-x: clip; }
 
   function render() {
     var tab = state.tab, isSaved = tab === "saved", admin = tab === "sources", brief = tab === "briefing", shown = 0;
-    var filtered = !!(state.topic || state.type || state.team || state.source || state.q);
+    var filtered = !!(state.topic || state.type || state.source || state.q);
     $("nSavedSide").hidden = !Object.keys(saved).length;
     $$("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false"); });
     $("briefingView").hidden = !brief;
@@ -1015,12 +1011,9 @@ html, body { overflow-x: clip; }
     $$("[data-saved]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.saved === state.savedView ? "true" : "false"); });
     $$(".chipset").forEach(function (c) { c.hidden = c.dataset.for !== tab; });
     $$("#chips [data-topic], #chips [data-type]").forEach(function (b) {
-      var on = b.id === "chipAll" ? !(state.topic || state.type || state.team) : b.dataset.topic ? b.dataset.topic === state.topic : b.dataset.type === state.type;
+      var on = b.id === "chipAll" ? !(state.topic || state.type) : b.dataset.topic ? b.dataset.topic === state.topic : b.dataset.type === state.type;
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
-    var team = posts.filter(function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && counts(p.dataset.id).team > 0; }).length;
-    $("teamChip").hidden = !team; $("nTeam").textContent = team || "";
-    $("teamChip").setAttribute("aria-pressed", state.team ? "true" : "false");
     $("admin").hidden = !admin;
     feed.hidden = admin || isSaved || brief;
     listFeed.hidden = !isSaved;
@@ -1092,8 +1085,8 @@ html, body { overflow-x: clip; }
   $$("[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () {
       var next = b.dataset.tab;
-      // Filter gehören zum Tab: Typen gibt es nur in Entdecken, Team-Tipps nur im Feed
-      go({ tab: next, type: next === "discover" ? state.type : "", team: next === "feed" ? state.team : "" });
+      // Filter gehören zum Tab: Typen gibt es nur in Entdecken
+      go({ tab: next, type: next === "discover" ? state.type : "" });
     });
   });
   function setQuery(value) {
@@ -1189,15 +1182,14 @@ html, body { overflow-x: clip; }
 
   document.addEventListener("click", function (e) {
     var qBtn = e.target.closest("[data-q]");
-    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", type: "", team: false, source: "", tab: "feed" }); return; }
-    if (e.target.closest("#teamChip")) { go({ team: !state.team, topic: "", source: "" }); return; }
+    if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", type: "", source: "", tab: "feed" }); return; }
     var savedBtn = e.target.closest("[data-saved]");
     if (savedBtn) { go({ savedView: savedBtn.dataset.saved }); return; }
-    if (e.target.closest("#chipAll")) { go({ topic: "", type: "", team: false, source: "" }); return; }
+    if (e.target.closest("#chipAll")) { go({ topic: "", type: "", source: "" }); return; }
     var typeBtn = e.target.closest("#chips [data-type]");
     if (typeBtn) { go({ type: typeBtn.dataset.type === state.type ? "" : typeBtn.dataset.type }); return; }
     var topicBtn = e.target.closest("[data-topic]");
-    if (topicBtn) { go({ topic: topicBtn.dataset.topic, team: false, source: "", tab: TABS[state.tab] ? state.tab : "feed" }); return; }
+    if (topicBtn) { go({ topic: topicBtn.dataset.topic, source: "", tab: TABS[state.tab] ? state.tab : "feed" }); return; }
     var srcBtn = e.target.closest(".src");
     if (srcBtn) { go({ source: srcBtn.closest(".post").dataset.source, topic: "", tab: TABS[state.tab] ? state.tab : "feed" }); return; }
     var btn = e.target.closest("[data-act]");
