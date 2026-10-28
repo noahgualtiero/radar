@@ -715,6 +715,9 @@ def load_config() -> tuple[dict, str]:
     return config, "Radar"
 
 
+FEED_LIKE = re.compile(r"(rss|feed|atom)|\.xml($|\?)|news\.google\.com/rss", re.I)
+
+
 def resolve_feeds(sources: list[dict], cache: dict) -> None:
     """In Radar aufgenommene Quellen tragen oft nur die Adresse der Website. Dafür den Feed suchen
     (einmal, das Ergebnis bleibt im Bestand); ohne Feed dient die Google-News-Suche site:Domain."""
@@ -722,8 +725,16 @@ def resolve_feeds(sources: list[dict], cache: dict) -> None:
 
     for source in sources:
         url = source["url"]
+        if FEED_LIKE.search(url):  # sieht schon nach Feed aus: nicht erst prüfen
+            source["feed"] = url
+            continue
         if url not in cache:
-            found = discover(url)
+            try:
+                found = discover(url)
+            except Exception as exc:  # eine einzelne Quelle darf den Lauf nie abbrechen
+                print(f"Hinweis: Feed-Suche für {source['name']} fehlgeschlagen ({exc}), versuche es beim nächsten Lauf", file=sys.stderr)
+                source["feed"] = url
+                continue
             cache[url] = found[0] if found else NEWS_SEARCH.format(
                 q=quote_plus(f"site:{domain_of(url)}"), days=MAX_AGE_DAYS, locale=LOCALES["US"])
             print(f"Feed für {source['name']}: {cache[url]}")

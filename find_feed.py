@@ -45,9 +45,9 @@ def check(url: str) -> tuple[str, int] | None:
 
 def discover(url: str) -> tuple[str, str, int] | None:
     """Sucht den Feed zu einer Seiten- oder Artikel-URL: (Feed-URL, Titel, Anzahl Einträge)."""
-    if check(url):  # schon ein Feed
-        title, count = check(url)
-        return url, title, count
+    direct = check(url)
+    if direct:  # schon ein Feed
+        return url, direct[0], direct[1]
     parts = urlsplit(url)
     home = f"{parts.scheme}://{parts.netloc}"
     candidates = advertised_feeds(url) + advertised_feeds(home + "/")
