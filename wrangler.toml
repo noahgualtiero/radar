@@ -7,4 +7,4 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "radar"
-database_id = "HIER-DIE-DATABASE-ID-EINTRAGEN"
+database_id = "453aef75-998e-458e-86f6-25123a5c66c4"

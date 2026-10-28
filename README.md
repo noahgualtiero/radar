@@ -166,7 +166,7 @@ npx wrangler@4.149.0 pages project create radar --production-branch main
 
 **5. Anmeldung mit Cloudflare Access einrichten**
 - Dashboard → *Zero Trust → Access → Applications → Add an application → Self-hosted*.
-- Domains: `radar.pages.dev` und `*.radar.pages.dev`.
+- Domains: `radar-5ar.pages.dev` und `*.radar-5ar.pages.dev`.
 - Policy *Allow*, Include *Emails ending in* `@standout.ch`.
 - Login-Methode *One-time PIN*, also ein Code per E-Mail.
 - Danach in der Application den *Application Audience (AUD) Tag* kopieren.
@@ -185,7 +185,7 @@ Ohne gültige Anmeldung antwortet die API nicht. Sie prüft das Access-Token sel
 
 **7. Starten**
 - Auf GitHub unter *Actions → Radar abrufen und veröffentlichen → Run workflow* den ersten Lauf auslösen.
-- Danach `https://radar.pages.dev` öffnen und mit der E-Mail anmelden.
+- Danach `https://radar-5ar.pages.dev` öffnen und mit der E-Mail anmelden.
 - Auf dem iPhone über *Teilen → Zum Home-Bildschirm* als App ablegen.
 
 **8. Alte Seite abschalten**
