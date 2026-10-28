@@ -290,7 +290,8 @@ footer p { margin: 0 0 8px; }
 #admin footer { margin: 0 6px; padding-top: 0; }
 .imprint summary { cursor: pointer; font-weight: 650; color: var(--accent); list-style: none; padding: 6px 0; font-size: .9rem; }
 .rights { margin-top: 16px !important; padding: 12px 14px; border-radius: 12px; background: var(--panel); color: var(--text);
-  font-size: .82rem; line-height: 1.45; border: 1px solid var(--sep); }
+  font-size: .82rem; line-height: 1.45; border: 1px solid var(--sep); display: flex; gap: 10px; align-items: flex-start; }
+.rights svg { width: 18px; height: 18px; color: var(--accent); flex: none; margin-top: 1px; }
 .imprint summary::-webkit-details-marker { display: none; }
 .imprint summary::after { content: " ›"; }
 .imprint[open] summary::after { content: " ⌄"; }
@@ -806,8 +807,9 @@ html, body { overflow-x: clip; }
           nur mit Titeln und Anrissen und kann sich irren – massgebend ist der Originalartikel. Radar ist ein internes
           Werkzeug von Standout. Fragen: <a href="mailto:noah.kaech@standout.ch">noah.kaech@standout.ch</a></p>
       </details>
-      <p class="rights">Inhalte gehören den jeweiligen Quellen. Radar zeigt nur Titel, kurze Anrisse und Vorschaubilder
-        und verlinkt auf das Original.</p>
+      <p class="rights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span>Inhalte gehören den jeweiligen Quellen. Radar zeigt nur Titel, kurze Anrisse und Vorschaubilder und verlinkt
+        auf das Original.</span></p>
     </footer>
       </div>
     </section>
