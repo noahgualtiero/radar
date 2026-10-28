@@ -163,8 +163,11 @@ def search_sources(config: dict) -> list[dict]:
     days = int(config.get("zeitraum_tage", 7))
     sources = []
     for term in config.get("begriffe") or []:
-        # Jeder Begriff läuft in allen Ausgaben (US, UK, IE, DE, AT, CH); doppelte Treffer werden zusammengeführt
-        for lang, locale in LOCALES.items():
+        # Jeder Begriff läuft in den gewählten Ausgaben (Standard DACH); doppelte Treffer werden zusammengeführt
+        for lang in config.get("regionen") or ["DE", "AT", "CH"]:
+            locale = LOCALES.get(lang)
+            if not locale:
+                continue
             sources.append({
                 "name": f"Suche: {term} ({lang})",
                 "url": NEWS_SEARCH.format(q=quote_plus(term), days=days, locale=locale),
@@ -176,10 +179,10 @@ def search_sources(config: dict) -> list[dict]:
 
 def passes_rules(rules: dict, title: str, link: str) -> bool:
     """Regeln für alle Quellen gleich: Mindestlänge des Titels, Stellenanzeigen, ausgeschlossene Begriffe.
-    Die Themen-Regel (mindest_gewicht) greift später, nach der Themenzuordnung."""
+    Stellenanzeigen sind immer ausgeblendet. Was relevant ist, entscheidet danach die KI."""
     if len(title.split()) < int(rules.get("min_woerter") or 0):
         return False
-    if rules.get("stellenanzeigen_ausblenden", True) and (JOB_TITLE.search(title) or JOB_LINK.search(link)):
+    if JOB_TITLE.search(title) or JOB_LINK.search(link):
         return False
     return not any(t.lower() in title.lower() for t in rules.get("ausschliessen") or [])
 
@@ -348,7 +351,8 @@ def assign_types(items: list[dict]) -> None:
     for item in items:
         ai = item.get("ai") or {}
         item["type"] = ai.get("typ") or rule_type(item)
-        item["rel"] = ai.get("rel") or min(5, 2 + item.get("weight", 0))
+        # ohne KI: kein Thema = kein Bezug (1), sonst 3 bis 5 je nach Gewicht
+        item["rel"] = ai.get("rel") or (min(5, 2 + item["weight"]) if item.get("weight") else 1)
         item["study"] = item["type"] == "Studie"
 
 
@@ -808,14 +812,15 @@ def main() -> int:
     websearch_note = websearch_items(ai, items, sources, config.get("themen") or [], seen_at, rules)
     items = filter_discoveries(items, {d.lower() for d in searches.get("ignorieren") or []})
     topics = config.get("themen") or []
-    tag_topics(items, topics)
+    tag_topics(items, topics)  # Stichwörter: Ersatz, falls die KI einen Beitrag (noch) nicht eingeordnet hat
+    items = collapse_duplicates(items)
+    classify_note = ai.classify(items, topics) if not ai.unavailable() else ai.unavailable()
     weights = {t["name"]: int(t.get("gewicht", 1)) for t in topics}
     for item in items:
+        themen = (item.get("ai") or {}).get("themen")
+        if themen is not None:  # Themen der KI gehen vor
+            item["topics"] = [t for t in themen if t in weights]
         item["weight"] = max((weights.get(t, 1) for t in item["topics"]), default=0)
-    # Themen-Regel für alle Quellen: nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
-    items = [i for i in items if i["weight"] >= int(rules.get("mindest_gewicht") or 0)]
-    items = collapse_duplicates(items)
-    classify_note = ai.classify(items) if not ai.unavailable() else ai.unavailable()
     assign_types(items)
     add_cover_images(items)
 
@@ -840,9 +845,10 @@ def main() -> int:
     shutil.copytree(ROOT / "static", out, dirs_exist_ok=True)
 
     env = Environment(loader=FileSystemLoader(ROOT / "templates"), autoescape=select_autoescape())
-    min_rel = int((config.get("ki") or {}).get("entdecken_mindest_relevanz", 3))
-    # Entdecken zeigt Suchfunde ab der Mindest-Relevanz und die Community; der Feed die festen Quellen
-    shown = [i for i in items if i["category"] != DISCOVER or i["rel"] >= min_rel]
+    # Ab welcher Relevanz (1–5) ein Beitrag erscheint: Feed (feste Quellen, Community) und Entdecken (Suchfunde)
+    feed_min = int(rules.get("feed_mindest_relevanz") or 2)
+    discover_min = int(rules.get("entdecken_mindest_relevanz") or (config.get("ki") or {}).get("entdecken_mindest_relevanz") or 3)
+    shown = [i for i in items if i["rel"] >= (discover_min if i["category"] == DISCOVER else feed_min)]
     repo = repo_slug()
     month_log = [e for e in ai_log if e["at"][:7] == ai.state["month"]]
     page = env.get_template("index.html.j2").render(

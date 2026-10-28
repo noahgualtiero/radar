@@ -123,9 +123,9 @@ class AI:
 
     # ---------- Aufgaben ----------
 
-    def classify(self, items: list[dict]) -> str:
-        """Ordnet Beiträge ohne KI-Einordnung ein (Feld «ai»: typ, rel). Gibt einen Hinweis zurück, falls etwas fehlte."""
-        todo = [i for i in items if not i.get("ai")]
+    def classify(self, items: list[dict], topics: list[dict]) -> str:
+        """Ordnet Beiträge ohne KI-Einordnung ein (Feld «ai»: typ, rel, themen). Gibt einen Hinweis zurück, falls etwas fehlte."""
+        todo = [i for i in items if not i.get("ai") or "themen" not in i["ai"]]
         todo.sort(key=lambda i: i["published"], reverse=True)
         todo = todo[: int(self.cfg.get("einordnung_max_pro_lauf", 300))]
         instructions = (
@@ -136,8 +136,11 @@ class AI:
             "Best Practice = Anleitung, Tipps, Vorgehen; Diskussion = Frage oder Erfahrungsaustausch in einem Forum; "
             "sonst News. r = Relevanz 1 bis 5: 5 = muss das Team diese Woche wissen (neue Funktion, Änderung, "
             "starke Zahlen), 3 = nützlich, 1 = kein Bezug zu bezahlter Suche oder Werbung. "
+            "th = passende Themen aus dieser Liste (0 bis 3, nur exakt diese Namen; in Klammern Beispiele): "
+            + "; ".join(f"{t['name']} ({', '.join(w.strip() for w in (t.get('stichwoerter') or [])[:8])})" for t in topics) + ". "
             "Bewerte nur nach Titel und Anriss, erfinde nichts. "
-            'Antworte als JSON: {"r": [{"n": Nummer, "t": "Typ", "r": Zahl}]}, ein Eintrag pro Beitrag.')
+            'Antworte als JSON: {"r": [{"n": Nummer, "t": "Typ", "r": Zahl, "th": ["Thema"]}]}, ein Eintrag pro Beitrag.')
+        names = {t["name"] for t in topics}
         missing = 0
         for start in range(0, len(todo), CHUNK):
             if self.unavailable():
@@ -159,9 +162,10 @@ class AI:
                     rel = min(5, max(1, int(row.get("r"))))
                 except (TypeError, ValueError):
                     rel = None
+                themen = [t for t in (row.get("th") or []) if t in names] if isinstance(row.get("th"), list) else []
                 if typ and rel:
-                    item["ai"] = {"typ": typ, "rel": rel}
-            missing += sum(1 for i in chunk if not i.get("ai"))
+                    item["ai"] = {"typ": typ, "rel": rel, "themen": themen}
+            missing += sum(1 for i in chunk if "themen" not in (i.get("ai") or {}))
         return f"{missing} Beiträge ohne Einordnung" if missing else ""
 
     def briefing(self, label: str, pool: list[dict]) -> dict:

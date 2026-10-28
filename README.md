@@ -29,7 +29,7 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 | **Entdecken** | Suchfunde (Google News, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
 | **Gemerkt** | Chips «Meine» (persönlich, auf allen Geräten gleich) und «Im Team» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
-| **Quellen** | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
+| **Einstellungen** (Zahnrad) | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
 Bei jedem Beitrag gibt es vier Aktionen:
 - **Daumen hoch:** guter Artikel. Die Zahl daneben zählt alle Daumen im Team.
@@ -106,20 +106,22 @@ Google): Diese findet Radar über zwei Suchbegriffe und die wöchentliche KI-Web
 
 **Eigene Quellen:** Jede Person wählt im Tab Quellen per Schalter, was in ihrem Feed steht.
 - Die Quellen aus `sources.yaml` sind Standard: für alle an, jede Person kann sie für sich ausschalten.
-- Wer eine Quelle aufnimmt, hat sie im eigenen Feed. Für die anderen bleibt sie aus, bis sie sie selbst anschalten.
+- Wer eine Quelle «nur für mich» aufnimmt, hat sie im eigenen Feed; für die anderen bleibt sie aus, bis sie sie anschalten. «Für alle» macht sie zur Standardquelle.
 - Abgerufen werden alle Quellen, die jemand nutzt. Eine aufgenommene Quelle, die niemand mehr anhat, wird nicht mehr abgerufen.
 - Das Briefing sowie «Im Team», «Meistgelesen» und «Top bewertet» unter Gemerkt berücksichtigen alle Quellen, unabhängig von der eigenen Wahl.
 
 **Gemeinsam für alle:** Themen, Suchbegriffe und Regeln.
 
-**Regeln:** Sie gelten für alle Quellen gleich:
-- Mindestlänge des Titels
-- Pflicht-Thema
-- Stellenanzeigen ausblenden
-- ausgeschlossene Begriffe
+**Was angezeigt wird:** Die KI bewertet jeden Beitrag mit einer Relevanz von 1 bis 5. Unter
+Einstellungen legt man fest, ab welcher Stufe Beiträge im Feed (Standard 2) und in Entdecken
+(Standard 3) erscheinen. Immer und für alle Quellen gleich gilt: Stellenanzeigen und sehr kurze
+Titel (z.B. Glossar-Einträge) fallen weg. Sonderregeln pro Quelle gibt es bewusst nicht.
 
-Sonderregeln pro Quelle gibt es bewusst nicht. Liefert eine Quelle damit nichts Brauchbares,
-wird sie entfernt.
+**Themen:** Die KI ordnet jedem Beitrag 0 bis 3 Themen zu. Die Stichwörter pro Thema sind nur
+Beispiele für die KI und Ersatz, falls sie nicht läuft. Der farbige Punkt zeigt das Gewicht.
+
+**Quellen aufnehmen und entfernen:** jeweils «nur für mich» oder «für alle». Für alle entfernt,
+wird eine Quelle nicht mehr abgerufen.
 
 ## Online stellen (einmalig, rund 30 Minuten)
 

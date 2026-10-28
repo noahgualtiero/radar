@@ -306,8 +306,8 @@ async function editConfig(context, me, body) {
   let summary;
   switch (body.op) {
     case "source_add": {
-      // Jede Person darf aufnehmen; die Quelle landet in ihrem Feed, für andere bleibt sie aus,
-      // bis sie sie selbst anschalten
+      // Jede Person darf aufnehmen: «nur für mich» (für andere aus, bis sie sie anschalten) oder
+      // «für alle» (Standardquelle, bei allen an)
       const url = text(body.url, 500);
       if (!/^https?:\/\//.test(url)) throw fail("Keine gültige URL");
       const host = hostOf(url);
@@ -319,18 +319,27 @@ async function editConfig(context, me, body) {
         summary = `${existing.name} ist in deinem Feed und wird wieder abgerufen.`;
         break;
       }
-      const cats = config.kategorien || [];
       const name = text(body.name, 80) || host;
-      config.quellen.push({ name, url, kategorie: cats.includes(body.kategorie) ? body.kategorie : "News", seit: today, standard: false, von: me });
+      const forAll = !!body.fuer_alle;
+      const entry = { name, url, kategorie: "News", seit: today, von: me };
+      if (!forAll) entry.standard = false;
+      config.quellen.push(entry);
       await setMySource(context.env.DB, me, name, 1);
-      summary = `${name} aufgenommen. Den Feed sucht der nächste Abruf.`;
+      summary = `${name} ${forAll ? "für alle" : "für dich"} aufgenommen. Den Feed sucht der nächste Abruf.`;
+      break;
+    }
+    case "source_remove": {
+      // Für alle entfernen: wird nicht mehr abgerufen und verschwindet bei allen; erneut aufnehmen holt sie zurück
+      const q = config.quellen.find((x) => x.name === body.name);
+      if (!q) throw fail("Quelle unbekannt", 404);
+      q.aktiv = false;
+      summary = `${q.name} für alle entfernt.`;
       break;
     }
     case "topic_save": {
       const name = text(body.name, 60);
       if (!name) throw fail("Name fehlt");
-      const words = keywords(body.stichwoerter);
-      if (!words.length) throw fail("Mindestens ein Stichwort nötig");
+      const words = keywords(body.stichwoerter);  // Beispiele, optional
       const gewicht = Math.min(3, Math.max(1, +body.gewicht || 1));
       const t = config.themen.find((x) => x.name === name);
       if (t) Object.assign(t, { gewicht, stichwoerter: words }); else config.themen.push({ name, gewicht, stichwoerter: words });
@@ -353,13 +362,12 @@ async function editConfig(context, me, body) {
       summary = `Suchbegriff ${body.term} entfernt.`;
       break;
     case "rules_save":
-      config.regeln = {
-        min_woerter: Math.min(30, Math.max(0, +body.min_woerter || 0)),
-        mindest_gewicht: Math.min(3, Math.max(0, +body.mindest_gewicht || 0)),
-        stellenanzeigen_ausblenden: !!body.stellenanzeigen_ausblenden,
-        ausschliessen: keywords(body.ausschliessen).map((w) => w.trim()),
-      };
-      summary = "Regeln gespeichert.";
+      // Ab welcher KI-Relevanz (1–5) ein Beitrag in Feed bzw. Entdecken erscheint; die übrigen Regeln bleiben
+      config.regeln = Object.assign(config.regeln || {}, {
+        feed_mindest_relevanz: Math.min(5, Math.max(1, +body.feed_mindest_relevanz || 2)),
+        entdecken_mindest_relevanz: Math.min(5, Math.max(1, +body.entdecken_mindest_relevanz || 3)),
+      });
+      summary = "Gespeichert.";
       break;
     default:
       throw fail("Unbekannte Änderung");

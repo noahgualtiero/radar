@@ -30,23 +30,23 @@ kategorien:
   - Community   # Foren wie Reddit – erscheint im Tab «Entdecken» als Diskussion
   - Entdecken   # Treffer der Suchbegriffe und der KI-Websuche – Tab «Entdecken»
 
-# Regeln für alle Quellen (auch für die Google-News-Suchen). In den Einstellungen änderbar.
-#   min_woerter:                Beiträge mit kürzerem Titel weglassen (z.B. Glossar-Einträge)
-#   mindest_gewicht:            nur Beiträge, die ein Thema mit mindestens diesem Gewicht treffen
-#                               (0 = aus, 1 = irgendein Thema, 2 = wichtige, 3 = sehr wichtige)
-#   stellenanzeigen_ausblenden: «Working Student», «Internship», «(m/w/d)», Links auf /careers/ …
-#   ausschliessen:              Beiträge, deren Titel einen dieser Begriffe enthält, weglassen
+# Was angezeigt wird. In Radar unter Einstellungen → «Was angezeigt wird» änderbar.
+#   feed_mindest_relevanz:      Feed zeigt Beiträge ab dieser KI-Relevanz (1 = alles … 5 = nur «muss man wissen»)
+#   entdecken_mindest_relevanz: dasselbe für Suchfunde in «Entdecken»
+# Immer, für alle Quellen gleich: Stellenanzeigen ausblenden, Titel mit weniger als min_woerter Wörtern
+# weglassen (z.B. Glossar-Einträge), Titel mit Begriffen aus ausschliessen weglassen.
 regeln:
+  feed_mindest_relevanz: 2
+  entdecken_mindest_relevanz: 3
   min_woerter: 5
-  mindest_gewicht: 1
-  stellenanzeigen_ausblenden: true
   ausschliessen: []
 
-# Themenkatalog: Jeder Beitrag erhält die Themen, deren Stichwörter in Titel oder Anriss
-# vorkommen (Gross/klein egal). Leerzeichen um ein Stichwort verhindern Teiltreffer,
-# z.B. " ki " trifft nicht "Kiosk". Themen erscheinen als Filter und als #Tags.
-#   gewicht: 1 = normal, 2 = wichtig, 3 = sehr wichtig. Wichtige Themen zählen bei
-#            "Gestern wichtig" und "Trends" stärker und rücken im Feed etwas nach oben.
+# Themenkatalog: Die KI ordnet jedem Beitrag 0 bis 3 dieser Themen zu. Die Stichwörter sind
+# Beispiele, die der KI helfen, und Ersatz, falls die KI einen Beitrag nicht einordnen konnte
+# (dann zählt: Stichwort steht in Titel oder Anriss; Leerzeichen um ein Stichwort verhindern
+# Teiltreffer, z.B. " ki " trifft nicht "Kiosk"). Themen erscheinen als Chips und #Tags.
+#   gewicht: 1 = normal, 2 = wichtig, 3 = sehr wichtig. Wichtige Themen rücken im Feed etwas
+#            nach oben und zählen im Briefing stärker.
 themen:
   - name: Google Ads
     gewicht: 3
@@ -100,7 +100,6 @@ ki:
   websuche_alle_tage: 7          # 0 = keine KI-Websuche (Google-News-Suchen laufen trotzdem)
   einordnung_max_pro_lauf: 300
   briefing_artikel: 25            # so viele relevanteste Beiträge bekommt die KI fürs Briefing
-  entdecken_mindest_relevanz: 3   # Suchfunde darunter erscheinen nicht in «Entdecken»
 
 # Reihenfolge in Feed und Entdecken: Aktualität mal (1 + Schub). Der Schub kommt aus Votes und
 # Klicks des Teams (pro Artikel und im 30-Tage-Schnitt der Quelle), dem Themen-Gewicht und bei
@@ -124,12 +123,12 @@ vorschlaege:
 
 # Suchbegriffe: Für jeden Begriff wird Google News abgefragt. Treffer von Seiten, die
 # schon oben als Quelle stehen, werden ausgeblendet – übrig bleibt, was neu ist.
-# Unten auf der Seite listet "Unbekannte Quellen" die Domains, die dabei auftauchen.
-# Suchanfrage wie bei Google: "…" für exakte Phrase, OR für Alternativen. Jeder Begriff wird
-# in den Ausgaben USA, Grossbritannien, Irland, Deutschland, Österreich und Schweiz von
-# Google News gesucht.
+# Suchanfrage wie bei Google: "…" für exakte Phrase, OR für Alternativen. Gesucht wird in den
+# Google-News-Ausgaben unter regionen (DE, AT, CH; möglich auch US, UK, IE). Die wichtigen
+# englischsprachigen Fachmedien sind ohnehin feste Quellen.
 suchen:
   zeitraum_tage: 7
+  regionen: [DE, AT, CH]
   begriffe:
     - '"Google Ads"'
     - '"Performance Max"'
