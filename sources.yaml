@@ -101,19 +101,16 @@ ki:
   einordnung_max_pro_lauf: 300
   briefing_artikel: 25            # so viele relevanteste Beiträge bekommt die KI fürs Briefing
 
-# Reihenfolge in Feed und Entdecken: Aktualität mal (1 + Schub). Der Schub kommt aus Votes und
-# Klicks des Teams (pro Artikel und im 30-Tage-Schnitt der Quelle), dem Themen-Gewicht und bei
-# Suchfunden der KI-Relevanz. Er ist gedeckelt, damit nicht immer dieselben Quellen oben stehen.
+# Reihenfolge in Feed und Entdecken: zuerst das Datum (neuster Tag oben), innerhalb eines Tages
+# die Relevanz. Diese setzt sich zusammen aus KI-Relevanz, Votes und Klicks des Teams (am Artikel und
+# im 30-Tage-Schnitt der Quelle) und dem Themen-Gewicht, mit diesen Gewichten:
 gewichtung:
-  halbwertszeit_stunden: 36   # nach so vielen Stunden zählt ein Beitrag noch halb so viel
   vote: 2                     # ein Daumen zählt so viel wie …
   klick: 0.5                  # … vier Klicks
   artikel: 0.2                # Anteil der Votes/Klicks am Artikel selbst
   quelle: 0.25                # Anteil des 30-Tage-Schnitts der Quelle
   thema: 0.08                 # pro Gewichtsstufe des Themas
-  relevanz: 0.1               # pro Relevanzstufe über 3 (nur Entdecken)
-  schub_min: -0.3
-  schub_max: 0.5
+  relevanz: 0.1               # pro KI-Relevanzstufe über bzw. unter 3
 
 # Vorschläge oben im Feed, für jede Person aus ihrem eigenen Verhalten
 vorschlaege:

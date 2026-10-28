@@ -837,8 +837,7 @@ html, body { overflow-x: clip; }
   var $ = function (id) { return document.getElementById(id); };
   var $$ = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   // Gewichte der Reihenfolge (Einstellung «gewichtung» in sources.yaml)
-  var RANK = Object.assign({ halbwertszeit_stunden: 36, vote: 2, klick: 0.5, artikel: 0.2, quelle: 0.25, thema: 0.08,
-    relevanz: 0.1, schub_min: -0.3, schub_max: 0.5 }, {{ ranking|tojson }});
+  var RANK = Object.assign({ vote: 2, klick: 0.5, artikel: 0.2, quelle: 0.25, thema: 0.08, relevanz: 0.1 }, {{ ranking|tojson }});
 
   // Farbschema
   var root = document.documentElement, theme = store.get("psn-theme", "");
@@ -932,14 +931,15 @@ html, body { overflow-x: clip; }
     sourceAvg = {};
     Object.keys(sum).forEach(function (s) { sourceAvg[s] = sum[s] / n[s]; });
   }
+  // Reihenfolge: zuerst das Datum (neuster Tag oben), innerhalb eines Tages die Relevanz: KI-Relevanz,
+  // Votes und Klicks am Artikel, Schnitt der Quelle und Themen-Gewicht; bei Gleichstand das Neuste zuerst
+  var dayFmt = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Zurich" });
+  function day(p) { return p._day || (p._day = dayFmt.format(new Date(p.dataset.published))); }
   function score(p) {
-    var boost = RANK.artikel * Math.tanh(engagement(p.dataset.id) / 3)
+    return RANK.relevanz * ((+p.dataset.rel || 3) - 3)
+      + RANK.artikel * Math.tanh(engagement(p.dataset.id) / 3)
       + RANK.quelle * Math.tanh(sourceAvg[p.dataset.source] || 0)
       + RANK.thema * (+p.dataset.weight || 0);
-    if (p.dataset.kind === "entdecken") boost += RANK.relevanz * ((+p.dataset.rel || 3) - 3);
-    boost = Math.min(RANK.schub_max, Math.max(RANK.schub_min, boost));
-    var hours = Math.max(0, (Date.now() - new Date(p.dataset.published)) / 36e5);
-    return Math.pow(0.5, hours / RANK.halbwertszeit_stunden) * (1 + boost);
   }
 
   // ---------- Darstellung ----------
@@ -1139,15 +1139,18 @@ html, body { overflow-x: clip; }
       var useNew = tab === "feed", scores = new Map();
       posts.forEach(function (p) { scores.set(p, score(p)); });
       posts.sort(function (a, b) {
-        var na = useNew && isNew(a), nb = useNew && isNew(b);
-        return na !== nb ? (na ? -1 : 1) : scores.get(b) - scores.get(a);
+        return day(b).localeCompare(day(a)) || scores.get(b) - scores.get(a) || b.dataset.published.localeCompare(a.dataset.published);
       });
-      var lineAfter = null;
+      // «Bis hier gelesen» nach dem letzten neuen Beitrag, solange alles davor neu ist
+      var lineAfter = null, onlyNew = true;
       posts.forEach(function (p) {
         decorate(p);
         var ok = matches(p);
         p.hidden = !ok;
-        if (ok) { shown++; if (useNew && isNew(p)) lineAfter = p; }
+        if (ok) {
+          shown++;
+          if (useNew && onlyNew && isNew(p)) lineAfter = p; else onlyNew = false;
+        }
         feed.appendChild(p);
       });
       var lastShown = posts.filter(function (p) { return !p.hidden; }).pop();

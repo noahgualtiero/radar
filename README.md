@@ -47,15 +47,14 @@ Mit der Taste «/» oder dem Chip «Suchen» lässt sich suchen. Direktlinks wie
 
 ## Wie Radar sortiert und vorschlägt
 
-**Reihenfolge in Feed und Entdecken:** Aktualität × (1 + Schub).
-- **Aktualität:** halbiert sich alle 36 Stunden.
-- **Schub:** setzt sich zusammen aus
-  - den Votes und Klicks am Artikel
-  - dem Schnitt der Quelle über ihre Beiträge der letzten 30 Tage
-  - dem Themen-Gewicht
-  - in Entdecken zusätzlich der KI-Relevanz
-- **Deckel:** Der Schub bleibt zwischen −0,3 und +0,5, damit nicht immer dieselben Quellen oben stehen.
-- **Neu seit dem letzten Besuch:** steht im Feed zusätzlich zuoberst.
+**Reihenfolge in Feed und Entdecken:** Aktualität geht vor. Zuerst kommt der neuste Tag; innerhalb
+eines Tages entscheidet die Relevanz:
+- KI-Relevanz des Beitrags
+- Votes und Klicks am Artikel
+- Schnitt der Quelle über ihre Beiträge der letzten 30 Tage
+- Themen-Gewicht
+
+Bei Gleichstand steht das Neuste oben. Im Feed markiert «Bis hier gelesen», was seit dem letzten Besuch neu ist.
 
 Alle Gewichte stehen unter `gewichtung` in `sources.yaml`.
 
