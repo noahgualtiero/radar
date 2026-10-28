@@ -8,7 +8,8 @@
 // sich ausschalten und weitere aufnehmen. Abgerufen werden alle Quellen, die jemand nutzt; das
 // Briefing entsteht aus allen.
 //
-//   GET  /api/state       eigene Votes und Quellen, Team-Zahlen pro Artikel, Gemerkt, Vorschläge
+//   GET  /api/state       eigene Votes und Quellen, Team-Zahlen pro Artikel, Gemerkt (eigenes und
+//                         vom Team), Vorschläge
 //   POST /api/vote        {id, value: 1 | -1 | 0, source, domain, kind}
 //   POST /api/click       {id, source, domain, kind}
 //   POST /api/save        {id, item | null}
@@ -99,13 +100,16 @@ const b64text = (s) => new TextDecoder().decode(b64bytes(s));
 
 async function state(env, me) {
   const db = env.DB, since = iso(-WINDOW_DAYS);
-  const [counts, clicks, mine, saved, config, sources] = await Promise.all([
+  const [counts, clicks, mine, saved, teamSaved, config, sources] = await Promise.all([
     db.prepare(`SELECT article_id, SUM(value > 0) AS up, SUM(value < 0) AS down,
                 SUM(CASE WHEN value > 0 AND user <> ?1 THEN 1 ELSE 0 END) AS team
                 FROM votes WHERE created_at >= ?2 GROUP BY article_id`).bind(me, since).all(),
     db.prepare("SELECT article_id, COUNT(*) AS n FROM clicks WHERE created_at >= ? GROUP BY article_id").bind(since).all(),
     db.prepare("SELECT article_id, value FROM votes WHERE user = ?").bind(me).all(),
     db.prepare("SELECT data FROM saved WHERE user = ? ORDER BY created_at DESC").bind(me).all(),
+    // Was andere gemerkt haben: pro Artikel einmal, mit Anzahl Personen, ohne Namen
+    db.prepare(`SELECT article_id, COUNT(*) AS n, MAX(created_at) AS last, MAX(data) AS data FROM saved
+                WHERE user <> ? GROUP BY article_id ORDER BY last DESC LIMIT 150`).bind(me).all(),
     loadConfig(env),
     mySources(db, me),
   ]);
@@ -117,6 +121,7 @@ async function state(env, me) {
     articles,
     votes: Object.fromEntries(mine.results.map((r) => [r.article_id, r.value])),
     saved: saved.results.map((r) => JSON.parse(r.data)),
+    teamSaved: teamSaved.results.map((r) => Object.assign(JSON.parse(r.data), { team: r.n, saved: r.last })),
     sources,
     suggestions: config ? await suggestions(db, config, me, sources) : [],
     autoRebuild: !!(env.GITHUB_TOKEN && env.GITHUB_REPO),

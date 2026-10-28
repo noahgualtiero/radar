@@ -527,6 +527,10 @@ html, body { overflow-x: clip; }
           <button class="chip" type="button" data-topic="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ topic_counts[t] }}</span></button>
           {% endfor %}
         </span>
+        <span class="chipset" data-for="saved">
+          <button class="chip" type="button" data-saved="mine" aria-pressed="true">Meine</button>
+          <button class="chip" type="button" data-saved="team" aria-pressed="false" title="Was andere aus dem Team gemerkt haben">Im Team</button>
+        </span>
         <span class="chipset" data-for="discover">
           {% for t in types if type_counts[t] %}
           <button class="chip" type="button" data-type="{{ t }}" aria-pressed="false">{{ t }}<span class="n">{{ type_counts[t] }}</span></button>
@@ -887,7 +891,7 @@ html, body { overflow-x: clip; }
   }
 
   // ---------- Darstellung ----------
-  var state = { tab: "feed", topic: "", type: "", team: false, source: "", q: "" };
+  var state = { tab: "feed", topic: "", type: "", team: false, source: "", q: "", savedView: "mine" };
   var TABS = {
     // Feed: eigene Quellen; «Team-Tipps» zeigt, was andere gut fanden, aus allen Quellen
     feed: function (p) { return p.dataset.kind === "feed" && p.dataset.cat !== "Community" && (state.team || inMyFeed(p.dataset.source)); },
@@ -896,7 +900,8 @@ html, body { overflow-x: clip; }
   var EMPTY = {
     feed: "Keine Beiträge für diese Auswahl.",
     discover: "Keine Funde für diese Auswahl.",
-    saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag landet es hier."
+    saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag landet es hier.",
+    teamSaved: "Noch hat niemand aus dem Team etwas gemerkt."
   };
 
   function matches(p) {
@@ -996,7 +1001,9 @@ html, body { overflow-x: clip; }
     $("nSavedSide").hidden = !Object.keys(saved).length;
     $$("[data-tab]").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === tab ? "true" : "false"); });
     $("briefingView").hidden = !brief;
-    $("top").hidden = brief || admin || isSaved;
+    $("top").hidden = brief || admin;
+    $("chipAll").hidden = isSaved;
+    $$("[data-saved]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.saved === state.savedView ? "true" : "false"); });
     $$(".chipset").forEach(function (c) { c.hidden = c.dataset.for !== tab; });
     $$("#chips [data-topic], #chips [data-type]").forEach(function (b) {
       var on = b.id === "chipAll" ? !(state.topic || state.type || state.team) : b.dataset.topic ? b.dataset.topic === state.topic : b.dataset.type === state.type;
@@ -1015,10 +1022,20 @@ html, body { overflow-x: clip; }
     if (admin) {
       renderAdmin();
     } else if (isSaved) {
+      // «Meine» oder «Im Team» (was andere gemerkt haben, mit Anzahl Personen); die Suche gilt für beide
       listFeed.innerHTML = "";
-      Object.keys(saved).map(function (id) { return saved[id]; })
-        .sort(function (a, b) { return b.saved.localeCompare(a.saved); })
-        .forEach(function (f) { var p = buildSavedPost(f); paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++; });
+      var teamView = state.savedView === "team", terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      var list = teamView ? (server.teamSaved || []) : Object.keys(saved).map(function (id) { return saved[id]; });
+      list.slice().sort(function (a, b) { return (b.saved || "").localeCompare(a.saved || ""); })
+        .filter(function (f) {
+          var text = (f.title + " " + (f.snippet || "") + " " + f.source + " " + (f.topics || "").replace(/\|/g, " ")).toLowerCase();
+          return terms.every(function (t) { return text.indexOf(t) !== -1; });
+        })
+        .forEach(function (f) {
+          var p = buildSavedPost(f);
+          if (teamView) p.querySelector(".sub").textContent = fmt(f.published) + " · von " + f.team + (f.team === 1 ? " Person" : " Personen") + " gemerkt";
+          paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++;
+        });
     } else if (!brief) {
       var useNew = tab === "feed", scores = new Map();
       posts.forEach(function (p) { scores.set(p, score(p)); });
@@ -1038,7 +1055,7 @@ html, body { overflow-x: clip; }
       if (lineAfter && !filtered && lineAfter !== lastShown) lineAfter.after(seenLine); else seenLine.remove();
     }
     $("empty").hidden = admin || brief || shown > 0;
-    $("empty").textContent = EMPTY[tab] || "";
+    $("empty").textContent = (isSaved && state.savedView === "team" ? EMPTY.teamSaved : EMPTY[tab]) || "";
   }
 
   // Direktlinks: #discover, #briefing, #saved, #sources öffnen den jeweiligen Tab
@@ -1047,7 +1064,7 @@ html, body { overflow-x: clip; }
     history.replaceState(null, "", state.tab === "feed" ? location.pathname + location.search : "#" + state.tab);
   }
   function go(changes) { Object.assign(state, changes); render(); syncHash(); window.scrollTo(0, 0); }
-  function filterTab() { return TABS[state.tab] ? state.tab : "feed"; }
+  function filterTab() { return TABS[state.tab] || state.tab === "saved" ? state.tab : "feed"; }
 
   $$("[data-tab]").forEach(function (b) {
     b.addEventListener("click", function () {
@@ -1062,7 +1079,7 @@ html, body { overflow-x: clip; }
   }
   $("q").addEventListener("input", function (e) { setQuery(e.target.value); });
   function openSearch() {
-    if (!TABS[state.tab]) go({ tab: "feed" });
+    if (!TABS[state.tab] && state.tab !== "saved") go({ tab: "feed" });
     $("top").classList.add("searching"); window.scrollTo(0, 0); $("q").focus();
   }
   function closeSearch() {
@@ -1151,13 +1168,15 @@ html, body { overflow-x: clip; }
     var qBtn = e.target.closest("[data-q]");
     if (qBtn) { $("q").value = qBtn.dataset.q; $("top").classList.add("searching"); go({ q: qBtn.dataset.q, topic: "", type: "", team: false, source: "", tab: "feed" }); return; }
     if (e.target.closest("#teamChip")) { go({ team: !state.team, topic: "", source: "" }); return; }
+    var savedBtn = e.target.closest("[data-saved]");
+    if (savedBtn) { go({ savedView: savedBtn.dataset.saved }); return; }
     if (e.target.closest("#chipAll")) { go({ topic: "", type: "", team: false, source: "" }); return; }
     var typeBtn = e.target.closest("#chips [data-type]");
     if (typeBtn) { go({ type: typeBtn.dataset.type === state.type ? "" : typeBtn.dataset.type }); return; }
     var topicBtn = e.target.closest("[data-topic]");
-    if (topicBtn) { go({ topic: topicBtn.dataset.topic, team: false, source: "", tab: filterTab() }); return; }
+    if (topicBtn) { go({ topic: topicBtn.dataset.topic, team: false, source: "", tab: TABS[state.tab] ? state.tab : "feed" }); return; }
     var srcBtn = e.target.closest(".src");
-    if (srcBtn) { go({ source: srcBtn.closest(".post").dataset.source, topic: "", tab: filterTab() }); return; }
+    if (srcBtn) { go({ source: srcBtn.closest(".post").dataset.source, topic: "", tab: TABS[state.tab] ? state.tab : "feed" }); return; }
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
     var post = btn.closest(".post"), act = btn.dataset.act;
