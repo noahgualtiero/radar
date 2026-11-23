@@ -34,6 +34,14 @@ CREATE TABLE IF NOT EXISTS saved (
   PRIMARY KEY (user, article_id)
 );
 
+-- Archiviert (nach links gewischt): erscheint dieser Person nicht mehr in Feed und Entdecken
+CREATE TABLE IF NOT EXISTS archived (
+  user       TEXT NOT NULL,
+  article_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (user, article_id)
+);
+
 -- Beantwortete Vorschläge («aufnehmen?», «entfernen?») erscheinen dieser Person bis «until» nicht wieder
 CREATE TABLE IF NOT EXISTS dismissed (
   user  TEXT NOT NULL,

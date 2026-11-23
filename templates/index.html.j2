@@ -167,6 +167,18 @@ svg { flex: none; }
 .menu { position: absolute; right: 8px; bottom: 48px; z-index: 5; background: var(--card); border-radius: 14px; border: 1px solid var(--sep); box-shadow: var(--shadow-lg); padding: 6px; min-width: 260px; }
 .menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: .93rem; font-weight: 550; }
 .menu button:hover { background: var(--hover); }
+/* Nach links wischen = archivieren: dahinter erscheint «Archivieren» */
+.post { position: relative; touch-action: pan-y; }
+.post.swiping > *, .post.swipe-anim > * { transform: translateX(var(--dx, 0)); }
+.post.swipe-anim > * { transition: transform .22s ease; }
+.post::after { content: "Archivieren"; position: absolute; top: 0; bottom: 0; right: 0; width: calc(var(--dx, 0px) * -1);
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 0; overflow: hidden; white-space: nowrap;
+  background: var(--accent); color: #fff; font-weight: 650; font-size: .9rem; border-radius: 12px 0 0 12px; pointer-events: none;
+  box-sizing: border-box; }
+.post.swipe-ready::after { padding-right: 18px; }
+.post:not(.swiping):not(.swipe-anim)::after { display: none; }
+.post.collapsing { transition: max-height .25s ease, margin .25s ease, padding .25s ease, opacity .25s ease; opacity: 0; margin-bottom: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+.act-done[aria-pressed="true"] { color: var(--accent); }
 .seen-line { display: flex; align-items: center; gap: 12px; color: var(--label2); font-size: .8rem; font-weight: 600; margin: 8px 0 22px; }
 .seen-line::before, .seen-line::after { content: ""; flex: 1; border-top: 1px solid var(--sep); }
 .empty { color: var(--label2); padding: 48px 20px; text-align: center; }
@@ -556,6 +568,7 @@ html, body { overflow-x: clip; }
           <button class="chip" type="button" data-saved="team" aria-pressed="false" title="Was andere aus dem Team gemerkt haben">Vom Team gemerkt</button>
           <button class="chip" type="button" data-saved="clicks" aria-pressed="false" title="Am häufigsten geöffnet, letzte 30 Tage">Meistgelesen</button>
           <button class="chip" type="button" data-saved="votes" aria-pressed="false" title="Die meisten Daumen hoch, letzte 30 Tage">Top bewertet</button>
+          <button class="chip" type="button" data-saved="archived" aria-pressed="false" title="Was du archiviert hast">Archiv</button>
         </span>
         <span class="chipset" data-for="discover">
           {% for t in types if type_counts[t] %}
@@ -654,6 +667,7 @@ html, body { overflow-x: clip; }
         <button class="act-down" type="button" data-act="down" title="Nicht relevant" aria-label="Nicht relevant" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></button>
         <button class="act-share" type="button" data-act="share" title="Teilen" aria-label="Teilen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></button>
         <span class="spacer"></span>
+        <button class="act-done" type="button" data-act="done" title="Archivieren (auf dem Handy: nach links wischen)" aria-label="Archivieren" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg></button>
         <button class="act-favs" type="button" data-act="save" title="Merken" aria-label="Merken"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></button>
       </div>
     </article>
@@ -784,7 +798,8 @@ html, body { overflow-x: clip; }
         <summary>So funktioniert Radar</summary>
         <h4>Feed</h4>
         <p>Beiträge aus deinen Quellen. Was seit deinem letzten Besuch neu ist, steht oben bis zur Linie «Bis hier
-          gelesen». Danach zählt die Aktualität, dazu was das Team gut fand und öffnete. Die Chips oben filtern nach Thema.</p>
+          gelesen». Danach zählt die Aktualität, dazu was das Team gut fand und öffnete. Die Chips oben filtern nach Thema. Gelesenes wischst du nach links weg (auf dem Desktop: Knopf
+          «Archivieren»); es erscheint dann nur noch unter Gemerkt → «Archiv».</p>
         <h4>Entdecken</h4>
         <p>Funde aus Google-News-Suchen, einer wöchentlichen KI-Websuche und Reddit. Eine KI ordnet jeden Fund ein
           (Studie, Kennzahlen, Best Practice, News, Diskussion) und bewertet die Relevanz; nur Relevantes erscheint.</p>
@@ -883,6 +898,7 @@ html, body { overflow-x: clip; }
   var localVotes = store.get("psn-avotes", {});
   var localSources = store.get("psn-sources", {});
   var saved = store.get("psn-favs", {});
+  var archived = store.get("psn-archived", {});
   var clicked = {};
 
   function api(path, body) {
@@ -908,6 +924,7 @@ html, body { overflow-x: clip; }
       server = Object.assign(d, { online: true });
       saved = {};
       d.saved.forEach(function (f) { saved[f.id] = f; });
+      setArchivedFromServer(d);
       computeSourceAvg();
       render();
       return d;
@@ -955,12 +972,14 @@ html, body { overflow-x: clip; }
     saved: "Noch nichts gemerkt. Über das Lesezeichen bei einem Beitrag landet es hier.",
     teamSaved: "Noch hat niemand aus dem Team etwas gemerkt.",
     clicks: "Noch keine geöffneten Artikel in den letzten 30 Tagen.",
-    votes: "Noch keine Daumen hoch in den letzten 30 Tagen."
+    votes: "Noch keine Daumen hoch in den letzten 30 Tagen.",
+    archived: "Noch nichts archiviert. Im Feed einen Beitrag nach links wischen, um ihn zu archivieren."
   };
 
   function matches(p) {
     var terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
     return TABS[state.tab](p)
+      && !archived[p.dataset.id]
       && (!state.topic || p.dataset.topics.split("|").indexOf(state.topic) !== -1)
       && (!state.type || p.dataset.type === state.type)
       && (!state.source || p.dataset.source === state.source)
@@ -973,6 +992,8 @@ html, body { overflow-x: clip; }
     up.querySelector(".cnt").textContent = c.up > 0 ? c.up : "";
     up.title = c.team ? c.team + (c.team === 1 ? " Person" : " Personen") + " aus dem Team fanden das gut" : "Guter Artikel";
     p.classList.toggle("is-fav", !!saved[id]);
+    p.querySelector(".act-done").setAttribute("aria-pressed", archived[id] ? "true" : "false");
+    p.querySelector(".act-done").title = archived[id] ? "Zurück in den Feed" : "Archivieren (auf dem Handy: nach links wischen)";
   }
 
   function snapshot(post) {
@@ -1124,7 +1145,16 @@ html, body { overflow-x: clip; }
             paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++;
           });
       }
-      var list = view === "clicks" || view === "votes" ? [] : teamView ? (server.teamSaved || []) : Object.keys(saved).map(function (id) { return saved[id]; });
+      if (view === "archived") {
+        posts.filter(function (p) { return archived[p.dataset.id] && terms.every(function (t) { return p.dataset.text.indexOf(t) !== -1; }); })
+          .sort(function (a, b) { return (archived[b.dataset.id] || "").localeCompare(archived[a.dataset.id] || ""); })
+          .forEach(function (live) {
+            var p = live.cloneNode(true);
+            p.hidden = false; p.style.cssText = ""; p.className = live.className.replace(/\b(swip\S*|collapsing)\b/g, "");
+            paintAvatar(p); decorate(p); listFeed.appendChild(p); shown++;
+          });
+      }
+      var list = view === "clicks" || view === "votes" || view === "archived" ? [] : teamView ? (server.teamSaved || []) : Object.keys(saved).map(function (id) { return saved[id]; });
       list.slice().sort(function (a, b) { return (b.saved || "").localeCompare(a.saved || ""); })
         .filter(function (f) {
           var text = (f.title + " " + (f.snippet || "") + " " + f.source + " " + (f.topics || "").replace(/\|/g, " ")).toLowerCase();
@@ -1241,6 +1271,22 @@ html, body { overflow-x: clip; }
     if (server.online) api("save", { id: id, item: item }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
     else store.set("psn-favs", saved);
   }
+  // Archivieren: Beitrag für mich aus Feed und Entdecken nehmen (Wert = Zeitpunkt, für die Reihenfolge im Archiv)
+  function setArchivedFromServer(d) {
+    archived = Object.assign({}, d.archived || {});
+  }
+  function setArchived(id, on) {
+    if (on) archived[id] = new Date().toISOString(); else delete archived[id];
+    if (server.online) api("archive", { id: id, on: on }).catch(function () { toast("Nicht gespeichert – keine Verbindung"); });
+    else store.set("psn-archived", archived);
+  }
+  function archivePost(post) {
+    var id = post.dataset.id;
+    setArchived(id, true);
+    render();
+    toast("Archiviert", function () { setArchived(id, false); render(); });
+  }
+
   // Geöffnete Artikel zählen (einmal pro Artikel und Person)
   function track(post) {
     var a = ref(post);
@@ -1285,6 +1331,12 @@ html, body { overflow-x: clip; }
       setVote(post, next);
       toast(next === 1 ? "Als gut markiert" : next === -1 ? "Als nicht relevant markiert" : "Bewertung entfernt",
         function () { setVote(post, before); });
+      return;
+    }
+    if (act === "done") {
+      var id = post.dataset.id;
+      if (archived[id]) { setArchived(id, false); render(); toast("Zurück im Feed", function () { setArchived(id, true); render(); }); }
+      else archivePost(post);
       return;
     }
     if (act === "save") {
@@ -1359,6 +1411,59 @@ html, body { overflow-x: clip; }
     d.addEventListener("toggle", function () { if (d.open) d.querySelectorAll("textarea").forEach(autosize); });
   });
 
+  // Nach links wischen archiviert einen Beitrag in Feed und Entdecken. Erst wenn die Bewegung klar
+  // seitwärts geht, gehört sie dem Wischen; senkrecht scrollt die Seite wie gewohnt.
+  (function () {
+    var post = null, x0 = 0, y0 = 0, t0 = 0, dx = 0, mode = null;
+    function setDx(el, px) { el.style.setProperty("--dx", px + "px"); el.classList.toggle("swipe-ready", px < -60); }
+    feed.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1 || post) return;
+      var p = e.target.closest(".post");
+      if (!p || p.classList.contains("collapsing")) return;
+      post = p; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); dx = 0; mode = null;
+    }, { passive: true });
+    feed.addEventListener("touchmove", function (e) {
+      if (!post) return;
+      var mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+      if (!mode) {
+        if (Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+        mode = Math.abs(mx) > Math.abs(my) * 1.3 && mx < 0 ? "swipe" : "scroll";
+        if (mode === "swipe") post.classList.add("swiping");
+      }
+      if (mode !== "swipe") return;
+      dx = Math.min(0, mx);
+      setDx(post, dx);
+    }, { passive: true });
+    function end() {
+      if (!post) return;
+      var p = post, w = p.offsetWidth, fast = dx < -90 && Date.now() - t0 < 250;
+      post = null;
+      if (mode !== "swipe") return;
+      p.classList.remove("swiping");
+      p.classList.add("swipe-anim");
+      if (dx < -w * 0.35 || fast) {
+        // Wegschieben, dann die Lücke schliessen
+        p.style.setProperty("--dx", -w + "px");
+        setTimeout(function () {
+          p.style.maxHeight = p.offsetHeight + "px";
+          p.offsetHeight;
+          p.classList.add("collapsing");
+          p.style.maxHeight = "0px";
+          setTimeout(function () {
+            p.classList.remove("collapsing", "swipe-anim", "swipe-ready");
+            p.style.cssText = "";
+            archivePost(p);
+          }, 260);
+        }, 200);
+      } else {
+        setDx(p, 0);
+        setTimeout(function () { p.classList.remove("swipe-anim", "swipe-ready"); p.style.removeProperty("--dx"); }, 230);
+      }
+    }
+    feed.addEventListener("touchend", end);
+    feed.addEventListener("touchcancel", end);
+  })();
+
   // Nach unten ziehen zum Aktualisieren, wie in Safari: Der Inhalt rutscht nach unten, die Chips
   // bleiben oben, in der Lücke erscheinen die Striche der Ladeanzeige. Loslassen lädt Team-Daten neu
   // und, falls es einen neueren Abruf gibt, die Seite. Nur in der App vom Home-Bildschirm (im
@@ -1426,6 +1531,7 @@ html, body { overflow-x: clip; }
     server = Object.assign(d, { online: true });
     saved = {};
     d.saved.forEach(function (f) { saved[f.id] = f; });
+    setArchivedFromServer(d);
     if (!d.saved.length && Object.keys(before).length && !store.get("psn-favs-migrated", false)) {
       Object.keys(before).forEach(function (id) { saved[id] = before[id]; api("save", { id: id, item: before[id] }).catch(function () {}); });
       store.set("psn-favs-migrated", true);

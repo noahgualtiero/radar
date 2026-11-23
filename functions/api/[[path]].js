@@ -13,11 +13,13 @@
 //   POST /api/vote        {id, value: 1 | -1 | 0, source, domain, kind}
 //   POST /api/click       {id, source, domain, kind}
 //   POST /api/save        {id, item | null}
+//   POST /api/archive     {id, on: true | false}   Beitrag archivieren (für mich ausblenden) oder zurückholen
 //   POST /api/my-source   {source, on: true | false}   Quelle im eigenen Feed an- oder ausschalten
 //   POST /api/suggestion  {key, action: "accept" | "dismiss"}
 //   POST /api/config      {op, ...}  Quelle aufnehmen, Themen, Suchbegriffe, Regeln
 
 const WINDOW_DAYS = 45;          // Votes und Klicks, die für Zahlen und Reihenfolge zählen
+const ARCHIVE_DAYS = 60;         // Archivierte Beiträge; ältere sind ohnehin nicht mehr im Feed
 const DAY = 864e5;
 const KINDS = ["feed", "entdecken"];
 
@@ -45,6 +47,7 @@ export async function onRequest(context) {
     if (path === "vote") return json(await vote(env.DB, me, body));
     if (path === "click") return json(await click(env.DB, me, body));
     if (path === "save") return json(await save(env.DB, me, body));
+    if (path === "archive") return json(await archive(env.DB, me, body));
     if (path === "my-source") return json(await mySource(context, me, body));
     if (path === "suggestion") return json(await answerSuggestion(context, me, body));
     if (path === "config") return json(await editConfig(context, me, body));
@@ -100,7 +103,8 @@ const b64text = (s) => new TextDecoder().decode(b64bytes(s));
 
 async function state(env, me) {
   const db = env.DB, since = iso(-WINDOW_DAYS);
-  const [counts, clicks, mine, saved, teamSaved, config, sources] = await Promise.all([
+  await ensureArchiveTable(db);
+  const [counts, clicks, mine, saved, teamSaved, config, sources, archived] = await Promise.all([
     db.prepare(`SELECT article_id, SUM(value > 0) AS up, SUM(value < 0) AS down,
                 SUM(CASE WHEN value > 0 AND user <> ?1 THEN 1 ELSE 0 END) AS team
                 FROM votes WHERE created_at >= ?2 GROUP BY article_id`).bind(me, since).all(),
@@ -112,6 +116,7 @@ async function state(env, me) {
                 WHERE user <> ? GROUP BY article_id ORDER BY last DESC LIMIT 150`).bind(me).all(),
     loadConfig(env),
     mySources(db, me),
+    db.prepare("SELECT article_id, created_at FROM archived WHERE user = ? AND created_at >= ?").bind(me, iso(-ARCHIVE_DAYS)).all(),
   ]);
   const articles = {};
   for (const r of counts.results) articles[r.article_id] = { up: r.up, down: r.down, team: r.team, clicks: 0 };
@@ -121,6 +126,7 @@ async function state(env, me) {
     articles,
     votes: Object.fromEntries(mine.results.map((r) => [r.article_id, r.value])),
     saved: saved.results.map((r) => JSON.parse(r.data)),
+    archived: Object.fromEntries(archived.results.map((r) => [r.article_id, r.created_at])),
     teamSaved: teamSaved.results.map((r) => Object.assign(JSON.parse(r.data), { team: r.n, saved: r.last })),
     sources,
     // Quellen laut Einstellungen: neu aufgenommene erscheinen so sofort, nicht erst nach dem nächsten Abruf
@@ -229,6 +235,26 @@ async function save(db, me, body) {
     if (data.length > 8000) throw fail("Artikel zu gross");
     await db.prepare("INSERT OR REPLACE INTO saved (user, article_id, data, created_at) VALUES (?, ?, ?, ?)")
       .bind(me, id, data, body.item.saved || iso()).run();
+  }
+  return { ok: true };
+}
+
+// Die Tabelle kam später dazu: so braucht es keinen eigenen Schritt in der Datenbank
+let archiveReady = null;
+function ensureArchiveTable(db) {
+  return (archiveReady ||= db.prepare(`CREATE TABLE IF NOT EXISTS archived (
+      user TEXT NOT NULL, article_id TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY (user, article_id))`).run()
+    .catch((e) => { archiveReady = null; throw e; }));
+}
+
+async function archive(db, me, body) {
+  const id = text(body.id, 600);
+  if (!id) throw fail("id fehlt");
+  await ensureArchiveTable(db);
+  if (body.on === false) {
+    await db.prepare("DELETE FROM archived WHERE user = ? AND article_id = ?").bind(me, id).run();
+  } else {
+    await db.prepare("INSERT OR REPLACE INTO archived (user, article_id, created_at) VALUES (?, ?, ?)").bind(me, id, iso()).run();
   }
   return { ok: true };
 }

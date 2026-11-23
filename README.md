@@ -28,14 +28,17 @@ Fünf Tabs, auf dem Desktop links, auf dem Handy unten:
 | **Feed** | Die eigenen Quellen. Oben Themen-Chips. Gelegentlich erscheint ein Vorschlag |
 | **Entdecken** | Suchfunde (Google News pro Thema, KI-Websuche) und Community (Reddit). Chips nach Typ: Studie, Kennzahlen, Best Practice, News, Diskussion |
 | **Briefing** | Ein Briefing pro Tag: Lauftext, die drei wichtigsten Beiträge mit Begründung, Studien und Community des Tages; oben die Trend-Begriffe |
-| **Gemerkt** | Chips «Meine gemerkten» (persönlich, auf allen Geräten gleich) und «Vom Team gemerkt» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen); die Suche gilt für beide |
+| **Gemerkt** | Chips «Meine gemerkten» (persönlich, auf allen Geräten gleich), «Vom Team gemerkt» (was andere gemerkt haben, mit Anzahl Personen, ohne Namen), «Meistgelesen», «Top bewertet» und «Archiv» (selbst archivierte Beiträge); die Suche gilt für alle |
 | **Einstellungen** (Zahnrad) | Quellen mit Schalter «in meinem Feed», Votes und Klicks, Regeln, Themen, Suchbegriffe, Farbschema, letzter Lauf mit KI-Kosten |
 
-Bei jedem Beitrag gibt es vier Aktionen:
+Bei jedem Beitrag gibt es fünf Aktionen:
 - **Daumen hoch:** guter Artikel. Die Zahl daneben zählt alle Daumen im Team.
 - **Daumen runter:** nicht relevant.
 - **Teilen**
 - **Merken**
+- **Archivieren:** auf dem Handy den Beitrag nach links wischen, auf dem Desktop der Knopf mit der
+  Kiste. Der Beitrag verschwindet für diese Person aus Feed und Entdecken (auf allen Geräten) und
+  steht unter Gemerkt → «Archiv», wo er sich zurückholen lässt. Ein Hinweis bietet «Rückgängig».
 
 Melden mehrere Quellen dasselbe, steht der Beitrag nur einmal da, mit dem Vermerk «Auch bei …».
 
